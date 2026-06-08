@@ -1,0 +1,34 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-sand text-ink font-body antialiased;
+  }
+  h1, h2, h3 {
+    @apply font-display text-secondary;
+  }
+}
+
+@layer components {
+  .btn {
+    @apply inline-flex items-center gap-2 rounded-pill px-5 py-3 font-semibold text-[15px] transition;
+  }
+  .btn-primary { @apply bg-primary text-white hover:bg-primary-hover; }
+  .btn-accent  { @apply bg-accent text-secondary hover:bg-accent-hover; }
+  .btn-secondary { @apply border border-primary text-primary hover:bg-status-inscrito-bg; }
+  .btn-ghost { @apply border border-line text-muted hover:bg-white hover:text-ink; }
+
+  .card { @apply bg-surface border border-line rounded-lg shadow-card; }
+
+  .input {
+    @apply w-full rounded-md border border-line bg-white px-3.5 py-2.5 text-[15px]
+           focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20;
+  }
+
+  .badge { @apply inline-flex items-center gap-1.5 rounded-pill px-3 py-1 text-[13px] font-semibold; }
+  .badge-inscrito  { @apply bg-status-inscrito-bg text-status-inscrito; }
+  .badge-presente  { @apply bg-status-presente-bg text-status-presente; }
+  .badge-cancelado { @apply bg-status-cancelado-bg text-status-cancelado; }
+}

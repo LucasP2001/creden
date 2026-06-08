@@ -25,7 +25,7 @@ creden/
 │   └── QrReader.tsx
 ├── lib/
 │   ├── supabase.ts         # ver skill creden-supabase
-│   ├── email.ts            # Resend
+│   ├── email.ts            # Brevo
 │   └── qr.ts               # geração de token + QR
 └── types/
     └── index.ts            # Evento, Inscricao, User
@@ -42,6 +42,6 @@ creden/
 - **Nomes e microcopy em português** (pt-BR). Código (variáveis/funções) em inglês ou
   português, mas siga o que já existir no arquivo.
 - **QR/token**: lógica de geração e validação isolada em `lib/qr.ts`.
-- **E-mail**: envio via Resend isolado em `lib/email.ts`.
+- **E-mail**: envio via Brevo (API REST com `fetch`, sem SDK) isolado em `lib/email.ts`.
 
 Skills relacionadas: `creden-overview`, `creden-design`, `creden-supabase`.

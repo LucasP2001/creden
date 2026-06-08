@@ -35,10 +35,10 @@
       "note": "Serif com caráter, ótimo suporte a acentuação pt-BR. Substitui Inter/Roboto/Arial (proibidas)."
     },
     "body": {
-      "family": "Mona Sans",
+      "family": "Be Vietnam Pro",
       "fallback": "'Segoe UI', system-ui, sans-serif",
       "use": "Interface, parágrafos, tabelas, formulários.",
-      "note": "Sans humanista, neutra mas com personalidade; acentuação pt-BR completa."
+      "note": "Sans humanista com personalidade e acentuação pt-BR completa; disponível no Google Fonts. Substitui Inter/Roboto/Arial (proibidas)."
     }
   },
   "radius": { "sm": "8px", "md": "12px", "lg": "16px", "pill": "999px" },

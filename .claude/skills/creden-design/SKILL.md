@@ -36,7 +36,7 @@ Direção: **confiável e humana** — sóbria para o organizador, calorosa para
 ## Tipografia
 
 - **Display:** **Fraunces** (serif com caráter) — títulos, logo, números grandes. Fallback `Georgia, serif`.
-- **Corpo:** **Mona Sans** (sans humanista) — interface, tabelas, formulários. Fallback `'Segoe UI', system-ui, sans-serif`.
+- **Corpo:** **Be Vietnam Pro** (sans humanista) — interface, tabelas, formulários. Fallback `'Segoe UI', system-ui, sans-serif`.
 - Ambas com acentuação pt-BR completa. Substituem as proibidas (Inter/Roboto/Arial).
 
 ## Logo

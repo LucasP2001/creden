@@ -38,7 +38,7 @@ Target niche: small/medium courses, workshops, and academic/cultural events in *
 - **Next.js 14** (App Router)
 - **Supabase** — database, auth, storage, realtime
 - **Tailwind CSS**
-- **Resend** — transactional email (the ticket)
+- **Brevo** (REST API via `fetch`, no SDK) — transactional email (the ticket)
 - **html5-qrcode** — in-browser QR scanning
 
 ## Architecture (intended)
@@ -60,7 +60,7 @@ Code is organized into four layers (detail in **creden-conventions**):
 
 - `app/` — routes. Default to **Server Components**; reach for `'use client'` only where interactivity is required (camera, stateful forms, realtime).
 - `components/ui/` — base Button / Input / Badge, reused by screens. Do not recreate these ad-hoc per screen.
-- `lib/` — integrations isolated by concern: `supabase.ts` (browser + server clients), `email.ts` (Resend), `qr.ts` (token generation + validation). Keep QR/token and email logic out of components.
+- `lib/` — integrations isolated by concern: `supabase.ts` (server + admin clients) / `supabase-browser.ts` (browser client — split out because `supabase.ts` imports `next/headers`, which can't go in a client bundle), `email.ts` (Brevo via REST/fetch), `qr.ts` (token generation + validation). Keep QR/token and email logic out of components.
 - `types/index.ts` — central domain types (`Evento`, `Inscricao`, `User`).
 
 ## Data & security model (Supabase)
@@ -73,7 +73,7 @@ RLS is **mandatory** and encodes the two-profile boundary:
 2. Anyone can insert a registration from a public page (anonymous insert into `inscricoes`).
 3. Only the event's owner can update registration status (check-in).
 
-Never expose the `service_role` key to the browser. Env vars live in `.env.local`: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`.
+Never expose the `service_role` key to the browser. Env vars live in `.env.local` (see `.env.local.example`): `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `BREVO_API_KEY`, `BREVO_FROM_EMAIL`, `BREVO_FROM_NAME`, `NEXT_PUBLIC_APP_URL`. The `.env.local.example` is versioned — keep only placeholders there, never real keys.
 
 ## Design constraints
 

@@ -1,0 +1,81 @@
+import Link from 'next/link'
+import { createServerSupabase } from '@/lib/supabase'
+import { EventCard } from '@/components/EventCard'
+import { ButtonLink } from '@/components/ui/Button'
+import { EventoComStats } from '@/types'
+
+// Dashboard do organizador — lista de eventos. Server Component (busca no servidor).
+export default async function DashboardPage() {
+  const supabase = await createServerSupabase()
+
+  // RLS garante que só vêm os eventos do organizador logado (auth.uid() = user_id).
+  // TODO: trocar por uma view/RPC que já traz total_inscritos e total_presentes agregados.
+  const { data: eventos, error } = await supabase
+    .from('eventos')
+    .select('*')
+    .order('data_hora', { ascending: false })
+
+  if (error) {
+    return (
+      <Shell>
+        <p className="text-error">Não foi possível carregar seus eventos. Tente novamente.</p>
+      </Shell>
+    )
+  }
+
+  const lista = (eventos ?? []) as EventoComStats[]
+
+  return (
+    <Shell>
+      <div className="flex items-end justify-between gap-4 mb-7 flex-wrap">
+        <div>
+          <h1 className="text-3xl font-semibold">Meus eventos</h1>
+          <p className="text-muted mt-1">
+            {lista.length === 0
+              ? 'Você ainda não tem eventos.'
+              : `Você tem ${lista.length} evento(s).`}
+          </p>
+        </div>
+        <ButtonLink variant="accent" href="/eventos/novo">
+          ＋ Criar evento
+        </ButtonLink>
+      </div>
+
+      {lista.length === 0 ? (
+        <EmptyState />
+      ) : (
+        <div className="grid gap-[18px] [grid-template-columns:repeat(auto-fill,minmax(300px,1fr))]">
+          {lista.map((ev) => (
+            <EventCard key={ev.id} evento={ev} />
+          ))}
+        </div>
+      )}
+    </Shell>
+  )
+}
+
+function EmptyState() {
+  return (
+    <Link
+      href="/eventos/novo"
+      className="card grid place-items-center min-h-[230px] text-center text-muted border-dashed hover:text-ink"
+    >
+      <div>
+        <div className="w-12 h-12 rounded-full bg-accent text-secondary grid place-items-center text-2xl mx-auto mb-3">
+          ＋
+        </div>
+        <strong className="text-ink">Criar seu primeiro evento</strong>
+        <div className="text-[13px] mt-1">Página de inscrição em minutos</div>
+      </div>
+    </Link>
+  )
+}
+
+function Shell({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="max-w-[1080px] mx-auto px-7 py-8 pb-20">
+      <div className="text-muted mb-6">Painel do organizador</div>
+      {children}
+    </div>
+  )
+}

@@ -33,7 +33,7 @@ Interface e microcopy **em português do Brasil**.
 - **Next.js 14** (App Router)
 - **Supabase** (banco, auth, storage, realtime) → ver skill `creden-supabase`
 - **Tailwind CSS**
-- **Resend** (e-mail transacional)
+- **Brevo** (e-mail transacional via API REST com `fetch`, sem SDK)
 - **html5-qrcode** (leitura de QR no browser)
 
 ## Rotas principais

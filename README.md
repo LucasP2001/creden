@@ -19,4 +19,4 @@ O código Next.js ainda será gerado (Etapa 3).
 
 ## Stack
 
-Next.js 14 (App Router) · Supabase · Tailwind CSS · Resend · html5-qrcode
+Next.js 14 (App Router) · Supabase · Tailwind CSS · Brevo · html5-qrcode
