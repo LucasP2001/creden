@@ -1,0 +1,49 @@
+{
+  "$comment": "Tokens de identidade visual do Creden. Fonte de verdade da Etapa 1. Vira config do Tailwind na Etapa 3 e deve ser refletido na skill creden-design.",
+  "color": {
+    "brand": {
+      "primary":        { "value": "#0E5C56", "name": "Verde-petróleo",  "use": "Cor principal: header, botões primários, links, símbolo do logo." },
+      "primaryHover":   { "value": "#0B4A45", "use": "Hover/active do primário." },
+      "primaryLight":   { "value": "#3BA89E", "use": "Primário sobre fundo escuro; detalhes." },
+      "secondary":      { "value": "#16302E", "name": "Verde-grafite",   "use": "Texto de títulos, superfícies escuras, wordmark em fundo claro." },
+      "accent":         { "value": "#F5B14C", "name": "Âmbar",           "use": "Destaque/acolhimento: CTA secundário, check do logo, badges de atenção." },
+      "accentHover":    { "value": "#E89F32", "use": "Hover do âmbar." }
+    },
+    "feedback": {
+      "success": { "value": "#1F9D6B", "bg": "#E4F5EC", "use": "Check-in confirmado (verde)." },
+      "error":   { "value": "#D14343", "bg": "#FBE7E7", "use": "QR inválido (vermelho)." },
+      "warning": { "value": "#E0A300", "bg": "#FCF3DA", "use": "Já entrou (amarelo)." }
+    },
+    "status": {
+      "inscrito":  { "value": "#0E5C56", "bg": "#E2EFEE", "use": "Badge: inscrito." },
+      "presente":  { "value": "#1F9D6B", "bg": "#E4F5EC", "use": "Badge: presente." },
+      "cancelado": { "value": "#8A8377", "bg": "#EFECE4", "use": "Badge: cancelado." }
+    },
+    "neutral": {
+      "ink":     { "value": "#1C1B18", "use": "Texto principal." },
+      "muted":   { "value": "#6B675E", "use": "Texto secundário, labels." },
+      "line":    { "value": "#E4DFD4", "use": "Bordas e divisores." },
+      "surface": { "value": "#FFFFFF", "use": "Cards e inputs." },
+      "bg":      { "value": "#F4F1EA", "name": "Areia", "use": "Fundo da aplicação (neutro quente, não cinza frio)." }
+    }
+  },
+  "font": {
+    "display": {
+      "family": "Fraunces",
+      "fallback": "Georgia, 'Times New Roman', serif",
+      "use": "Títulos, logo, números grandes (contador de check-in).",
+      "note": "Serif com caráter, ótimo suporte a acentuação pt-BR. Substitui Inter/Roboto/Arial (proibidas)."
+    },
+    "body": {
+      "family": "Mona Sans",
+      "fallback": "'Segoe UI', system-ui, sans-serif",
+      "use": "Interface, parágrafos, tabelas, formulários.",
+      "note": "Sans humanista, neutra mas com personalidade; acentuação pt-BR completa."
+    }
+  },
+  "radius": { "sm": "8px", "md": "12px", "lg": "16px", "pill": "999px" },
+  "shadow": {
+    "card": "0 1px 2px rgba(28,27,24,.06), 0 4px 16px rgba(28,27,24,.06)",
+    "lift": "0 8px 28px rgba(14,92,86,.16)"
+  }
+}

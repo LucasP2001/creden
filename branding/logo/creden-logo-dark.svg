@@ -1,0 +1,11 @@
+<svg width="220" height="56" viewBox="0 0 220 56" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Creden">
+  <!-- Símbolo — em fundo escuro o ticket fica claro para manter contraste -->
+  <g transform="translate(0,0)">
+    <path
+      d="M12 10 H44 a5 5 0 0 1 5 5 V22 a4.4 4.4 0 0 0 0 10.6 V40 a5 5 0 0 1 -5 5 H12 a5 5 0 0 1 -5 -5 V32.6 a4.4 4.4 0 0 0 0 -10.6 V15 a5 5 0 0 1 5 -5 Z"
+      fill="#3BA89E"/>
+    <path d="M19 28 L25 34 L38 21" stroke="#F5B14C" stroke-width="4.4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  </g>
+  <!-- Wordmark — fundo escuro: texto claro -->
+  <text x="64" y="38" font-family="Fraunces, 'Times New Roman', serif" font-size="34" font-weight="600" letter-spacing="-0.5" fill="#F4F1EA">Creden</text>
+</svg>

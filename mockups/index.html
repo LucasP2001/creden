@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Creden — Mockups (Etapa 2)</title>
+<link rel="stylesheet" href="creden.css">
+<style>
+  .head{max-width:960px;margin:0 auto;padding:48px 24px 8px}
+  .head h1{font-size:38px}
+  .group-title{max-width:960px;margin:36px auto 14px;padding:0 24px;font-size:14px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);font-weight:600}
+  .screens{max-width:960px;margin:0 auto;padding:0 24px 80px;display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:18px}
+  .scr{display:flex;flex-direction:column;overflow:hidden;transition:.15s;text-decoration:none;color:inherit}
+  .scr:hover{box-shadow:var(--sh-lift);transform:translateY(-2px)}
+  .scr .thumb{height:120px;display:grid;place-items:center;font-size:40px;color:#fff}
+  .scr .pad{padding:16px}
+  .scr h3{font-size:17px}
+  .scr .route{font-family:var(--body);font-size:12px;color:var(--muted);margin-top:2px}
+  .scr p{font-size:13px;color:var(--muted);margin:8px 0 0}
+  .t-org{background:linear-gradient(120deg,var(--primary),var(--primary-light))}
+  .t-amber{background:linear-gradient(120deg,#C77B12,var(--accent))}
+  .t-graf{background:linear-gradient(120deg,var(--secondary),var(--primary))}
+</style>
+</head>
+<body>
+<div class="head">
+  <div class="brand" style="margin-bottom:18px"><span class="dot">🎟</span> Creden</div>
+  <h1>Mockups das telas</h1>
+  <p class="muted">Etapa 2 — 6 telas em HTML/CSS usando a identidade visual da Etapa 1. Veja também a <a href="../branding/index.html">identidade visual</a>.</p>
+</div>
+
+<div class="group-title">Organizador</div>
+<div class="screens">
+  <a class="card scr" href="1-dashboard.html"><div class="thumb t-org">▦</div><div class="pad"><h3>Dashboard</h3><div class="route">/dashboard</div><p>Lista de eventos com inscritos e % de check-in.</p></div></a>
+  <a class="card scr" href="2-evento-novo.html"><div class="thumb t-org">＋</div><div class="pad"><h3>Criar evento</h3><div class="route">/eventos/novo</div><p>Formulário, campos extras e preview da URL pública.</p></div></a>
+  <a class="card scr" href="3-inscritos.html"><div class="thumb t-org">☰</div><div class="pad"><h3>Lista de inscritos</h3><div class="route">/eventos/[id]/inscritos</div><p>Tabela, filtro por status e export CSV.</p></div></a>
+  <a class="card scr" href="4-checkin.html"><div class="thumb t-graf">📷</div><div class="pad"><h3>Check-in</h3><div class="route">/eventos/[id]/checkin</div><p>Câmera, feedback grande e busca manual.</p></div></a>
+</div>
+
+<div class="group-title">Participante</div>
+<div class="screens">
+  <a class="card scr" href="5-evento-publico.html"><div class="thumb t-amber">🎉</div><div class="pad"><h3>Página pública</h3><div class="route">/e/[slug]</div><p>Evento, vagas restantes e botão de inscrição.</p></div></a>
+  <a class="card scr" href="6-ingresso.html"><div class="thumb t-graf">🎟</div><div class="pad"><h3>Ingresso digital</h3><div class="route">/i/[token]</div><p>QR code, dados, status e instrução de entrada.</p></div></a>
+</div>
+</body>
+</html>
