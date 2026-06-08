@@ -6,7 +6,7 @@ export default function LandingPage() {
     <main className="min-h-screen">
       <header className="flex items-center justify-between px-6 h-16 border-b border-line bg-surface">
         <span className="font-display text-xl font-semibold text-secondary">🎟 Creden</span>
-        <Link href="/dashboard" className="btn btn-secondary">
+        <Link href="/login" className="btn btn-secondary">
           Entrar
         </Link>
       </header>
@@ -20,7 +20,7 @@ export default function LandingPage() {
           com a câmera do celular. O participante recebe o ingresso por e-mail.
         </p>
         <div className="mt-8 flex gap-3 justify-center">
-          <Link href="/dashboard" className="btn btn-accent btn-lg">
+          <Link href="/login" className="btn btn-accent btn-lg">
             Começar agora
           </Link>
           <Link href="/e/exemplo" className="btn btn-secondary btn-lg">

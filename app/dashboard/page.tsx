@@ -3,10 +3,15 @@ import { createServerSupabase } from '@/lib/supabase'
 import { EventCard } from '@/components/EventCard'
 import { ButtonLink } from '@/components/ui/Button'
 import { EventoComStats } from '@/types'
+import { logout } from '@/app/auth/actions'
 
 // Dashboard do organizador — lista de eventos. Server Component (busca no servidor).
 export default async function DashboardPage() {
   const supabase = await createServerSupabase()
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
 
   // RLS garante que só vêm os eventos do organizador logado (auth.uid() = user_id).
   // TODO: trocar por uma view/RPC que já traz total_inscritos e total_presentes agregados.
@@ -17,7 +22,7 @@ export default async function DashboardPage() {
 
   if (error) {
     return (
-      <Shell>
+      <Shell email={user?.email}>
         <p className="text-error">Não foi possível carregar seus eventos. Tente novamente.</p>
       </Shell>
     )
@@ -26,7 +31,7 @@ export default async function DashboardPage() {
   const lista = (eventos ?? []) as EventoComStats[]
 
   return (
-    <Shell>
+    <Shell email={user?.email}>
       <div className="flex items-end justify-between gap-4 mb-7 flex-wrap">
         <div>
           <h1 className="text-3xl font-semibold">Meus eventos</h1>
@@ -71,10 +76,20 @@ function EmptyState() {
   )
 }
 
-function Shell({ children }: { children: React.ReactNode }) {
+function Shell({ children, email }: { children: React.ReactNode; email?: string }) {
   return (
     <div className="max-w-[1080px] mx-auto px-7 py-8 pb-20">
-      <div className="text-muted mb-6">Painel do organizador</div>
+      <div className="flex items-center justify-between mb-6">
+        <span className="text-muted">Painel do organizador</span>
+        <div className="flex items-center gap-3 text-sm">
+          {email && <span className="text-muted">{email}</span>}
+          <form action={logout}>
+            <button type="submit" className="text-primary font-semibold hover:underline">
+              Sair
+            </button>
+          </form>
+        </div>
+      </div>
       {children}
     </div>
   )
