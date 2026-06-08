@@ -1,0 +1,9 @@
+<svg width="240" height="76" viewBox="0 0 240 76" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Creden">
+  <!-- Fundo escuro: ticket contornado, nome claro, para manter contraste -->
+  <path
+    d="M16 14 H224 a8 8 0 0 1 8 8 V30 a8 8 0 0 0 0 16 V54 a8 8 0 0 1 -8 8 H16 a8 8 0 0 1 -8 -8 V46 a8 8 0 0 0 0 -16 V22 a8 8 0 0 1 8 -8 Z"
+    fill="none" stroke="#3BA89E" stroke-width="2.5"/>
+  <line x1="54" y1="22" x2="54" y2="54" stroke="#3BA89E" stroke-width="2" stroke-dasharray="3 5" stroke-linecap="round" opacity="0.6"/>
+  <path d="M24 38 L30 44 L41 31" stroke="#F5B14C" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <text x="70" y="49" font-family="Fraunces, Georgia, serif" font-size="32" font-weight="600" letter-spacing="-0.5" fill="#F4F1EA">Creden</text>
+</svg>

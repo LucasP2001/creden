@@ -1,4 +1,5 @@
 import { LoginGoogle } from './LoginGoogle'
+import { Logo } from '@/components/Logo'
 
 // Página de login do organizador. O participante não precisa de conta.
 export default function LoginPage({
@@ -9,7 +10,7 @@ export default function LoginPage({
   return (
     <main className="min-h-screen grid place-items-center px-6">
       <div className="w-full max-w-sm text-center">
-        <span className="font-display text-2xl font-semibold text-secondary">🎟 Creden</span>
+        <Logo className="text-xl justify-center" />
         <h1 className="font-display text-3xl font-semibold mt-6">Entrar</h1>
         <p className="text-muted mt-2 mb-8">
           Acesse o painel para criar eventos e gerenciar inscritos.

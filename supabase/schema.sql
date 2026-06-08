@@ -104,14 +104,12 @@ create policy "eventos: leitura pública" on public.eventos
 create policy "inscricoes: insert público" on public.inscricoes
   for insert to anon, authenticated with check (true);
 
--- Leitura pública do ingresso por token (/i/[token]).
--- ⚠️ ATENÇÃO: `using (true)` libera SELECT anônimo de QUALQUER linha de inscricoes
--- (RLS filtra linhas, não obriga a query a filtrar por token). Para o lançamento,
--- prefira NÃO usar esta política e ler o ingresso no servidor via createAdminSupabase()
--- (service_role) filtrando por token — assim o anônimo nunca consulta a tabela direto.
--- Mantida aqui apenas como referência da intenção; reveja antes de produção.
-create policy "inscricoes: leitura pública por token" on public.inscricoes
-  for select to anon, authenticated using (true);
+-- NOTA: NÃO há política de SELECT anônimo em inscricoes (de propósito).
+-- O ingresso público (/i/[token]) é lido no servidor via createAdminSupabase()
+-- (service_role), filtrando por token — o anônimo nunca consulta a tabela direto.
+-- Uma policy `using (true)` aqui exporia toda a lista de inscritos (e-mails etc.),
+-- então não a criamos. Quem migrou de uma versão anterior deve rodar:
+--   drop policy if exists "inscricoes: leitura pública por token" on public.inscricoes;
 
 -- Organizador do evento lê todas as inscrições do seu evento.
 create policy "inscricoes: dono do evento lê" on public.inscricoes

@@ -1,11 +1,12 @@
 import Link from 'next/link'
+import { Logo } from '@/components/Logo'
 
 // Landing page pública. TODO: caprichar a copy/seções de marketing.
 export default function LandingPage() {
   return (
     <main className="min-h-screen">
       <header className="flex items-center justify-between px-6 h-16 border-b border-line bg-surface">
-        <span className="font-display text-xl font-semibold text-secondary">🎟 Creden</span>
+        <Logo />
         <Link href="/login" className="btn btn-secondary">
           Entrar
         </Link>

@@ -1,6 +1,8 @@
 import { createAdminSupabase } from '@/lib/supabase'
 import { gerarQrDataUrl } from '@/lib/qr'
 import { Evento, Inscricao } from '@/types'
+import { ReenviarBotao } from './ReenviarBotao'
+import { Logo } from '@/components/Logo'
 
 function formatarData(iso: string): string {
   return new Date(iso).toLocaleString('pt-BR', {
@@ -44,7 +46,7 @@ export default async function IngressoPage({ params }: { params: { token: string
       <div>
         <div className="w-[min(380px,94vw)] bg-surface rounded-[24px] overflow-hidden shadow-lift">
           <div className="bg-primary text-white px-6 py-5 flex items-center justify-between">
-            <span className="font-display font-semibold text-lg">🎟 Creden</span>
+            <Logo variant="dark" />
             <span className="text-xs opacity-85">INGRESSO</span>
           </div>
 
@@ -82,6 +84,8 @@ export default async function IngressoPage({ params }: { params: { token: string
             📲 Apresente esta tela na entrada
           </div>
         </div>
+
+        <ReenviarBotao token={insc.token} email={insc.email} />
       </div>
     </div>
   )

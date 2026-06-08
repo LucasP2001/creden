@@ -3,6 +3,7 @@
 import { useCallback, useState } from 'react'
 import { QrReader } from '@/components/QrReader'
 import { BuscaManual } from './BuscaManual'
+import { Logo } from '@/components/Logo'
 import { createBrowserSupabase } from '@/lib/supabase-browser'
 import { tokenValido } from '@/lib/qr'
 import { CheckinResultado, Inscricao } from '@/types'
@@ -74,7 +75,9 @@ export function CheckinClient({ eventoId }: { eventoId: string }) {
   return (
     <div className="min-h-screen flex flex-col bg-secondary text-white">
       <div className="flex items-center justify-between px-[18px] py-3.5 bg-black/25">
-        <span className="font-display font-semibold text-lg">🎟 Check-in</span>
+        <span className="flex items-center gap-2 font-display font-semibold text-lg">
+          <Logo variant="dark" symbolOnly /> Check-in
+        </span>
         <div className="text-right leading-tight">
           <b className="font-display text-[22px]">{total}</b>
           <div className="text-xs opacity-70">entradas confirmadas</div>

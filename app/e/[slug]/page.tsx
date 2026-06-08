@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { createServerSupabase } from '@/lib/supabase'
 import { Evento } from '@/types'
+import { Logo } from '@/components/Logo'
 
 function formatarDataLonga(iso: string): string {
   return new Date(iso).toLocaleDateString('pt-BR', {
@@ -39,7 +40,7 @@ export default async function EventoPublicoPage({ params }: { params: { slug: st
   return (
     <main className="min-h-screen">
       <header className="h-14 flex items-center px-6 border-b border-line bg-surface">
-        <span className="font-display font-semibold text-lg text-secondary">🎟 Creden</span>
+        <Logo />
       </header>
 
       <div className="h-[240px] bg-gradient-to-br from-primary to-primary-light relative">
