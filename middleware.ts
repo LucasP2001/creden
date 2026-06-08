@@ -48,6 +48,10 @@ export async function middleware(request: NextRequest) {
   return supabaseResponse
 }
 
+// Roda no Node.js runtime (não Edge): o @supabase/supabase-js usa APIs de Node
+// (process.version) que quebram o middleware no Edge Runtime da Vercel.
+export const runtime = 'nodejs'
+
 export const config = {
   matcher: [
     // Tudo, exceto estáticos e imagens.
