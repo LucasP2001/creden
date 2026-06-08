@@ -14,10 +14,12 @@ export default async function DashboardPage() {
   } = await supabase.auth.getUser()
 
   // RLS garante que só vêm os eventos do organizador logado (auth.uid() = user_id).
-  // TODO: trocar por uma view/RPC que já traz total_inscritos e total_presentes agregados.
+  // Traz, em uma única query, a contagem total de inscrições e a de presentes por evento,
+  // usando contagem de relação aninhada do PostgREST (com alias filtrado para presentes).
   const { data: eventos, error } = await supabase
     .from('eventos')
-    .select('*')
+    .select('*, total:inscricoes(count), presentes:inscricoes(count)')
+    .eq('presentes.status', 'presente')
     .order('data_hora', { ascending: false })
 
   if (error) {
@@ -28,7 +30,16 @@ export default async function DashboardPage() {
     )
   }
 
-  const lista = (eventos ?? []) as EventoComStats[]
+  // PostgREST devolve a contagem como [{ count: N }]; normaliza para os campos de EventoComStats.
+  type LinhaContada = Record<string, unknown> & {
+    total?: { count: number }[]
+    presentes?: { count: number }[]
+  }
+  const lista: EventoComStats[] = ((eventos ?? []) as LinhaContada[]).map((e) => ({
+    ...(e as unknown as EventoComStats),
+    total_inscritos: e.total?.[0]?.count ?? 0,
+    total_presentes: e.presentes?.[0]?.count ?? 0,
+  }))
 
   return (
     <Shell email={user?.email}>
