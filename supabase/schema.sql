@@ -35,7 +35,7 @@ create table if not exists public.eventos (
   slug          text not null unique,
   imagem_url    text,                              -- capa (Storage); null = gradiente
   campos_extras jsonb not null default '[]'::jsonb,
-  sessoes       jsonb not null default '[]'::jsonb, -- cronograma (ver skill creden-supabase)
+  categorias    jsonb not null default '[]'::jsonb, -- cronograma (ver skill creden-supabase)
   created_at    timestamptz not null default now(),
   updated_at    timestamptz not null default now()
 );

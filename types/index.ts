@@ -18,7 +18,7 @@ export type TipoSessao = 'palestra' | 'minicurso' | 'servico' | 'outro'
 
 export interface Sessao {
   id: string
-  dia: string // 'YYYY-MM-DD'
+  dia: string | null // 'YYYY-MM-DD'
   hora_inicio: string // 'HH:MM'
   hora_fim: string // 'HH:MM'
   titulo: string
@@ -27,6 +27,12 @@ export interface Sessao {
   palestrante: string | null
   local: string | null
   vagas_max: number | null // null = ilimitado
+}
+
+export interface Categoria {
+  id: string
+  titulo: string
+  sessoes: Sessao[]
 }
 
 export interface Evento {
@@ -42,7 +48,7 @@ export interface Evento {
   imagem_url: string | null // URL pública da capa no Storage; null = gradiente
   cor_capa: string // cor de fundo atrás da capa (hex); default #FFFFFF
   campos_extras: CampoExtra[] // jsonb no banco
-  sessoes: Sessao[] // cronograma (jsonb no banco)
+  categorias: Categoria[] // cronograma (jsonb no banco)
   created_at: string
   updated_at: string
 }
