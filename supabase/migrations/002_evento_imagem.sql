@@ -32,6 +32,10 @@ create policy "capas atualiza dono"
   using (
     bucket_id = 'eventos-capas'
     and auth.uid()::text = (storage.foldername(name))[1]
+  )
+  with check (
+    bucket_id = 'eventos-capas'
+    and auth.uid()::text = (storage.foldername(name))[1]
   );
 
 drop policy if exists "capas remove dono" on storage.objects;
