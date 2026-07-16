@@ -2,8 +2,9 @@
 
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
-import { createServerSupabase } from '@/lib/supabase'
+import { createServerSupabase, createAdminSupabase } from '@/lib/supabase'
 import { uploadCapa } from '@/lib/capa'
+import { limparOrfaos } from '@/lib/marcacoes'
 import { montarPayloadUpdate } from './payload'
 
 export interface AtualizarEventoResult {
@@ -43,6 +44,8 @@ export async function atualizarEvento(
 
   const { error } = await supabase.from('eventos').update(dadosUpdate).eq('id', eventoId)
   if (error) return { ok: false, erro: 'Não foi possível salvar as alterações.' }
+
+  await limparOrfaos(createAdminSupabase(), eventoId, payload.sessoes)
 
   revalidatePath('/dashboard')
   revalidatePath(`/e/${dono.slug}`)

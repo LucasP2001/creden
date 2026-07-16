@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { novaSessao, rotuloTipo, parseSessoes, agruparPorDia } from './sessoes'
+import { idsDeSessoes } from './marcacoes'
 import type { Sessao } from '@/types'
 
 function s(over: Partial<Sessao>): Sessao {
@@ -54,6 +55,13 @@ describe('parseSessoes', () => {
   })
   it('retorna [] se não for array', () => {
     expect(parseSessoes('{"a":1}')).toEqual([])
+  })
+})
+
+describe('idsDeSessoes', () => {
+  it('extrai os ids', () => {
+    expect(idsDeSessoes([s({ id: 'a' }), s({ id: 'b' })])).toEqual(['a', 'b'])
+    expect(idsDeSessoes([])).toEqual([])
   })
 })
 
