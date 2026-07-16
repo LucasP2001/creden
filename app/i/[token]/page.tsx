@@ -3,6 +3,8 @@ import { createAdminSupabase } from '@/lib/supabase'
 import { gerarQrDataUrl } from '@/lib/qr'
 import { Evento, Inscricao } from '@/types'
 import { ReenviarBotao } from './ReenviarBotao'
+import { SessoesEditor } from './SessoesEditor'
+import { marcacoesDaInscricao, contarPorSessao } from '@/lib/marcacoes'
 import { Logo } from '@/components/Logo'
 
 function formatarData(iso: string): string {
@@ -86,6 +88,15 @@ export default async function IngressoPage({ params }: { params: { token: string
             {ev.local && <Row k="Local" v={ev.local} />}
             <Row k="Participante" v={insc.nome} />
           </div>
+
+          {ev.sessoes.length > 0 && (
+            <SessoesEditor
+              token={insc.token}
+              sessoes={ev.sessoes}
+              marcadasIniciais={await marcacoesDaInscricao(supabase, insc.id)}
+              contagens={await contarPorSessao(supabase, ev.id)}
+            />
+          )}
 
           <div className="bg-status-inscrito-bg text-primary text-center font-semibold text-sm py-4">
             📲 Apresente esta tela na entrada

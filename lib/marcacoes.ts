@@ -76,3 +76,39 @@ export async function gravarMarcacoes(
   }
   return rejeitadas
 }
+
+/** Ids de sessões já marcados por uma inscrição. */
+export async function marcacoesDaInscricao(admin: Admin, inscricaoId: string): Promise<string[]> {
+  const { data } = await admin
+    .from('inscricoes_sessoes')
+    .select('sessao_id')
+    .eq('inscricao_id', inscricaoId)
+  return (data ?? []).map((r) => (r as { sessao_id: string }).sessao_id)
+}
+
+/**
+ * Reconcilia as marcações de uma inscrição para o conjunto desejado:
+ * remove as que saíram, insere as novas respeitando vaga.
+ * Retorna títulos rejeitados por lotação.
+ */
+export async function reconciliarMarcacoes(
+  admin: Admin,
+  eventoId: string,
+  inscricaoId: string,
+  desejadas: string[],
+  sessoes: Sessao[]
+): Promise<string[]> {
+  const atuais = await marcacoesDaInscricao(admin, inscricaoId)
+  const remover = atuais.filter((id) => !desejadas.includes(id))
+  const adicionar = desejadas.filter((id) => !atuais.includes(id))
+
+  if (remover.length > 0) {
+    await admin
+      .from('inscricoes_sessoes')
+      .delete()
+      .eq('inscricao_id', inscricaoId)
+      .in('sessao_id', remover)
+  }
+  // adicionar respeitando vaga (reusa gravarMarcacoes)
+  return gravarMarcacoes(admin, eventoId, inscricaoId, adicionar, sessoes)
+}
