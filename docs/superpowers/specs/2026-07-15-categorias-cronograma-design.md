@@ -6,12 +6,18 @@ Status: aprovado (aguardando review do spec)
 ## Objetivo
 
 Hoje o cronograma agrupa sessões automaticamente por `dia`. Trocar por **categorias
-nomeadas**: o organizador cria categorias (ex: "Dia 01 (10/08) — Gestão Municipal e
-Políticas Públicas") e coloca sessões dentro. Vários grupos, inclusive do mesmo dia.
-A exibição agrupa por categoria, na ordem definida pelo organizador.
+nomeadas e livres**: o organizador cria categorias (ex: "Dia 01 (10/08) — Gestão
+Municipal", ou "Minicursos — Dias 02 e 03") e coloca sessões dentro. A exibição
+agrupa por categoria, na ordem definida pelo organizador.
 
-Motivação: as programações reais (I Semana Acadêmica) têm temas nomeados por dia,
-não só datas. A data vai no título da categoria; a sessão guarda só o horário.
+**Categoria é um grupo livre, sem vínculo com data.** Pode conter sessões de dias
+diferentes (ex: uma categoria "Minicursos Simultâneos" com Minicurso A de 11/08 e
+Minicurso B de 12/08). A data, quando o organizador quiser mostrá-la, vai escrita no
+título da categoria — não há campo de data na categoria nem na sessão.
+
+Motivação: as programações reais (I Semana Acadêmica) têm temas nomeados que às vezes
+abrangem mais de um dia ("Dias 02 e 03: Prática e Inovação"). Categoria livre modela
+isso; agrupar por dia fixo não modelaria.
 
 ## Decisões
 
@@ -58,7 +64,10 @@ Migration `005_categorias.sql`:
 2. Converter dados existentes: para cada evento com `sessoes` não-vazio, agrupar as
    sessões por `dia` (distinto, ordenado), criar uma categoria por dia com
    `titulo = 'Dia ' || (data formatada)` e as sessões daquele dia (sem o campo `dia`).
-   Feito em PL/pgSQL ou via `jsonb` functions.
+   Feito em PL/pgSQL ou via `jsonb` functions. **Isso é só um ponto de partida
+   automático** (categoria por dia é a conversão mais natural do formato antigo); o
+   organizador pode depois renomear, mesclar ou reagrupar categorias livremente pelo
+   form — inclusive juntar sessões de dias diferentes numa categoria só.
 3. `drop column sessoes;` (após conversão).
 
 A migração preserva os `sessao_id` (id de cada sessão) — as marcações em
