@@ -14,6 +14,21 @@ export interface CampoExtra {
   opcoes?: string[]
 }
 
+export type TipoSessao = 'palestra' | 'minicurso' | 'servico' | 'outro'
+
+export interface Sessao {
+  id: string
+  dia: string // 'YYYY-MM-DD'
+  hora_inicio: string // 'HH:MM'
+  hora_fim: string // 'HH:MM'
+  titulo: string
+  tipo: TipoSessao
+  tipo_outro: string | null // rótulo livre quando tipo === 'outro'
+  palestrante: string | null
+  local: string | null
+  vagas_max: number | null // null = ilimitado
+}
+
 export interface Evento {
   id: string
   user_id: string // organizador dono (auth.users.id)
@@ -27,6 +42,7 @@ export interface Evento {
   imagem_url: string | null // URL pública da capa no Storage; null = gradiente
   cor_capa: string // cor de fundo atrás da capa (hex); default #FFFFFF
   campos_extras: CampoExtra[] // jsonb no banco
+  sessoes: Sessao[] // cronograma (jsonb no banco)
   created_at: string
   updated_at: string
 }
