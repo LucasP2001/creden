@@ -37,11 +37,11 @@ function Hero() {
     <section className="relative bg-grid">
       <div className="max-w-6xl mx-auto px-6 pt-20 pb-16 grid lg:grid-cols-2 gap-12 items-center">
         <div className="animate-fade-up">
-          <span className="inline-flex items-center gap-2 rounded-pill bg-status-inscrito-bg text-primary text-[13px] font-semibold px-3 py-1">
-            🎟 Inscrição + check-in num só lugar
+          <span className="inline-flex items-center gap-2 rounded-pill bg-surface border border-line text-primary text-[13px] font-semibold px-3 py-1">
+            🌿 Inscrição + check-in sem complicação
           </span>
           <h1 className="font-display text-[clamp(2.4rem,5vw,3.6rem)] font-semibold text-secondary leading-[1.05] mt-5">
-            Eventos que começam bem <span className="text-primary">na porta</span>.
+            Eventos que respiram <em className="not-italic text-accent-hover font-display italic">tranquilidade</em>.
           </h1>
           <p className="mt-5 text-lg text-muted max-w-md">
             Crie a página do seu evento, receba inscrições e faça check-in lendo o QR code

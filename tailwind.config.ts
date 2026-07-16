@@ -26,7 +26,8 @@ const config: Config = {
         ink: '#1C1B18',
         muted: '#6B675E',
         line: '#E4DFD4',
-        surface: '#FFFFFF',
+        // Warm × Natural: superfície creme quente (não branco puro).
+        surface: '#FBF8F1',
         sand: '#F4F1EA',
         // status badges
         status: {
@@ -43,13 +44,16 @@ const config: Config = {
         body: ['var(--font-body)', 'Segoe UI', 'system-ui', 'sans-serif'],
       },
       borderRadius: {
-        md: '12px',
-        lg: '16px',
+        // Warm × Natural: cantos mais arredondados, orgânicos.
+        md: '14px',
+        lg: '22px',
+        xl: '26px',
         pill: '999px',
       },
       boxShadow: {
-        card: '0 1px 2px rgba(28,27,24,.06), 0 4px 16px rgba(28,27,24,.06)',
-        lift: '0 8px 28px rgba(14,92,86,.16)',
+        // Sombras tingidas de verde (não cinza neutro).
+        card: '0 1px 2px rgba(14,92,86,.05), 0 16px 44px rgba(14,92,86,.10)',
+        lift: '0 22px 50px rgba(14,92,86,.16)',
       },
     },
   },

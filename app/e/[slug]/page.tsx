@@ -70,7 +70,7 @@ export default async function EventoPublicoPage({ params }: { params: { slug: st
       </div>
 
       <div className="max-w-[760px] mx-auto -mt-12 px-5 relative">
-        <article className="card rounded-[20px] shadow-lift overflow-hidden animate-fade-up">
+        <article className="card shadow-lift overflow-hidden animate-fade-up">
           <div className="p-7 sm:p-9">
             <h1 className="font-display text-[clamp(1.8rem,4vw,2.6rem)] font-semibold leading-tight">
               {ev.nome}
@@ -152,9 +152,7 @@ export default async function EventoPublicoPage({ params }: { params: { slug: st
 function MetaItem({ icon, label, valor }: { icon: string; label: string; valor: string }) {
   return (
     <div className="flex gap-3 items-start">
-      <span className="w-10 h-10 rounded-md bg-status-inscrito-bg text-primary grid place-items-center text-lg shrink-0">
-        {icon}
-      </span>
+      <span className="meta-ic text-lg">{icon}</span>
       <div>
         <div className="text-xs text-muted uppercase tracking-wide">{label}</div>
         <div className="font-semibold text-[15px] capitalize">{valor}</div>

@@ -15,15 +15,20 @@
   .btn {
     @apply inline-flex items-center gap-2 rounded-pill px-5 py-3 font-semibold text-[15px] transition;
   }
+  .btn-lg { @apply px-7 py-3.5 text-base; }
   .btn-primary { @apply bg-primary text-white hover:bg-primary-hover; }
   .btn-accent  { @apply bg-accent text-secondary hover:bg-accent-hover; }
-  .btn-secondary { @apply border border-primary text-primary hover:bg-status-inscrito-bg; }
-  .btn-ghost { @apply border border-line text-muted hover:bg-white hover:text-ink; }
+  /* Warm × Natural: outline suave em primary-light, não preenchido. */
+  .btn-secondary { @apply border border-primary-light text-primary hover:bg-status-inscrito-bg; }
+  .btn-ghost { @apply border border-line text-muted hover:bg-surface hover:text-ink; }
 
-  .card { @apply bg-surface border border-line rounded-lg shadow-card; }
+  .card { @apply bg-surface border border-line rounded-xl shadow-card; }
+
+  /* Ícone de metadado em círculo verde-claro (data/local/vagas). */
+  .meta-ic { @apply grid place-items-center w-10 h-10 rounded-full bg-[#e9efe7] text-base shrink-0; }
 
   .input {
-    @apply w-full rounded-md border border-line bg-white px-3.5 py-2.5 text-[15px]
+    @apply w-full rounded-md border border-line bg-surface px-3.5 py-2.5 text-[15px]
            focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20;
   }
 
