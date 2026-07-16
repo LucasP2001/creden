@@ -172,14 +172,22 @@ export function SessoesEditor({ token, dias, marcadasIniciais, contagens }: Prop
 
   return (
     <div>
-      {/* Contador */}
+      {/* Status: em zero convida à ação; com marcações, confirma o que está feito. */}
       <div className="flex items-baseline justify-between gap-3 pb-3 mb-1 border-b border-line">
-        <span className="text-sm font-semibold text-secondary">
-          {marcadas.length} de {selecionaveis.length} marcadas
-        </span>
+        {marcadas.length === 0 ? (
+          <span className="text-sm font-semibold text-primary">
+            👇 Toque nas palestras que você quer assistir
+          </span>
+        ) : (
+          <span className="text-sm font-semibold text-secondary">
+            {estado === 'salvo' || estado === 'limpo' ? '✓ ' : ''}
+            {marcadas.length} {marcadas.length === 1 ? 'palestra marcada' : 'palestras marcadas'}
+            <span className="font-normal text-muted"> de {selecionaveis.length}</span>
+          </span>
+        )}
         {conflitos.size > 0 && (
-          <span className="text-xs font-semibold text-warning">
-            ⚠ {conflitos.size} em choque de horário
+          <span className="text-xs font-semibold text-warning shrink-0">
+            ⚠ {conflitos.size} em choque
           </span>
         )}
       </div>
@@ -211,6 +219,11 @@ export function SessoesEditor({ token, dias, marcadasIniciais, contagens }: Prop
                 <div className="grid gap-2 min-w-0">{(c.sessoes ?? []).map(renderSessao)}</div>
               </div>
             ))}
+
+            {/* Dia ainda sem sessões: diz isso, em vez de deixar um header solto. */}
+            {sessoesDoDia(d).length === 0 && (
+              <p className="text-xs text-muted mt-3">Programação deste dia em breve.</p>
+            )}
           </div>
         ))}
       </div>

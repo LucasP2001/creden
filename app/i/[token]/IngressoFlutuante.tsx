@@ -1,8 +1,26 @@
 'use client'
 
+import { useEffect, useState } from 'react'
+
 // Atalho para o ingresso no mobile: rola até o card do QR.
-// No desktop o ingresso já está visível na coluna lateral (sticky), então some.
+// Some quando o próprio ingresso está visível (lá o botão só atrapalharia) e
+// no desktop, onde o ingresso já fica fixo na coluna lateral.
 export function IngressoFlutuante() {
+  const [visivel, setVisivel] = useState(true)
+
+  useEffect(() => {
+    const alvo = document.getElementById('ingresso')
+    if (!alvo) return
+    const obs = new IntersectionObserver(([e]) => setVisivel(!e.isIntersecting), {
+      // Só considera "à vista" quando uma fatia real do ingresso apareceu.
+      threshold: 0.15,
+    })
+    obs.observe(alvo)
+    return () => obs.disconnect()
+  }, [])
+
+  if (!visivel) return null
+
   return (
     <button
       type="button"

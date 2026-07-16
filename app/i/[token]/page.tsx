@@ -5,6 +5,7 @@ import { Evento, Inscricao } from '@/types'
 import { ReenviarBotao } from './ReenviarBotao'
 import { SessoesEditor } from './SessoesEditor'
 import { IngressoFlutuante } from './IngressoFlutuante'
+import { DescricaoEvento } from './DescricaoEvento'
 import { marcacoesDaInscricao, contarPorSessao } from '@/lib/marcacoes'
 import { Logo } from '@/components/Logo'
 
@@ -75,11 +76,7 @@ export default async function ParticipantePage({ params }: { params: { token: st
                 <div>📅 {formatarData(ev.data_hora)}</div>
                 {ev.local && <div>📍 {ev.local}</div>}
               </div>
-              {ev.descricao && (
-                <p className="text-[15px] leading-relaxed text-[#3a3833] whitespace-pre-line break-words mt-4">
-                  {ev.descricao}
-                </p>
-              )}
+              {ev.descricao && <DescricaoEvento texto={ev.descricao} />}
             </div>
           </div>
 
