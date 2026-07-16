@@ -5,6 +5,7 @@ import { Evento } from '@/types'
 import { Logo } from '@/components/Logo'
 import { CompartilharBotao } from './CompartilharBotao'
 import { Cronograma } from '@/components/Cronograma'
+import { RecuperarAcesso } from './RecuperarAcesso'
 import { contarPorSessao } from '@/lib/marcacoes'
 
 function formatarDataLonga(iso: string): string {
@@ -130,6 +131,7 @@ export default async function EventoPublicoPage({ params }: { params: { slug: st
         <p className="text-center text-xs text-muted mt-6">
           Você receberá um ingresso digital com QR code por e-mail.
         </p>
+        <RecuperarAcesso slug={ev.slug} />
       </div>
 
       {/* Barra de inscrição fixa no rodapé */}

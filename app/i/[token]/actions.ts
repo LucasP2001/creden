@@ -47,6 +47,32 @@ export async function reenviarIngresso(token: string): Promise<ReenviarResult> {
   }
 }
 
+// Recupera o acesso: participante informa o e-mail com que se inscreveu num evento
+// (por slug) e recebe o link /i/[token] de novo. Resposta neutra (não revela se o
+// e-mail existe) para não vazar quem está inscrito.
+export async function reenviarPorEmail(slug: string, email: string): Promise<ReenviarResult> {
+  const emailNorm = email.trim().toLowerCase()
+  if (!emailNorm) return { ok: false, erro: 'Informe o e-mail.' }
+
+  const supabase = createAdminSupabase()
+  const { data: ev } = await supabase.from('eventos').select('id').eq('slug', slug).single()
+  if (!ev) return { ok: false, erro: 'Evento não encontrado.' }
+
+  const { data: insc } = await supabase
+    .from('inscricoes')
+    .select('token')
+    .eq('evento_id', (ev as { id: string }).id)
+    .eq('email', emailNorm)
+    .neq('status', 'cancelado')
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+
+  // Se achou, reenvia. Resposta é sempre ok (neutra).
+  if (insc) await reenviarIngresso((insc as { token: string }).token)
+  return { ok: true }
+}
+
 export interface AtualizarSessoesResult {
   ok: boolean
   erro?: string

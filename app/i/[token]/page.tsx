@@ -17,10 +17,11 @@ function formatarData(iso: string): string {
   })
 }
 
-// Ingresso digital (/i/[token]). Público — quem tem o token vê o ingresso.
-export default async function IngressoPage({ params }: { params: { token: string } }) {
-  // Lê no servidor com service_role, filtrando pelo token. Assim o anônimo nunca
-  // consulta a tabela direto (ver aviso em supabase/schema.sql).
+// Página do participante (/i/[token]). Pública — quem tem o token (link do e-mail) acessa.
+// Mostra a inscrição, o ingresso com QR, os dados do evento e o cronograma onde o
+// participante escolhe as palestras.
+export default async function ParticipantePage({ params }: { params: { token: string } }) {
+  // Lê no servidor com service_role, filtrando pelo token (o anônimo nunca consulta direto).
   const supabase = createAdminSupabase()
   const { data: inscricao } = await supabase
     .from('inscricoes')
@@ -32,7 +33,7 @@ export default async function IngressoPage({ params }: { params: { token: string
     return (
       <div className="min-h-screen grid place-items-center bg-secondary text-white text-center px-6">
         <div>
-          <h1 className="font-display text-2xl">Ingresso não encontrado</h1>
+          <h1 className="font-display text-2xl">Inscrição não encontrada</h1>
           <p className="opacity-80 mt-2">Verifique o link recebido por e-mail.</p>
         </div>
       </div>
@@ -43,83 +44,86 @@ export default async function IngressoPage({ params }: { params: { token: string
   const ev = insc.eventos
   const qr = await gerarQrDataUrl(insc.token)
   const usado = insc.status === 'presente'
+  const temPrograma = (ev.dias ?? []).length > 0
 
   return (
-    <div className="min-h-screen grid place-items-center bg-secondary p-6">
-      <div>
-        <div className="w-[min(380px,94vw)] bg-surface rounded-[24px] overflow-hidden shadow-lift">
-          <div className="bg-primary text-white px-6 py-5 flex items-center justify-between">
-            <Logo variant="dark" />
-            <span className="text-xs opacity-85">INGRESSO</span>
+    <main className="min-h-screen bg-sand">
+      <header className="h-14 flex items-center px-6 border-b border-line bg-surface">
+        <Logo />
+      </header>
+
+      <div className="max-w-[980px] mx-auto px-5 py-8 grid gap-6 lg:grid-cols-[1fr_340px] items-start">
+        {/* Coluna principal: evento + programação */}
+        <div className="grid gap-6 order-2 lg:order-1">
+          <div className="card overflow-hidden">
+            {ev.imagem_url && (
+              <div className="relative h-40 w-full" style={{ backgroundColor: ev.cor_capa }}>
+                <Image src={ev.imagem_url} alt={`Capa de ${ev.nome}`} fill className="object-contain" />
+              </div>
+            )}
+            <div className="p-6">
+              <h1 className="font-display text-2xl font-semibold text-secondary">{ev.nome}</h1>
+              <div className="text-sm text-muted mt-2 grid gap-1">
+                <div>📅 {formatarData(ev.data_hora)}</div>
+                {ev.local && <div>📍 {ev.local}</div>}
+              </div>
+              {ev.descricao && (
+                <p className="text-[15px] leading-relaxed text-[#3a3833] whitespace-pre-line mt-4">
+                  {ev.descricao}
+                </p>
+              )}
+            </div>
           </div>
 
-          {ev.imagem_url && (
-            <div className="relative h-28 w-full" style={{ backgroundColor: ev.cor_capa }}>
-              <Image src={ev.imagem_url} alt={`Capa de ${ev.nome}`} fill className="object-contain" />
+          {temPrograma && (
+            <div className="card p-6">
+              <h2 className="font-display text-xl font-semibold">Escolha suas palestras</h2>
+              <p className="text-sm text-muted mt-1 mb-4">
+                Marque as sessões que você vai participar. Você pode voltar aqui e alterar quando quiser.
+              </p>
+              <SessoesEditor
+                token={insc.token}
+                dias={ev.dias ?? []}
+                marcadasIniciais={await marcacoesDaInscricao(supabase, insc.id)}
+                contagens={await contarPorSessao(supabase, ev.id)}
+              />
             </div>
           )}
-
-          <div
-            className={`flex items-center justify-center gap-2 font-bold text-sm py-2.5 ${
-              usado ? 'bg-warning-bg text-warning' : 'bg-success-bg text-success'
-            }`}
-          >
-            ● {usado ? 'Já utilizado' : 'Válido'}
-          </div>
-
-          <div className="px-6 pt-7 pb-4 text-center">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={qr}
-              alt="QR code do ingresso"
-              width={210}
-              height={210}
-              className="mx-auto rounded-2xl border border-line p-3 bg-white"
-            />
-          </div>
-
-          <div className="px-7 pb-2 text-center">
-            <h1 className="font-display text-2xl font-semibold">{ev.nome}</h1>
-            <div className="text-muted text-[15px] mt-1">{insc.nome}</div>
-          </div>
-
-          <div className="px-7 py-2">
-            <Row k="Data" v={formatarData(ev.data_hora)} />
-            {ev.local && <Row k="Local" v={ev.local} />}
-            <Row k="Participante" v={insc.nome} />
-          </div>
-
-          {ev.descricao && (
-            <div className="px-7 py-3 text-sm text-muted whitespace-pre-line border-t border-line">
-              {ev.descricao}
-            </div>
-          )}
-
-          {(ev.dias ?? []).length > 0 && (
-            <SessoesEditor
-              token={insc.token}
-              dias={ev.dias ?? []}
-              marcadasIniciais={await marcacoesDaInscricao(supabase, insc.id)}
-              contagens={await contarPorSessao(supabase, ev.id)}
-            />
-          )}
-
-          <div className="bg-status-inscrito-bg text-primary text-center font-semibold text-sm py-4">
-            📲 Apresente esta tela na entrada
-          </div>
         </div>
 
-        <ReenviarBotao token={insc.token} email={insc.email} />
+        {/* Coluna lateral: ingresso com QR */}
+        <aside className="order-1 lg:order-2 lg:sticky lg:top-8">
+          <div className="bg-surface rounded-[24px] overflow-hidden shadow-lift">
+            <div className="bg-primary text-white px-6 py-4 flex items-center justify-between">
+              <Logo variant="dark" />
+              <span className="text-xs opacity-85">INGRESSO</span>
+            </div>
+            <div
+              className={`flex items-center justify-center gap-2 font-bold text-sm py-2.5 ${
+                usado ? 'bg-warning-bg text-warning' : 'bg-success-bg text-success'
+              }`}
+            >
+              ● {usado ? 'Já utilizado' : 'Válido'}
+            </div>
+            <div className="px-6 pt-6 pb-3 text-center">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={qr}
+                alt="QR code do ingresso"
+                width={200}
+                height={200}
+                className="mx-auto rounded-2xl border border-line p-3 bg-white"
+              />
+              <div className="font-display text-lg font-semibold mt-3">{insc.nome}</div>
+              <div className="text-muted text-sm">{insc.email}</div>
+            </div>
+            <div className="bg-status-inscrito-bg text-primary text-center font-semibold text-sm py-3">
+              📲 Apresente esta tela na entrada
+            </div>
+          </div>
+          <ReenviarBotao token={insc.token} email={insc.email} />
+        </aside>
       </div>
-    </div>
-  )
-}
-
-function Row({ k, v }: { k: string; v: string }) {
-  return (
-    <div className="flex justify-between py-2 border-b border-line last:border-0 text-sm">
-      <span className="text-muted">{k}</span>
-      <span className="font-semibold text-right">{v}</span>
-    </div>
+    </main>
   )
 }

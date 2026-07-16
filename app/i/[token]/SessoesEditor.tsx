@@ -60,9 +60,7 @@ export function SessoesEditor({ token, dias, marcadasIniciais, contagens }: Prop
   }
 
   return (
-    <div className="px-6 py-4 border-t border-line">
-      <div className="text-sm font-semibold">Escolha suas palestras</div>
-      <p className="text-xs text-muted mb-2">Marque as sessões que você vai participar.</p>
+    <div>
       <div className="grid gap-3">
         {dias.map((d, i) => (
           <div key={d.id} className="grid gap-1.5">
