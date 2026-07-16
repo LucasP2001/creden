@@ -14,6 +14,7 @@ function s(over: Partial<Sessao>): Sessao {
     palestrante: over.palestrante ?? null,
     local: over.local ?? null,
     vagas_max: over.vagas_max ?? null,
+    sem_inscricao: over.sem_inscricao ?? false,
   }
 }
 

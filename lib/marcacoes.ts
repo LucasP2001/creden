@@ -65,6 +65,7 @@ export async function gravarMarcacoes(
   for (const id of sessaoIds) {
     const sessao = porId.get(id)
     if (!sessao) continue // id inexistente, ignora
+    if (sessao.sem_inscricao) continue // intervalo/pausa: não marcável
     if (sessao.vagas_max != null && (contagens[id] ?? 0) >= sessao.vagas_max) {
       rejeitadas.push(sessao.titulo)
       continue

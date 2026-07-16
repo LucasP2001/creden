@@ -435,7 +435,16 @@ function SessaoEditor({
         placeholder="Vagas (deixe vazio p/ ilimitado)"
         value={s.vagas_max ?? ''}
         onChange={(e) => onChange({ vagas_max: e.target.value ? Number(e.target.value) : null })}
+        disabled={s.sem_inscricao}
       />
+      <label className="flex items-center gap-2 text-sm text-muted">
+        <input
+          type="checkbox"
+          checked={s.sem_inscricao}
+          onChange={(e) => onChange({ sem_inscricao: e.target.checked })}
+        />
+        Não exige inscrição (intervalo, pausa, abertura…)
+      </label>
     </div>
   )
 }

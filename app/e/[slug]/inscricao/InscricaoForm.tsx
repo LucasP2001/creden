@@ -133,6 +133,17 @@ function SessaoCheck({
   lotada: boolean
   onToggle: (id: string, on: boolean) => void
 }) {
+  // Intervalo/pausa: só informativo, sem checkbox.
+  if (s.sem_inscricao) {
+    return (
+      <div className="flex items-start gap-2.5 p-2.5 text-sm text-muted">
+        <span className="mt-0.5">·</span>
+        <span>
+          <span className="font-medium">{s.titulo}</span> · {s.hora_inicio}
+        </span>
+      </div>
+    )
+  }
   return (
     <label
       className={`flex items-start gap-2.5 p-2.5 rounded-md border ${

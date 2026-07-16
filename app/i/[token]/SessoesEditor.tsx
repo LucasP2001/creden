@@ -25,6 +25,15 @@ export function SessoesEditor({ token, dias, marcadasIniciais, contagens }: Prop
   }
 
   function check(s: Sessao) {
+    // Intervalo/pausa: só informativo, sem checkbox.
+    if (s.sem_inscricao) {
+      return (
+        <div key={s.id} className="flex items-center gap-2 text-sm text-muted">
+          <span className="w-4" />
+          <span>{s.titulo} · {s.hora_inicio}</span>
+        </div>
+      )
+    }
     const on = marcadas.includes(s.id)
     const lotada = s.vagas_max != null && !on && (contagens[s.id] ?? 0) >= s.vagas_max
     return (

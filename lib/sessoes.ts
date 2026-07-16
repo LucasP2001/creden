@@ -19,6 +19,7 @@ export function novaSessao(): Sessao {
     palestrante: null,
     local: null,
     vagas_max: null,
+    sem_inscricao: false,
   }
 }
 

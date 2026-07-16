@@ -26,6 +26,7 @@ export interface Sessao {
   palestrante: string | null
   local: string | null
   vagas_max: number | null // null = ilimitado
+  sem_inscricao: boolean // true = intervalo/pausa; não selecionável pelo participante
 }
 
 /** Grupo nomeado de sessões dentro de um dia (opcional). */
