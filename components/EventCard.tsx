@@ -1,6 +1,7 @@
 import Image from 'next/image'
 import { EventoComStats } from '@/types'
 import { ButtonLink } from './ui/Button'
+import { TrocarCapaModal } from '@/app/dashboard/TrocarCapaModal'
 
 function formatarData(iso: string): string {
   return new Date(iso).toLocaleString('pt-BR', {
@@ -27,6 +28,9 @@ export function EventCard({ evento }: { evento: EventoComStats }) {
         ) : (
           <div className="absolute inset-0 bg-gradient-to-br from-primary to-primary-light" />
         )}
+        <div className="absolute top-2 right-2">
+          <TrocarCapaModal eventoId={evento.id} />
+        </div>
       </div>
       <div className="p-[18px] flex-1 flex flex-col">
         <h3 className="text-[19px] font-semibold text-secondary">{evento.nome}</h3>
