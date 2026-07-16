@@ -4,9 +4,15 @@ import { useMemo, useState } from 'react'
 import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
 import { ImageUpload } from '@/components/ImageUpload'
-import { CampoExtra, CampoExtraTipo } from '@/types'
+import { CampoExtra, CampoExtraTipo, Evento } from '@/types'
 import { slugify } from '@/lib/slug'
-import { criarEvento } from './actions'
+import { criarEvento } from './novo/actions'
+import { atualizarEvento } from './[id]/editar/actions'
+
+interface Props {
+  modo: 'criar' | 'editar'
+  evento?: Evento
+}
 
 let _id = 0
 const novoCampo = (): CampoExtra => ({
@@ -16,32 +22,42 @@ const novoCampo = (): CampoExtra => ({
   obrigatorio: false,
 })
 
-export function NovoEventoForm() {
-  const [nome, setNome] = useState('')
-  const [valorPago, setValorPago] = useState(false)
-  const [campos, setCampos] = useState<CampoExtra[]>([])
+// Converte ISO -> valor aceito por <input type="datetime-local"> (YYYY-MM-DDTHH:mm) no fuso local.
+function paraDatetimeLocal(iso: string): string {
+  const d = new Date(iso)
+  const off = d.getTimezoneOffset()
+  return new Date(d.getTime() - off * 60000).toISOString().slice(0, 16)
+}
+
+export function EventoForm({ modo, evento }: Props) {
+  const [nome, setNome] = useState(evento?.nome ?? '')
+  const [valorPago, setValorPago] = useState((evento?.valor ?? 0) > 0)
+  const [campos, setCampos] = useState<CampoExtra[]>(evento?.campos_extras ?? [])
   const [enviando, setEnviando] = useState(false)
   const [erro, setErro] = useState<string | null>(null)
 
-  const slug = useMemo(() => slugify(nome) || 'meu-evento', [nome])
+  const slug = useMemo(() => (evento ? evento.slug : slugify(nome) || 'meu-evento'), [nome, evento])
 
   function atualizarCampo(id: string, patch: Partial<CampoExtra>) {
     setCampos((cs) => cs.map((c) => (c.id === id ? { ...c, ...patch } : c)))
   }
 
-  async function publicar(formData: FormData) {
+  async function enviar(formData: FormData) {
     setEnviando(true)
     setErro(null)
     // Anexa os campos extras (estado client) como JSON.
     formData.set('campos_extras', JSON.stringify(campos))
-    const res = await criarEvento(formData)
+    const res =
+      modo === 'editar' && evento
+        ? await atualizarEvento(evento.id, formData)
+        : await criarEvento(formData)
     // Em sucesso a action redireciona; só chegamos aqui em erro.
     setEnviando(false)
-    if (res && !res.ok) setErro(res.erro ?? 'Não foi possível publicar o evento.')
+    if (res && !res.ok) setErro(res.erro ?? 'Não foi possível salvar o evento.')
   }
 
   return (
-    <form action={publicar} className="grid gap-[18px] [grid-template-columns:1fr_320px] items-start max-[860px]:grid-cols-1">
+    <form action={enviar} className="grid gap-[18px] [grid-template-columns:1fr_320px] items-start max-[860px]:grid-cols-1">
       <div className="grid gap-[18px]">
         <div className="card p-[22px]">
           <h2 className="text-lg font-semibold mb-3.5">Informações do evento</h2>
@@ -56,18 +72,41 @@ export function NovoEventoForm() {
             />
           </div>
           <div className="mb-[18px]">
-            <ImageUpload name="capa" />
+            <ImageUpload name="capa" defaultPreview={evento?.imagem_url ?? null} />
           </div>
           <div className="mb-[18px]">
             <label className="block text-[13px] font-semibold mb-1.5">Descrição</label>
-            <textarea name="descricao" className="input" rows={3} placeholder="Conte o que o participante vai viver." />
+            <textarea
+              name="descricao"
+              className="input"
+              rows={3}
+              placeholder="Conte o que o participante vai viver."
+              defaultValue={evento?.descricao ?? ''}
+            />
           </div>
           <div className="grid grid-cols-2 gap-4 max-[860px]:grid-cols-1">
-            <Input label="Data e hora" name="data_hora" type="datetime-local" required />
-            <Input label="Local" name="local" placeholder="Endereço ou 'Online'" />
+            <Input
+              label="Data e hora"
+              name="data_hora"
+              type="datetime-local"
+              required
+              defaultValue={evento ? paraDatetimeLocal(evento.data_hora) : undefined}
+            />
+            <Input
+              label="Local"
+              name="local"
+              placeholder="Endereço ou 'Online'"
+              defaultValue={evento?.local ?? ''}
+            />
           </div>
           <div className="grid grid-cols-2 gap-4 mt-[18px] max-[860px]:grid-cols-1">
-            <Input label="Vagas máximas" name="vagas_max" type="number" min={1} />
+            <Input
+              label="Vagas máximas"
+              name="vagas_max"
+              type="number"
+              min={1}
+              defaultValue={evento?.vagas_max ?? undefined}
+            />
             <div>
               <label className="block text-[13px] font-semibold mb-1.5">Valor</label>
               <div className="inline-flex border border-line rounded-pill overflow-hidden">
@@ -94,6 +133,7 @@ export function NovoEventoForm() {
                   step="0.01"
                   placeholder="R$ 0,00"
                   className="input mt-2.5"
+                  defaultValue={evento && evento.valor > 0 ? (evento.valor / 100).toFixed(2) : undefined}
                 />
               ) : (
                 <input type="hidden" name="valor" value="0" />
@@ -143,21 +183,29 @@ export function NovoEventoForm() {
 
         <div className="flex gap-3">
           <Button type="submit" disabled={enviando}>
-            {enviando ? 'Publicando…' : 'Publicar evento'}
+            {enviando ? 'Salvando…' : modo === 'editar' ? 'Salvar alterações' : 'Publicar evento'}
           </Button>
-          <Button type="button" variant="ghost">
-            Salvar rascunho
-          </Button>
+          {modo === 'criar' && (
+            <Button type="button" variant="ghost">
+              Salvar rascunho
+            </Button>
+          )}
         </div>
       </div>
 
       <aside className="grid gap-[18px]">
         <div className="card p-[22px]">
-          <label className="block text-[13px] font-semibold mb-1.5">URL pública gerada</label>
+          <label className="block text-[13px] font-semibold mb-1.5">
+            {modo === 'editar' ? 'URL pública' : 'URL pública gerada'}
+          </label>
           <div className="font-body bg-status-inscrito-bg border border-dashed border-primary-light rounded-md px-3.5 py-3 text-sm text-primary break-all">
             creden.com.br/e/{slug}
           </div>
-          <p className="text-xs text-muted mt-1.5">Gerada a partir do nome. Você poderá editar o final.</p>
+          <p className="text-xs text-muted mt-1.5">
+            {modo === 'editar'
+              ? 'O link não muda ao editar.'
+              : 'Gerada a partir do nome. Você poderá editar o final.'}
+          </p>
         </div>
       </aside>
     </form>

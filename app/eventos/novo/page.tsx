@@ -1,4 +1,4 @@
-import { NovoEventoForm } from './NovoEventoForm'
+import { EventoForm } from '../EventoForm'
 
 // Criar evento (/eventos/novo). A página é Server Component; o form é client (estado).
 export default function NovoEventoPage() {
@@ -11,7 +11,7 @@ export default function NovoEventoPage() {
       <p className="text-muted mt-1 mb-7">
         Preencha os dados — a página pública é gerada automaticamente.
       </p>
-      <NovoEventoForm />
+      <EventoForm modo="criar" />
     </div>
   )
 }
