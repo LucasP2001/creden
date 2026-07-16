@@ -4,7 +4,8 @@ import { useMemo, useState } from 'react'
 import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
 import { ImageUpload } from '@/components/ImageUpload'
-import { CampoExtra, CampoExtraTipo, Evento } from '@/types'
+import { CampoExtra, CampoExtraTipo, Evento, Sessao, TipoSessao } from '@/types'
+import { novaSessao } from '@/lib/sessoes'
 import { slugify } from '@/lib/slug'
 import { criarEvento } from './novo/actions'
 import { atualizarEvento } from './[id]/editar/actions'
@@ -32,6 +33,7 @@ export function EventoForm({ modo, evento }: Props) {
   const [nome, setNome] = useState(evento?.nome ?? '')
   const [valorPago, setValorPago] = useState((evento?.valor ?? 0) > 0)
   const [campos, setCampos] = useState<CampoExtra[]>(evento?.campos_extras ?? [])
+  const [sessoes, setSessoes] = useState<Sessao[]>(evento?.sessoes ?? [])
   const [enviando, setEnviando] = useState(false)
   const [erro, setErro] = useState<string | null>(null)
 
@@ -41,11 +43,16 @@ export function EventoForm({ modo, evento }: Props) {
     setCampos((cs) => cs.map((c) => (c.id === id ? { ...c, ...patch } : c)))
   }
 
+  function atualizarSessao(id: string, patch: Partial<Sessao>) {
+    setSessoes((ss) => ss.map((s) => (s.id === id ? { ...s, ...patch } : s)))
+  }
+
   async function enviar(formData: FormData) {
     setEnviando(true)
     setErro(null)
     // Anexa os campos extras (estado client) como JSON.
     formData.set('campos_extras', JSON.stringify(campos))
+    formData.set('sessoes', JSON.stringify(sessoes))
     const res =
       modo === 'editar' && evento
         ? await atualizarEvento(evento.id, formData)
@@ -175,6 +182,102 @@ export function EventoForm({ modo, evento }: Props) {
           ))}
           <Button type="button" variant="ghost" onClick={() => setCampos((cs) => [...cs, novoCampo()])}>
             ＋ Adicionar campo
+          </Button>
+        </div>
+
+        <div className="card p-[22px]">
+          <h2 className="text-lg font-semibold">Programação</h2>
+          <p className="text-xs text-muted mt-1 mb-4">
+            Palestras, minicursos e atividades. O participante pode marcar interesse em cada uma.
+          </p>
+          {sessoes.map((s) => (
+            <div key={s.id} className="border border-line rounded-md p-3 mb-3 grid gap-2.5">
+              <div className="flex gap-2.5 items-center">
+                <input
+                  className="input flex-1"
+                  placeholder="Título (ex: Logística e Cadeia de Suprimentos)"
+                  value={s.titulo}
+                  onChange={(e) => atualizarSessao(s.id, { titulo: e.target.value })}
+                />
+                <button
+                  type="button"
+                  onClick={() => setSessoes((ss) => ss.filter((x) => x.id !== s.id))}
+                  className="text-muted hover:text-error px-1.5 text-lg"
+                  aria-label="Remover sessão"
+                >
+                  ✕
+                </button>
+              </div>
+              <div className="grid grid-cols-3 gap-2.5 max-[860px]:grid-cols-1">
+                <input
+                  type="date"
+                  className="input"
+                  value={s.dia}
+                  onChange={(e) => atualizarSessao(s.id, { dia: e.target.value })}
+                />
+                <input
+                  type="time"
+                  className="input"
+                  value={s.hora_inicio}
+                  onChange={(e) => atualizarSessao(s.id, { hora_inicio: e.target.value })}
+                />
+                <input
+                  type="time"
+                  className="input"
+                  value={s.hora_fim}
+                  onChange={(e) => atualizarSessao(s.id, { hora_fim: e.target.value })}
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-2.5 max-[860px]:grid-cols-1">
+                <select
+                  className="input"
+                  value={s.tipo}
+                  onChange={(e) => atualizarSessao(s.id, { tipo: e.target.value as TipoSessao })}
+                >
+                  <option value="palestra">Palestra</option>
+                  <option value="minicurso">Minicurso</option>
+                  <option value="servico">Serviço</option>
+                  <option value="outro">Outro</option>
+                </select>
+                {s.tipo === 'outro' ? (
+                  <input
+                    className="input"
+                    placeholder="Nome do tipo (ex: Mesa redonda)"
+                    value={s.tipo_outro ?? ''}
+                    onChange={(e) => atualizarSessao(s.id, { tipo_outro: e.target.value || null })}
+                  />
+                ) : (
+                  <div />
+                )}
+              </div>
+              <div className="grid grid-cols-2 gap-2.5 max-[860px]:grid-cols-1">
+                <input
+                  className="input"
+                  placeholder="Palestrante (opcional)"
+                  value={s.palestrante ?? ''}
+                  onChange={(e) => atualizarSessao(s.id, { palestrante: e.target.value || null })}
+                />
+                <input
+                  className="input"
+                  placeholder="Local/sala (opcional)"
+                  value={s.local ?? ''}
+                  onChange={(e) => atualizarSessao(s.id, { local: e.target.value || null })}
+                />
+              </div>
+              <input
+                type="number"
+                min={1}
+                className="input"
+                placeholder="Vagas (deixe vazio p/ ilimitado)"
+                value={s.vagas_max ?? ''}
+                onChange={(e) =>
+                  atualizarSessao(s.id, { vagas_max: e.target.value ? Number(e.target.value) : null })
+                }
+              />
+            </div>
+          ))}
+          <Button type="button" variant="ghost" onClick={() => setSessoes((ss) => [...ss, novaSessao()])}>
+            ＋ Adicionar sessão
           </Button>
         </div>
 

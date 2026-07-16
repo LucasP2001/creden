@@ -1,5 +1,6 @@
-import { CampoExtra } from '@/types'
+import { CampoExtra, Sessao } from '@/types'
 import { corCapaValida } from '@/lib/imagem'
+import { parseSessoes } from '@/lib/sessoes'
 
 export interface PayloadUpdate {
   nome: string
@@ -9,6 +10,7 @@ export interface PayloadUpdate {
   vagas_max: number | null
   valor: number
   campos_extras: CampoExtra[]
+  sessoes: Sessao[]
   cor_capa: string
 }
 
@@ -47,6 +49,7 @@ export function montarPayloadUpdate(
       vagas_max: vagasRaw ? Number(vagasRaw) : null,
       valor: valorRaw ? Math.round(Number(valorRaw) * 100) : 0,
       campos_extras: camposExtras,
+      sessoes: parseSessoes(String(formData.get('sessoes') ?? '[]')),
       cor_capa: corCapaValida(String(formData.get('cor_capa') ?? '')),
     },
   }
