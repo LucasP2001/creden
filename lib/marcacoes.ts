@@ -72,7 +72,11 @@ export async function gravarMarcacoes(
   }
 
   if (inserir.length > 0) {
-    await admin.from('inscricoes_sessoes').insert(inserir)
+    // Dedup por sessao_id: ids repetidos (ex: FormData manipulado) violariam a
+    // unique (inscricao_id, sessao_id) e fariam o insert inteiro falhar.
+    const unicos = [...new Map(inserir.map((x) => [x.sessao_id, x])).values()]
+    const { error } = await admin.from('inscricoes_sessoes').insert(unicos)
+    if (error) console.error('Falha ao gravar marcacoes de sessao:', error)
   }
   return rejeitadas
 }
