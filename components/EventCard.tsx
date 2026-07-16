@@ -55,7 +55,10 @@ export function EventCard({ evento }: { evento: EventoComStats }) {
           <div className="h-full bg-success rounded-pill" style={{ width: `${pct}%` }} />
         </div>
 
-        <div className="mt-auto pt-4 flex justify-end">
+        <div className="mt-auto pt-4 flex justify-end gap-2">
+          <ButtonLink variant="ghost" href={`/eventos/${evento.id}/editar`}>
+            Editar
+          </ButtonLink>
           <ButtonLink variant="secondary" href={`/eventos/${evento.id}/inscritos`}>
             Gerenciar
           </ButtonLink>
