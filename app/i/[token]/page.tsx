@@ -2,10 +2,10 @@ import Image from 'next/image'
 import { createAdminSupabase } from '@/lib/supabase'
 import { gerarQrDataUrl } from '@/lib/qr'
 import { Evento, Inscricao } from '@/types'
-import { ReenviarBotao } from './ReenviarBotao'
-import { SessoesEditor } from './SessoesEditor'
-import { IngressoFlutuante } from './IngressoFlutuante'
+import { PainelParticipante } from './PainelParticipante'
+import { CardIngresso } from './CardIngresso'
 import { DescricaoEvento } from './DescricaoEvento'
+import { Cronograma } from '@/components/Cronograma'
 import { marcacoesDaInscricao, contarPorSessao } from '@/lib/marcacoes'
 import { Logo } from '@/components/Logo'
 
@@ -48,89 +48,70 @@ export default async function ParticipantePage({ params }: { params: { token: st
   const usado = insc.status === 'presente'
   const temPrograma = (ev.dias ?? []).length > 0
 
+  const cardIngresso = (
+    <CardIngresso qr={qr} nome={insc.nome} email={insc.email} usado={usado} token={insc.token} />
+  )
+
   return (
     <main className="min-h-screen bg-sand pb-24">
       <header className="h-14 flex items-center px-6 border-b border-line bg-surface">
         <Logo />
       </header>
 
-      <div className="max-w-[980px] mx-auto px-5 py-8 grid gap-6 lg:grid-cols-[1fr_340px] items-start">
-        {/* Coluna principal: evento + programação.
-            No mobile vem antes do ingresso: quem abre a página fora do evento quer
-            escolher palestras; o QR fica a um toque pelo botão flutuante. */}
-        <div className="grid gap-6 order-1 min-w-0">
-          <div className="card overflow-hidden min-w-0">
-            {ev.imagem_url && (
-              <div className="relative h-40 w-full" style={{ backgroundColor: ev.cor_capa }}>
-                <Image src={ev.imagem_url} alt={`Capa de ${ev.nome}`} fill className="object-contain" />
-              </div>
-            )}
-            <div className="p-6">
-              <p className="text-sm text-primary font-semibold">
-                Sua inscrição está confirmada, {insc.nome.split(' ')[0]} 👋
-              </p>
-              <h1 className="font-display text-2xl font-semibold text-secondary mt-1 break-words">
-                {ev.nome}
-              </h1>
-              <div className="text-sm text-muted mt-2 grid gap-1">
-                <div>📅 {formatarData(ev.data_hora)}</div>
-                {ev.local && <div>📍 {ev.local}</div>}
-              </div>
-              {ev.descricao && <DescricaoEvento texto={ev.descricao} />}
-            </div>
-          </div>
-
-          {temPrograma && (
-            <div className="card p-6 pb-8 min-w-0">
-              <h2 className="font-display text-xl font-semibold">Escolha suas palestras</h2>
-              <p className="text-sm text-muted mt-1 mb-4">
-                Marque as sessões que você vai participar. Você pode voltar aqui e alterar quando quiser.
-              </p>
-              <SessoesEditor
-                token={insc.token}
-                dias={ev.dias ?? []}
-                marcadasIniciais={await marcacoesDaInscricao(supabase, insc.id)}
-                contagens={await contarPorSessao(supabase, ev.id)}
-              />
+      <div className="max-w-[980px] mx-auto px-5 pb-8">
+        {/* Informações do evento: contexto fixo, acima das abas. */}
+        <div className="card overflow-hidden min-w-0 mt-6">
+          {ev.imagem_url && (
+            <div className="relative h-40 w-full" style={{ backgroundColor: ev.cor_capa }}>
+              <Image src={ev.imagem_url} alt={`Capa de ${ev.nome}`} fill className="object-contain" />
             </div>
           )}
+          <div className="p-6">
+            <p className="text-sm text-primary font-semibold">
+              Sua inscrição está confirmada, {insc.nome.split(' ')[0]} 👋
+            </p>
+            <h1 className="font-display text-2xl font-semibold text-secondary mt-1 break-words">
+              {ev.nome}
+            </h1>
+            <div className="text-sm text-muted mt-2 grid gap-1">
+              <div>📅 {formatarData(ev.data_hora)}</div>
+              {ev.local && <div>📍 {ev.local}</div>}
+            </div>
+            {ev.descricao && <DescricaoEvento texto={ev.descricao} />}
+          </div>
         </div>
 
-        {/* Coluna lateral: ingresso com QR. Desktop: sticky ao lado. */}
-        <aside id="ingresso" className="order-2 lg:sticky lg:top-8 scroll-mt-6">
-          <div className="bg-surface rounded-[24px] overflow-hidden shadow-lift">
-            <div className="bg-primary text-white px-6 py-4 flex items-center justify-between">
-              <Logo variant="dark" />
-              <span className="text-xs opacity-85">INGRESSO</span>
-            </div>
-            <div
-              className={`flex items-center justify-center gap-2 font-bold text-sm py-2.5 ${
-                usado ? 'bg-warning-bg text-warning' : 'bg-success-bg text-success'
-              }`}
-            >
-              ● {usado ? 'Já utilizado' : 'Válido'}
-            </div>
-            <div className="px-6 pt-6 pb-3 text-center">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={qr}
-                alt="QR code do ingresso"
-                width={200}
-                height={200}
-                className="mx-auto rounded-2xl border border-line p-3 bg-white"
-              />
-              <div className="font-display text-lg font-semibold mt-3">{insc.nome}</div>
-              <div className="text-muted text-sm">{insc.email}</div>
-            </div>
-            <div className="bg-status-inscrito-bg text-primary text-center font-semibold text-sm py-3">
-              📲 Apresente esta tela na entrada
-            </div>
-          </div>
-          <ReenviarBotao token={insc.token} email={insc.email} />
-        </aside>
-      </div>
+        {/* Abas: Inscrição (escolher) · Programação (consultar) · Ingresso (validar).
+            No desktop o ingresso também fica fixo na lateral — na porta do evento,
+            ninguém deveria caçar aba pra achar o QR. */}
+        <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_340px] items-start">
+          <PainelParticipante
+            token={insc.token}
+            dias={ev.dias ?? []}
+            marcadasIniciais={await marcacoesDaInscricao(supabase, insc.id)}
+            contagens={await contarPorSessao(supabase, ev.id)}
+            nomeEvento={ev.nome}
+            programacao={
+              temPrograma ? (
+                <div className="card p-5 sm:p-6 min-w-0">
+                  <Cronograma
+                    dias={ev.dias ?? []}
+                    contagens={await contarPorSessao(supabase, ev.id)}
+                    semTitulo
+                  />
+                </div>
+              ) : (
+                <div className="card p-6 min-w-0">
+                  <p className="text-sm text-muted">Programação em breve.</p>
+                </div>
+              )
+            }
+            ingresso={<div className="lg:hidden">{cardIngresso}</div>}
+          />
 
-      {temPrograma && <IngressoFlutuante />}
+          <aside className="hidden lg:block lg:sticky lg:top-8">{cardIngresso}</aside>
+        </div>
+      </div>
     </main>
   )
 }

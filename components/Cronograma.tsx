@@ -60,9 +60,12 @@ function SessaoCard({ s, contagens }: { s: Sessao; contagens?: Record<string, nu
 export function Cronograma({
   dias,
   contagens,
+  semTitulo = false,
 }: {
   dias: Dia[]
   contagens?: Record<string, number>
+  /** Dentro de uma aba já chamada "Programação" o título vira eco — omite. */
+  semTitulo?: boolean
 }) {
   const lista = dias ?? []
   if (lista.length === 0) return null
@@ -76,8 +79,8 @@ export function Cronograma({
   }
 
   return (
-    <section className="mt-8">
-      <h2 className="font-display text-2xl font-semibold mb-4">Programação</h2>
+    <section className={semTitulo ? '' : 'mt-8'}>
+      {!semTitulo && <h2 className="font-display text-2xl font-semibold mb-4">Programação</h2>}
       <div className="grid gap-8 min-w-0">
         {lista.map((d, i) => (
           <div key={d.id} className="min-w-0">

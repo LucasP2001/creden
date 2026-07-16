@@ -1,9 +1,11 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useMemo, useState, type ReactNode } from 'react'
 import { Dia, Sessao } from '@/types'
 import { rotuloTipo } from '@/lib/sessoes'
 import { sessoesEmConflito, sessoesDoDia, formatarDiaLongo } from '@/lib/conflitos'
+import { diasSelecionaveis, contarSelecionaveis } from '@/lib/abas'
+import { Abas, type AbaId } from './Abas'
 import { atualizarSessoes } from './actions'
 
 interface Props {
@@ -11,6 +13,11 @@ interface Props {
   dias: Dia[]
   marcadasIniciais: string[]
   contagens: Record<string, number>
+  nomeEvento: string
+  /** Cronograma completo (read-only), renderizado no servidor. */
+  programacao: ReactNode
+  /** Card do ingresso com QR, renderizado no servidor. */
+  ingresso: ReactNode
 }
 
 type Estado = 'limpo' | 'pendente' | 'salvando' | 'salvo' | 'erro'
@@ -106,11 +113,12 @@ function CardSessao({
         )}
       </div>
 
-      {/* Indicador de seleção — 24px, dentro do alvo de 56px do card */}
+      {/* Indicador de seleção — 24px, dentro do alvo de 56px do card.
+          Vazio precisa de borda visível, senão o card não parece marcável. */}
       <div
         aria-hidden
         className={`w-6 h-6 shrink-0 self-center rounded-lg border-2 grid place-items-center text-white text-xs font-bold ${
-          marcada ? 'bg-primary border-primary' : 'border-line'
+          marcada ? 'bg-primary border-primary' : 'border-muted/50 bg-white'
         }`}
       >
         {marcada ? '✓' : ''}
@@ -119,20 +127,38 @@ function CardSessao({
   )
 }
 
-// Editor de marcações de sessão na página do participante. Salva via server action.
-export function SessoesEditor({ token, dias, marcadasIniciais, contagens }: Props) {
+// Página do participante em abas: Inscrição (o que dá pra marcar), Programação
+// (cronograma completo) e Ingresso (QR). O estado das marcações vive aqui porque
+// alimenta o selo da aba e a barra de salvar.
+export function PainelParticipante({
+  token,
+  dias,
+  marcadasIniciais,
+  contagens,
+  nomeEvento,
+  programacao,
+  ingresso,
+}: Props) {
   const [marcadas, setMarcadas] = useState<string[]>(marcadasIniciais)
+  // O que está gravado no banco. Comparar com `marcadas` diz se há algo a salvar —
+  // marcar e desmarcar a mesma sessão não deve pedir salvamento.
+  const [salvas, setSalvas] = useState<string[]>(marcadasIniciais)
   const [estado, setEstado] = useState<Estado>('limpo')
   const [msg, setMsg] = useState<string | null>(null)
+  const [aba, setAba] = useState<AbaId>('inscricao')
 
   const conflitos = useMemo(() => sessoesEmConflito(dias, marcadas), [dias, marcadas])
 
-  const selecionaveis = useMemo(
-    () => (dias ?? []).flatMap((d) => sessoesDoDia(d)).filter((s) => !s.sem_inscricao),
-    [dias]
-  )
+  // Aba Inscrição: só o que dá pra escolher, mantendo os intervalos que separam
+  // duas marcáveis (a noção de tempo do dia).
+  const diasMarcaveis = useMemo(() => diasSelecionaveis(dias), [dias])
+  const totalSelecionaveis = useMemo(() => contarSelecionaveis(dias), [dias])
 
-  if (!dias || dias.length === 0) return null
+  const sujo = useMemo(() => {
+    if (marcadas.length !== salvas.length) return true
+    const gravadas = new Set(salvas)
+    return marcadas.some((id) => !gravadas.has(id))
+  }, [marcadas, salvas])
 
   function toggle(id: string, on: boolean) {
     setMarcadas((m) => (on ? [...m, id] : m.filter((x) => x !== id)))
@@ -143,8 +169,10 @@ export function SessoesEditor({ token, dias, marcadasIniciais, contagens }: Prop
   async function salvar() {
     setEstado('salvando')
     setMsg(null)
-    const res = await atualizarSessoes(token, marcadas)
+    const enviadas = marcadas
+    const res = await atualizarSessoes(token, enviadas)
     if (res.ok) {
+      setSalvas(enviadas)
       setEstado('salvo')
       setMsg(res.aviso ?? null)
     } else {
@@ -170,8 +198,8 @@ export function SessoesEditor({ token, dias, marcadasIniciais, contagens }: Prop
     )
   }
 
-  return (
-    <div>
+  const conteudoInscricao = (
+    <div className="card p-5 sm:p-6 pb-8 min-w-0">
       {/* Status: em zero convida à ação; com marcações, confirma o que está feito. */}
       <div className="flex items-baseline justify-between gap-3 pb-3 mb-1 border-b border-line">
         {marcadas.length === 0 ? (
@@ -180,9 +208,9 @@ export function SessoesEditor({ token, dias, marcadasIniciais, contagens }: Prop
           </span>
         ) : (
           <span className="text-sm font-semibold text-secondary">
-            {estado === 'salvo' || estado === 'limpo' ? '✓ ' : ''}
+            {sujo ? '' : '✓ '}
             {marcadas.length} {marcadas.length === 1 ? 'palestra marcada' : 'palestras marcadas'}
-            <span className="font-normal text-muted"> de {selecionaveis.length}</span>
+            <span className="font-normal text-muted"> de {totalSelecionaveis}</span>
           </span>
         )}
         {conflitos.size > 0 && (
@@ -192,48 +220,63 @@ export function SessoesEditor({ token, dias, marcadasIniciais, contagens }: Prop
         )}
       </div>
 
-      <div className="grid gap-6 mt-4 min-w-0">
-        {dias.map((d, i) => (
-          <div key={d.id} className="min-w-0">
-            {/* Header do dia — gruda no topo enquanto rola o dia */}
-            <div className="sticky top-0 z-10 -mx-1 px-1 py-2 bg-surface/95 backdrop-blur border-b border-line">
-              <div className="flex items-baseline gap-2">
-                <span className="font-display text-base font-semibold text-primary">
-                  Dia {i + 1}
-                </span>
-                {d.data && <span className="text-xs text-muted">{formatarDiaLongo(d.data)}</span>}
-              </div>
-            </div>
-
-            {/* Sessões soltas do dia */}
-            {(d.sessoes ?? []).length > 0 && (
-              <div className="grid gap-2 mt-3 min-w-0">{(d.sessoes ?? []).map(renderSessao)}</div>
-            )}
-
-            {/* Categorias do dia */}
-            {(d.categorias ?? []).map((c) => (
-              <div key={c.id} className="mt-4 min-w-0">
-                <div className="text-[11px] font-semibold uppercase tracking-wide text-muted mb-2 break-words">
-                  {c.titulo}
+      {diasMarcaveis.length === 0 ? (
+        <p className="text-sm text-muted mt-4">
+          Este evento não tem sessões com inscrição — é só chegar. Veja tudo na aba Programação.
+        </p>
+      ) : (
+        <div className="grid gap-6 mt-4 min-w-0">
+          {diasMarcaveis.map((d, i) => (
+            <div key={d.id} className="min-w-0">
+              {/* Header do dia — gruda abaixo da barra de abas */}
+              <div className="sticky top-[86px] z-10 -mx-1 px-1 py-2 bg-surface/95 backdrop-blur border-b border-line">
+                <div className="flex items-baseline gap-2">
+                  <span className="font-display text-base font-semibold text-primary">
+                    Dia {i + 1}
+                  </span>
+                  {d.data && <span className="text-xs text-muted">{formatarDiaLongo(d.data)}</span>}
                 </div>
-                <div className="grid gap-2 min-w-0">{(c.sessoes ?? []).map(renderSessao)}</div>
               </div>
-            ))}
 
-            {/* Dia ainda sem sessões: diz isso, em vez de deixar um header solto. */}
-            {sessoesDoDia(d).length === 0 && (
-              <p className="text-xs text-muted mt-3">Programação deste dia em breve.</p>
-            )}
-          </div>
-        ))}
-      </div>
+              {/* Sessões soltas do dia */}
+              {(d.sessoes ?? []).length > 0 && (
+                <div className="grid gap-2 mt-3 min-w-0">{(d.sessoes ?? []).map(renderSessao)}</div>
+              )}
+
+              {/* Categorias do dia */}
+              {(d.categorias ?? []).map((c) => (
+                <div key={c.id} className="mt-4 min-w-0">
+                  <div className="text-[11px] font-semibold uppercase tracking-wide text-muted mb-2 break-words">
+                    {c.titulo}
+                  </div>
+                  <div className="grid gap-2 min-w-0">{(c.sessoes ?? []).map(renderSessao)}</div>
+                </div>
+              ))}
+            </div>
+          ))}
+        </div>
+      )}
 
       {msg && (
         <p className={`text-xs mt-4 ${estado === 'erro' ? 'text-error' : 'text-warning'}`}>{msg}</p>
       )}
+    </div>
+  )
 
-      {/* Barra de salvar — fixa no rodapé só quando há mudança pendente */}
-      {estado !== 'limpo' && (
+  return (
+    <Abas
+      nomeEvento={nomeEvento}
+      ativa={aba}
+      onTrocar={setAba}
+      selo={totalSelecionaveis > 0 ? `${marcadas.length}/${totalSelecionaveis}` : undefined}
+    >
+      <div hidden={aba !== 'inscricao'}>{conteudoInscricao}</div>
+      <div hidden={aba !== 'programacao'}>{programacao}</div>
+      <div hidden={aba !== 'ingresso'}>{ingresso}</div>
+
+      {/* Barra de salvar — só na aba Inscrição, e só quando há de fato o que salvar
+          (ou logo após salvar, para confirmar). */}
+      {aba === 'inscricao' && (sujo || estado === 'salvo' || estado === 'salvando') && (
         <div className="fixed bottom-0 inset-x-0 z-30 bg-surface/95 backdrop-blur border-t border-line">
           <div className="max-w-[980px] mx-auto px-5 py-3 flex items-center justify-between gap-4">
             <span className="text-sm">
@@ -258,6 +301,6 @@ export function SessoesEditor({ token, dias, marcadasIniciais, contagens }: Prop
           </div>
         </div>
       )}
-    </div>
+    </Abas>
   )
 }
