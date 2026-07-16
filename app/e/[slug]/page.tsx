@@ -126,7 +126,7 @@ export default async function EventoPublicoPage({ params }: { params: { slug: st
             )}
           </div>
         </article>
-        <Cronograma categorias={ev.categorias} contagens={await contarPorSessao(createAdminSupabase(), ev.id)} />
+        <Cronograma dias={ev.dias ?? []} contagens={await contarPorSessao(createAdminSupabase(), ev.id)} />
         <p className="text-center text-xs text-muted mt-6">
           Você receberá um ingresso digital com QR code por e-mail.
         </p>

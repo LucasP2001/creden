@@ -44,12 +44,12 @@ describe('montarPayloadUpdate', () => {
     expect(montarPayloadUpdate(fd(base)).payload.cor_capa).toBe('#FFFFFF')
   })
 
-  it('categorias: JSON válido é parseado; ausente vira []', () => {
+  it('dias: JSON válido é parseado; ausente vira []', () => {
     const base = { nome: 'X', data_hora: '2026-08-01T14:00', campos_extras: '[]' }
-    const categorias = [{ id: 'c1', titulo: 'Dia 01', sessoes: [] }]
+    const dias = [{ id: 'd1', data: '2026-08-10', sessoes: [], categorias: [] }]
     expect(
-      montarPayloadUpdate(fd({ ...base, categorias: JSON.stringify(categorias) })).payload.categorias
-    ).toEqual(categorias)
-    expect(montarPayloadUpdate(fd(base)).payload.categorias).toEqual([])
+      montarPayloadUpdate(fd({ ...base, dias: JSON.stringify(dias) })).payload.dias
+    ).toEqual(dias)
+    expect(montarPayloadUpdate(fd(base)).payload.dias).toEqual([])
   })
 })

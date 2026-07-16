@@ -45,7 +45,7 @@ export async function atualizarEvento(
   const { error } = await supabase.from('eventos').update(dadosUpdate).eq('id', eventoId)
   if (error) return { ok: false, erro: 'Não foi possível salvar as alterações.' }
 
-  await limparOrfaos(createAdminSupabase(), eventoId, payload.categorias)
+  await limparOrfaos(createAdminSupabase(), eventoId, payload.dias)
 
   revalidatePath('/dashboard')
   revalidatePath(`/e/${dono.slug}`)

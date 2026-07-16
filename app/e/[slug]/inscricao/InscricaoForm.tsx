@@ -3,20 +3,20 @@
 import { useState } from 'react'
 import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
-import { CampoExtra, Categoria } from '@/types'
-import { rotuloTipo, formatarDia } from '@/lib/sessoes'
+import { CampoExtra, Dia, Sessao } from '@/types'
+import { rotuloTipo } from '@/lib/sessoes'
 import { inscrever } from './actions'
 
 interface Props {
   slug: string
   camposExtras: CampoExtra[]
-  categorias: Categoria[]
+  dias: Dia[]
   contagens: Record<string, number>
 }
 
 
 // Formulário público de inscrição. Tom acolhedor (skill creden-design).
-export function InscricaoForm({ slug, camposExtras, categorias, contagens }: Props) {
+export function InscricaoForm({ slug, camposExtras, dias, contagens }: Props) {
   const [enviando, setEnviando] = useState(false)
   const [erro, setErro] = useState<string | null>(null)
   const [sucesso, setSucesso] = useState(false)
@@ -76,45 +76,36 @@ export function InscricaoForm({ slug, camposExtras, categorias, contagens }: Pro
         </div>
       ))}
 
-      {categorias.length > 0 && (
+      {dias.length > 0 && (
         <div className="grid gap-4">
           <span className="text-[13px] font-semibold">Quero participar de:</span>
-          {categorias.map((c) => (
-            <div key={c.id} className="grid gap-1.5">
-              <span className="text-[13px] font-semibold text-primary">{c.titulo}</span>
-              {c.sessoes.map((s) => {
-                const lotada = s.vagas_max != null && (contagens[s.id] ?? 0) >= s.vagas_max
-                const on = marcadas.includes(s.id)
-                return (
-                  <label
-                    key={s.id}
-                    className={`flex items-start gap-2.5 p-2.5 rounded-md border ${
-                      lotada ? 'border-line opacity-50' : on ? 'border-primary bg-status-inscrito-bg' : 'border-line'
-                    }`}
-                  >
-                    <input
-                      type="checkbox"
-                      className="mt-1"
-                      disabled={lotada}
-                      checked={on}
-                      onChange={(e) =>
-                        setMarcadas((m) => (e.target.checked ? [...m, s.id] : m.filter((x) => x !== s.id)))
-                      }
-                    />
-                    <span className="text-sm">
-                      <span className="font-semibold">{s.titulo}</span>
-                      <span className="text-muted">
-                        {' '}
-                        · {rotuloTipo(s)} · {s.dia ? `${formatarDia(s.dia)} ` : ''}
-                        {s.hora_inicio}
-                      </span>
-                      {lotada && <span className="text-error"> · esgotado</span>}
-                    </span>
-                  </label>
-                )
-              })}
-            </div>
-          ))}
+          {dias.map((d, i) => {
+            const toggle = (id: string, on: boolean) =>
+              setMarcadas((m) => (on ? [...m, id] : m.filter((x) => x !== id)))
+            const check = (s: Sessao) => (
+              <SessaoCheck
+                key={s.id}
+                s={s}
+                on={marcadas.includes(s.id)}
+                lotada={s.vagas_max != null && (contagens[s.id] ?? 0) >= s.vagas_max}
+                onToggle={toggle}
+              />
+            )
+            return (
+              <div key={d.id} className="grid gap-1.5">
+                <span className="text-[13px] font-semibold text-primary">
+                  Dia {i + 1}
+                </span>
+                {d.sessoes.map(check)}
+                {d.categorias.map((c) => (
+                  <div key={c.id} className="grid gap-1.5 mt-1">
+                    <span className="text-xs font-semibold text-secondary">{c.titulo}</span>
+                    {c.sessoes.map(check)}
+                  </div>
+                ))}
+              </div>
+            )
+          })}
         </div>
       )}
 
@@ -127,5 +118,41 @@ export function InscricaoForm({ slug, camposExtras, categorias, contagens }: Pro
         Você receberá o ingresso digital por e-mail.
       </p>
     </form>
+  )
+}
+
+// Checkbox de uma sessão (marcar interesse). Reusado em sessões soltas e de categoria.
+function SessaoCheck({
+  s,
+  on,
+  lotada,
+  onToggle,
+}: {
+  s: Sessao
+  on: boolean
+  lotada: boolean
+  onToggle: (id: string, on: boolean) => void
+}) {
+  return (
+    <label
+      className={`flex items-start gap-2.5 p-2.5 rounded-md border ${
+        lotada ? 'border-line opacity-50' : on ? 'border-primary bg-status-inscrito-bg' : 'border-line'
+      }`}
+    >
+      <input
+        type="checkbox"
+        className="mt-1"
+        disabled={lotada}
+        checked={on}
+        onChange={(e) => onToggle(s.id, e.target.checked)}
+      />
+      <span className="text-sm">
+        <span className="font-semibold">{s.titulo}</span>
+        <span className="text-muted">
+          {' '}· {rotuloTipo(s)} · {s.hora_inicio}
+        </span>
+        {lotada && <span className="text-error"> · esgotado</span>}
+      </span>
+    </label>
   )
 }

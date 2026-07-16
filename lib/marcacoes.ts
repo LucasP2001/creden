@@ -1,21 +1,21 @@
 import { todasSessoes } from '@/lib/sessoes'
-import type { Categoria } from '@/types'
+import type { Dia } from '@/types'
 import type { createAdminSupabase } from '@/lib/supabase'
 
 type Admin = ReturnType<typeof createAdminSupabase>
 
 /** Ids das sessões existentes. Puro. */
-export function idsDeSessoes(categorias: Categoria[]): string[] {
-  return todasSessoes(categorias).map((s) => s.id)
+export function idsDeSessoes(dias: Dia[]): string[] {
+  return todasSessoes(dias).map((s) => s.id)
 }
 
 /** Apaga marcações cujo sessao_id não existe mais no cronograma do evento. */
 export async function limparOrfaos(
   admin: Admin,
   eventoId: string,
-  categorias: Categoria[]
+  dias: Dia[]
 ): Promise<void> {
-  const validos = idsDeSessoes(categorias)
+  const validos = idsDeSessoes(dias)
   if (validos.length === 0) {
     await admin.from('inscricoes_sessoes').delete().eq('evento_id', eventoId)
     return
@@ -54,11 +54,11 @@ export async function gravarMarcacoes(
   eventoId: string,
   inscricaoId: string,
   sessaoIds: string[],
-  categorias: Categoria[]
+  dias: Dia[]
 ): Promise<string[]> {
   if (sessaoIds.length === 0) return []
   const contagens = await contarPorSessao(admin, eventoId)
-  const porId = new Map(todasSessoes(categorias).map((s) => [s.id, s]))
+  const porId = new Map(todasSessoes(dias).map((s) => [s.id, s]))
   const rejeitadas: string[] = []
   const inserir: { inscricao_id: string; evento_id: string; sessao_id: string }[] = []
 
@@ -101,7 +101,7 @@ export async function reconciliarMarcacoes(
   eventoId: string,
   inscricaoId: string,
   desejadas: string[],
-  categorias: Categoria[]
+  dias: Dia[]
 ): Promise<string[]> {
   const atuais = await marcacoesDaInscricao(admin, inscricaoId)
   const remover = atuais.filter((id) => !desejadas.includes(id))
@@ -115,5 +115,5 @@ export async function reconciliarMarcacoes(
       .in('sessao_id', remover)
   }
   // adicionar respeitando vaga (reusa gravarMarcacoes)
-  return gravarMarcacoes(admin, eventoId, inscricaoId, adicionar, categorias)
+  return gravarMarcacoes(admin, eventoId, inscricaoId, adicionar, dias)
 }

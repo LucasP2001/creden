@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { createServerSupabase } from '@/lib/supabase'
-import { Evento } from '@/types'
+import { Evento, Sessao } from '@/types'
 import { rotuloTipo, formatarDia } from '@/lib/sessoes'
 
 
@@ -13,6 +13,8 @@ export default async function SessoesRelatorioPage({ params }: { params: { id: s
     return <div className="p-8">Evento não encontrado.</div>
   }
   const ev = eventoRow as Evento
+  // Defensivo: eventos antigos podem não ter dias populado.
+  const dias = ev.dias ?? []
 
   // Marcações + inscrito (join). RLS restringe ao dono.
   const { data: marc } = await supabase
@@ -35,44 +37,65 @@ export default async function SessoesRelatorioPage({ params }: { params: { id: s
     <main className="max-w-3xl mx-auto px-6 py-8">
       <Link href="/dashboard" className="text-sm text-primary hover:underline">← Voltar</Link>
       <h1 className="font-display text-3xl font-semibold mt-2">Sessões — {ev.nome}</h1>
-      {ev.categorias.length === 0 ? (
+      {dias.length === 0 ? (
         <p className="text-muted mt-4">Este evento não tem programação.</p>
       ) : (
-        <div className="grid gap-6 mt-6">
-          {ev.categorias.map((c) => (
-            <div key={c.id}>
-              <h2 className="font-display text-lg font-semibold text-primary">{c.titulo}</h2>
-              <div className="grid gap-3 mt-2">
-                {c.sessoes.map((s) => {
-                  const pessoas = porSessao.get(s.id) ?? []
-                  return (
-                    <div key={s.id} className="card p-4">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="badge badge-inscrito">{rotuloTipo(s)}</span>
-                        <span className="font-semibold">{s.titulo}</span>
-                        <span className="text-sm text-muted">
-                          {s.dia ? `${formatarDia(s.dia)} · ` : ''}
-                          {s.hora_inicio} ·{' '}
-                          {s.vagas_max != null
-                            ? `${pessoas.length} de ${s.vagas_max}`
-                            : `${pessoas.length} marcações`}
-                        </span>
-                      </div>
-                      {pessoas.length > 0 && (
-                        <ul className="text-sm text-muted mt-2 grid gap-0.5">
-                          {pessoas.map((p, i) => (
-                            <li key={i}>{p.nome} — {p.email}</li>
-                          ))}
-                        </ul>
-                      )}
-                    </div>
-                  )
-                })}
-              </div>
+        <div className="grid gap-8 mt-6">
+          {dias.map((d, i) => (
+            <div key={d.id}>
+              <h2 className="font-display text-lg font-semibold text-primary">
+                {d.data ? `Dia ${i + 1} · ${formatarDia(d.data)}` : `Dia ${i + 1}`}
+              </h2>
+              {d.sessoes.length > 0 && (
+                <div className="grid gap-3 mt-2">
+                  {d.sessoes.map((s) => (
+                    <SessaoRelatorio key={s.id} s={s} pessoas={porSessao.get(s.id) ?? []} />
+                  ))}
+                </div>
+              )}
+              {d.categorias.map((c) => (
+                <div key={c.id} className="mt-4">
+                  <h3 className="font-semibold text-secondary">{c.titulo}</h3>
+                  <div className="grid gap-3 mt-2">
+                    {c.sessoes.map((s) => (
+                      <SessaoRelatorio key={s.id} s={s} pessoas={porSessao.get(s.id) ?? []} />
+                    ))}
+                  </div>
+                </div>
+              ))}
             </div>
           ))}
         </div>
       )}
     </main>
+  )
+}
+
+// Uma sessão no relatório: contagem + quem marcou.
+function SessaoRelatorio({
+  s,
+  pessoas,
+}: {
+  s: Sessao
+  pessoas: { nome: string; email: string }[]
+}) {
+  return (
+    <div className="card p-4">
+      <div className="flex items-center gap-2 flex-wrap">
+        <span className="badge badge-inscrito">{rotuloTipo(s)}</span>
+        <span className="font-semibold">{s.titulo}</span>
+        <span className="text-sm text-muted">
+          {s.hora_inicio} ·{' '}
+          {s.vagas_max != null ? `${pessoas.length} de ${s.vagas_max}` : `${pessoas.length} marcações`}
+        </span>
+      </div>
+      {pessoas.length > 0 && (
+        <ul className="text-sm text-muted mt-2 grid gap-0.5">
+          {pessoas.map((p, idx) => (
+            <li key={idx}>{p.nome} — {p.email}</li>
+          ))}
+        </ul>
+      )}
+    </div>
   )
 }

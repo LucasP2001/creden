@@ -18,7 +18,6 @@ export type TipoSessao = 'palestra' | 'minicurso' | 'servico' | 'outro'
 
 export interface Sessao {
   id: string
-  dia: string | null // 'YYYY-MM-DD'
   hora_inicio: string // 'HH:MM'
   hora_fim: string // 'HH:MM'
   titulo: string
@@ -29,10 +28,22 @@ export interface Sessao {
   vagas_max: number | null // null = ilimitado
 }
 
+/** Grupo nomeado de sessões dentro de um dia (opcional). */
 export interface Categoria {
   id: string
   titulo: string
   sessoes: Sessao[]
+}
+
+/**
+ * Um dia do cronograma. As sessões podem ficar soltas (`sessoes`) ou agrupadas
+ * em categorias nomeadas (`categorias`) — categoria é opcional.
+ */
+export interface Dia {
+  id: string
+  data: string // 'YYYY-MM-DD'
+  sessoes: Sessao[] // sessões soltas, sem categoria
+  categorias: Categoria[] // grupos nomeados
 }
 
 export interface Evento {
@@ -48,7 +59,7 @@ export interface Evento {
   imagem_url: string | null // URL pública da capa no Storage; null = gradiente
   cor_capa: string // cor de fundo atrás da capa (hex); default #FFFFFF
   campos_extras: CampoExtra[] // jsonb no banco
-  categorias: Categoria[] // cronograma (jsonb no banco)
+  dias: Dia[] // cronograma (jsonb no banco): dias -> (sessões soltas + categorias)
   created_at: string
   updated_at: string
 }

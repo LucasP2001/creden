@@ -1,4 +1,4 @@
-import type { Sessao, TipoSessao, Categoria } from '@/types'
+import type { Sessao, TipoSessao, Categoria, Dia } from '@/types'
 
 const ROTULOS: Record<TipoSessao, string> = {
   palestra: 'Palestra',
@@ -11,7 +11,6 @@ const ROTULOS: Record<TipoSessao, string> = {
 export function novaSessao(): Sessao {
   return {
     id: crypto.randomUUID(),
-    dia: '',
     hora_inicio: '',
     hora_fim: '',
     titulo: '',
@@ -21,6 +20,16 @@ export function novaSessao(): Sessao {
     local: null,
     vagas_max: null,
   }
+}
+
+/** Nova categoria vazia (grupo de sessões dentro de um dia). */
+export function novaCategoria(): Categoria {
+  return { id: crypto.randomUUID(), titulo: '', sessoes: [] }
+}
+
+/** Novo dia vazio para o form. */
+export function novoDia(): Dia {
+  return { id: crypto.randomUUID(), data: '', sessoes: [], categorias: [] }
 }
 
 /** Formata 'YYYY-MM-DD' como 'dd/mm' (pt-BR). Assume iso não-vazio. */
@@ -35,22 +44,23 @@ export function rotuloTipo(s: Pick<Sessao, 'tipo' | 'tipo_outro'>): string {
   return ROTULOS[s.tipo]
 }
 
-/** Nova categoria vazia para o form. */
-export function novaCategoria(): Categoria {
-  return { id: crypto.randomUUID(), titulo: '', sessoes: [] }
-}
-
-/** Parseia o jsonb de categorias vindo do FormData; [] em qualquer erro. */
-export function parseCategorias(json: string): Categoria[] {
+/** Parseia o jsonb de dias vindo do FormData; [] em qualquer erro. */
+export function parseDias(json: string): Dia[] {
   try {
     const v = JSON.parse(json)
-    return Array.isArray(v) ? (v as Categoria[]) : []
+    return Array.isArray(v) ? (v as Dia[]) : []
   } catch {
     return []
   }
 }
 
-/** Achata todas as sessões de todas as categorias (ordem do array). */
-export function todasSessoes(categorias: Categoria[]): Sessao[] {
-  return categorias.flatMap((c) => c.sessoes ?? [])
+/**
+ * Achata todas as sessões do cronograma: por dia, as sessões soltas (`sessoes`)
+ * mais as de cada categoria (`categorias[].sessoes`). Usado para contagem/vaga.
+ */
+export function todasSessoes(dias: Dia[]): Sessao[] {
+  return (dias ?? []).flatMap((d) => [
+    ...(d.sessoes ?? []),
+    ...(d.categorias ?? []).flatMap((c) => c.sessoes ?? []),
+  ])
 }
