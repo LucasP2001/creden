@@ -3,7 +3,7 @@
 import { redirect } from 'next/navigation'
 import { createServerSupabase } from '@/lib/supabase'
 import { slugify } from '@/lib/slug'
-import { validarImagem, extensaoImagem } from '@/lib/imagem'
+import { uploadCapa } from '@/lib/capa'
 import { CampoExtra } from '@/types'
 
 export interface CriarEventoResult {
@@ -64,17 +64,9 @@ export async function criarEvento(formData: FormData): Promise<CriarEventoResult
   }
 
   // Upload da capa (opcional). Falha aqui não bloqueia a publicação.
-  const capa = formData.get('capa')
-  if (capa instanceof File && capa.size > 0 && !validarImagem(capa)) {
-    const ext = extensaoImagem(capa.type)
-    const path = `${user.id}/${novo.id}.${ext}`
-    const { error: upErr } = await supabase.storage
-      .from('eventos-capas')
-      .upload(path, capa, { upsert: true, contentType: capa.type })
-    if (!upErr) {
-      const { data: pub } = supabase.storage.from('eventos-capas').getPublicUrl(path)
-      await supabase.from('eventos').update({ imagem_url: pub.publicUrl }).eq('id', novo.id)
-    }
+  const url = await uploadCapa(supabase, user.id, novo.id, formData.get('capa'))
+  if (url) {
+    await supabase.from('eventos').update({ imagem_url: url }).eq('id', novo.id)
   }
 
   redirect('/dashboard')

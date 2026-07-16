@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { createServerSupabase } from '@/lib/supabase'
-import { validarImagem, extensaoImagem } from '@/lib/imagem'
+import { uploadCapa } from '@/lib/capa'
 
 export interface TrocarCapaResult {
   ok: boolean
@@ -26,21 +26,12 @@ export async function trocarCapa(formData: FormData): Promise<TrocarCapaResult> 
   if (!(capa instanceof File) || capa.size === 0) {
     return { ok: false, erro: 'Escolha uma imagem.' }
   }
-  const invalido = validarImagem(capa)
-  if (invalido) return { ok: false, erro: invalido }
+  const url = await uploadCapa(supabase, user.id, eventoId, capa)
+  if (!url) return { ok: false, erro: 'Não foi possível enviar a imagem.' }
 
-  const ext = extensaoImagem(capa.type)
-  const path = `${user.id}/${eventoId}.${ext}`
-  const { error: upErr } = await supabase.storage
-    .from('eventos-capas')
-    .upload(path, capa, { upsert: true, contentType: capa.type })
-  if (upErr) return { ok: false, erro: 'Não foi possível enviar a imagem.' }
-
-  const { data: pub } = supabase.storage.from('eventos-capas').getPublicUrl(path)
-  const urlComBust = `${pub.publicUrl}?v=${Date.now()}`
   const { error: dbErr } = await supabase
     .from('eventos')
-    .update({ imagem_url: urlComBust })
+    .update({ imagem_url: url })
     .eq('id', eventoId)
   if (dbErr) return { ok: false, erro: 'Não foi possível salvar a imagem.' }
 
