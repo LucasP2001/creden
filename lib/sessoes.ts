@@ -1,4 +1,4 @@
-import type { Sessao, TipoSessao } from '@/types'
+import type { Sessao, TipoSessao, Categoria } from '@/types'
 
 const ROTULOS: Record<TipoSessao, string> = {
   palestra: 'Palestra',
@@ -29,28 +29,22 @@ export function rotuloTipo(s: Pick<Sessao, 'tipo' | 'tipo_outro'>): string {
   return ROTULOS[s.tipo]
 }
 
-/** Parseia o jsonb de sessões vindo do FormData; [] em qualquer erro. */
-export function parseSessoes(json: string): Sessao[] {
+/** Nova categoria vazia para o form. */
+export function novaCategoria(): Categoria {
+  return { id: crypto.randomUUID(), titulo: '', sessoes: [] }
+}
+
+/** Parseia o jsonb de categorias vindo do FormData; [] em qualquer erro. */
+export function parseCategorias(json: string): Categoria[] {
   try {
     const v = JSON.parse(json)
-    return Array.isArray(v) ? (v as Sessao[]) : []
+    return Array.isArray(v) ? (v as Categoria[]) : []
   } catch {
     return []
   }
 }
 
-/** Agrupa por dia (asc) com itens ordenados por hora_inicio (asc). */
-export function agruparPorDia(sessoes: Sessao[]): { dia: string; itens: Sessao[] }[] {
-  const mapa = new Map<string, Sessao[]>()
-  for (const s of sessoes) {
-    const arr = mapa.get(s.dia) ?? []
-    arr.push(s)
-    mapa.set(s.dia, arr)
-  }
-  return [...mapa.entries()]
-    .sort(([a], [b]) => a.localeCompare(b))
-    .map(([dia, itens]) => ({
-      dia,
-      itens: [...itens].sort((x, y) => x.hora_inicio.localeCompare(y.hora_inicio)),
-    }))
+/** Achata todas as sessões de todas as categorias (ordem do array). */
+export function todasSessoes(categorias: Categoria[]): Sessao[] {
+  return categorias.flatMap((c) => c.sessoes ?? [])
 }

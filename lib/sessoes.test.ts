@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
-import { novaSessao, rotuloTipo, parseSessoes, agruparPorDia } from './sessoes'
+import { novaSessao, rotuloTipo, parseCategorias, novaCategoria, todasSessoes } from './sessoes'
 import { idsDeSessoes } from './marcacoes'
-import type { Sessao } from '@/types'
+import type { Sessao, Categoria } from '@/types'
 
 function s(over: Partial<Sessao>): Sessao {
   return {
@@ -43,21 +43,6 @@ describe('rotuloTipo', () => {
   })
 })
 
-describe('parseSessoes', () => {
-  it('parseia array válido', () => {
-    const arr = parseSessoes(JSON.stringify([s({ titulo: 'A' })]))
-    expect(arr).toHaveLength(1)
-    expect(arr[0].titulo).toBe('A')
-  })
-  it('retorna [] em JSON inválido', () => {
-    expect(parseSessoes('{{')).toEqual([])
-    expect(parseSessoes('')).toEqual([])
-  })
-  it('retorna [] se não for array', () => {
-    expect(parseSessoes('{"a":1}')).toEqual([])
-  })
-})
-
 describe('idsDeSessoes', () => {
   it('extrai os ids', () => {
     expect(idsDeSessoes([s({ id: 'a' }), s({ id: 'b' })])).toEqual(['a', 'b'])
@@ -65,15 +50,36 @@ describe('idsDeSessoes', () => {
   })
 })
 
-describe('agruparPorDia', () => {
-  it('agrupa por dia e ordena dias e horários', () => {
-    const grupos = agruparPorDia([
-      s({ dia: '2026-08-11', hora_inicio: '10:00', titulo: 'B' }),
-      s({ dia: '2026-08-10', hora_inicio: '14:00', titulo: 'C' }),
-      s({ dia: '2026-08-10', hora_inicio: '08:00', titulo: 'A' }),
-    ])
-    expect(grupos.map((g) => g.dia)).toEqual(['2026-08-10', '2026-08-11'])
-    expect(grupos[0].itens.map((i) => i.titulo)).toEqual(['A', 'C'])
-    expect(grupos[1].itens.map((i) => i.titulo)).toEqual(['B'])
+describe('novaCategoria', () => {
+  it('gera id único e título vazio com sessoes []', () => {
+    const a = novaCategoria()
+    const b = novaCategoria()
+    expect(a.id).not.toBe(b.id)
+    expect(a.titulo).toBe('')
+    expect(a.sessoes).toEqual([])
+  })
+})
+
+describe('parseCategorias', () => {
+  it('parseia array válido', () => {
+    const arr = parseCategorias(JSON.stringify([{ id: 'c1', titulo: 'Dia 1', sessoes: [] }]))
+    expect(arr).toHaveLength(1)
+    expect(arr[0].titulo).toBe('Dia 1')
+  })
+  it('retorna [] em JSON inválido/não-array', () => {
+    expect(parseCategorias('{{')).toEqual([])
+    expect(parseCategorias('')).toEqual([])
+    expect(parseCategorias('{"a":1}')).toEqual([])
+  })
+})
+
+describe('todasSessoes', () => {
+  it('achata as sessões de todas as categorias', () => {
+    const cats: Categoria[] = [
+      { id: 'c1', titulo: 'A', sessoes: [s({ id: 's1' }), s({ id: 's2' })] },
+      { id: 'c2', titulo: 'B', sessoes: [s({ id: 's3' })] },
+    ]
+    expect(todasSessoes(cats).map((x) => x.id)).toEqual(['s1', 's2', 's3'])
+    expect(todasSessoes([])).toEqual([])
   })
 })
