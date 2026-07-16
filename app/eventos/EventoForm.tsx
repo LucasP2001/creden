@@ -207,7 +207,7 @@ export function EventoForm({ modo, evento }: Props) {
         <div className="card p-[22px]">
           <h2 className="text-lg font-semibold">Programação</h2>
           <p className="text-xs text-muted mt-1 mb-4">
-            Organize em categorias (ex: "Dia 01 — Gestão Municipal"). Uma categoria pode ter sessões de dias diferentes.
+            Organize em categorias (ex: &quot;Dia 01 — Gestão Municipal&quot;). Uma categoria pode ter sessões de dias diferentes.
           </p>
           {categorias.map((c) => (
             <div key={c.id} className="border border-line rounded-md p-3 mb-4 grid gap-3">

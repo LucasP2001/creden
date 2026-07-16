@@ -73,7 +73,7 @@ export async function atualizarSessoes(
     ev.id,
     insc.id,
     sessaoIds.map(String),
-    ev.sessoes
+    ev.categorias
   )
   revalidatePath(`/i/${token}`)
   if (rejeitadas.length > 0) {

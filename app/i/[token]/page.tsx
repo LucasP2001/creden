@@ -89,10 +89,10 @@ export default async function IngressoPage({ params }: { params: { token: string
             <Row k="Participante" v={insc.nome} />
           </div>
 
-          {ev.sessoes.length > 0 && (
+          {ev.categorias.length > 0 && (
             <SessoesEditor
               token={insc.token}
-              sessoes={ev.sessoes}
+              categorias={ev.categorias}
               marcadasIniciais={await marcacoesDaInscricao(supabase, insc.id)}
               contagens={await contarPorSessao(supabase, ev.id)}
             />

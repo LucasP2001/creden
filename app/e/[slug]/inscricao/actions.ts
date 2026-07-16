@@ -85,7 +85,7 @@ export async function inscrever(slug: string, formData: FormData): Promise<Inscr
   }
 
   const marcados = parseIds(String(formData.get('sessoes_marcadas') ?? '[]'))
-  const rejeitadas = await gravarMarcacoes(supabase, evento.id, inscricaoRow.id, marcados, evento.sessoes)
+  const rejeitadas = await gravarMarcacoes(supabase, evento.id, inscricaoRow.id, marcados, evento.categorias)
 
   // Envia o ingresso. Se o e-mail falhar, a inscrição já existe — não bloqueia o sucesso,
   // mas registra o erro (o participante ainda pode acessar /i/[token]).

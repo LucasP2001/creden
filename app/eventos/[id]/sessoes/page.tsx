@@ -1,7 +1,12 @@
 import Link from 'next/link'
 import { createServerSupabase } from '@/lib/supabase'
 import { Evento } from '@/types'
-import { agruparPorDia, rotuloTipo } from '@/lib/sessoes'
+import { rotuloTipo } from '@/lib/sessoes'
+
+function formatarDia(iso: string): string {
+  const d = new Date(`${iso}T00:00:00`)
+  return d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })
+}
 
 // Relatório por sessão (organizador). RLS garante que só o dono lê inscricoes_sessoes.
 export default async function SessoesRelatorioPage({ params }: { params: { id: string } }) {
@@ -34,15 +39,15 @@ export default async function SessoesRelatorioPage({ params }: { params: { id: s
     <main className="max-w-3xl mx-auto px-6 py-8">
       <Link href="/dashboard" className="text-sm text-primary hover:underline">← Voltar</Link>
       <h1 className="font-display text-3xl font-semibold mt-2">Sessões — {ev.nome}</h1>
-      {ev.sessoes.length === 0 ? (
+      {ev.categorias.length === 0 ? (
         <p className="text-muted mt-4">Este evento não tem programação.</p>
       ) : (
         <div className="grid gap-6 mt-6">
-          {agruparPorDia(ev.sessoes).map((g) => (
-            <div key={g.dia}>
-              <h2 className="font-display text-lg font-semibold text-primary">{g.dia}</h2>
+          {ev.categorias.map((c) => (
+            <div key={c.id}>
+              <h2 className="font-display text-lg font-semibold text-primary">{c.titulo}</h2>
               <div className="grid gap-3 mt-2">
-                {g.itens.map((s) => {
+                {c.sessoes.map((s) => {
                   const pessoas = porSessao.get(s.id) ?? []
                   return (
                     <div key={s.id} className="card p-4">
@@ -50,6 +55,7 @@ export default async function SessoesRelatorioPage({ params }: { params: { id: s
                         <span className="badge badge-inscrito">{rotuloTipo(s)}</span>
                         <span className="font-semibold">{s.titulo}</span>
                         <span className="text-sm text-muted">
+                          {s.dia ? `${formatarDia(s.dia)} · ` : ''}
                           {s.hora_inicio} ·{' '}
                           {s.vagas_max != null
                             ? `${pessoas.length} de ${s.vagas_max}`
