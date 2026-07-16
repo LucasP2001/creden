@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { Categoria } from '@/types'
-import { rotuloTipo } from '@/lib/sessoes'
+import { rotuloTipo, formatarDia } from '@/lib/sessoes'
 import { atualizarSessoes } from './actions'
 
 interface Props {
@@ -12,10 +12,6 @@ interface Props {
   contagens: Record<string, number>
 }
 
-function formatarDia(iso: string): string {
-  const d = new Date(`${iso}T00:00:00`)
-  return d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })
-}
 
 // Editor de marcações de sessão no ingresso. Salva via server action.
 export function SessoesEditor({ token, categorias, marcadasIniciais, contagens }: Props) {

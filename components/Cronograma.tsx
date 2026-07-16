@@ -1,10 +1,5 @@
 import { Categoria } from '@/types'
-import { rotuloTipo } from '@/lib/sessoes'
-
-function formatarDia(iso: string): string {
-  const d = new Date(`${iso}T00:00:00`)
-  return d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })
-}
+import { rotuloTipo, formatarDia } from '@/lib/sessoes'
 
 export function Cronograma({
   categorias,

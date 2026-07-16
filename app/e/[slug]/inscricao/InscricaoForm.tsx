@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
 import { CampoExtra, Categoria } from '@/types'
-import { rotuloTipo } from '@/lib/sessoes'
+import { rotuloTipo, formatarDia } from '@/lib/sessoes'
 import { inscrever } from './actions'
 
 interface Props {
@@ -14,10 +14,6 @@ interface Props {
   contagens: Record<string, number>
 }
 
-function formatarDia(iso: string): string {
-  const d = new Date(`${iso}T00:00:00`)
-  return d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })
-}
 
 // Formulário público de inscrição. Tom acolhedor (skill creden-design).
 export function InscricaoForm({ slug, camposExtras, categorias, contagens }: Props) {

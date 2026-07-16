@@ -23,6 +23,12 @@ export function novaSessao(): Sessao {
   }
 }
 
+/** Formata 'YYYY-MM-DD' como 'dd/mm' (pt-BR). Assume iso não-vazio. */
+export function formatarDia(iso: string): string {
+  const d = new Date(`${iso}T00:00:00`)
+  return d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })
+}
+
 /** Rótulo de exibição do tipo (usa tipo_outro quando tipo === 'outro'). */
 export function rotuloTipo(s: Pick<Sessao, 'tipo' | 'tipo_outro'>): string {
   if (s.tipo === 'outro' && s.tipo_outro && s.tipo_outro.trim()) return s.tipo_outro.trim()

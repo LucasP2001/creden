@@ -1,12 +1,8 @@
 import Link from 'next/link'
 import { createServerSupabase } from '@/lib/supabase'
 import { Evento } from '@/types'
-import { rotuloTipo } from '@/lib/sessoes'
+import { rotuloTipo, formatarDia } from '@/lib/sessoes'
 
-function formatarDia(iso: string): string {
-  const d = new Date(`${iso}T00:00:00`)
-  return d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })
-}
 
 // Relatório por sessão (organizador). RLS garante que só o dono lê inscricoes_sessoes.
 export default async function SessoesRelatorioPage({ params }: { params: { id: string } }) {
