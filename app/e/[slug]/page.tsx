@@ -1,9 +1,11 @@
 import Link from 'next/link'
 import Image from 'next/image'
-import { createServerSupabase } from '@/lib/supabase'
+import { createServerSupabase, createAdminSupabase } from '@/lib/supabase'
 import { Evento } from '@/types'
 import { Logo } from '@/components/Logo'
 import { CompartilharBotao } from './CompartilharBotao'
+import { Cronograma } from '@/components/Cronograma'
+import { contarPorSessao } from '@/lib/marcacoes'
 
 function formatarDataLonga(iso: string): string {
   const d = new Date(iso)
@@ -124,6 +126,7 @@ export default async function EventoPublicoPage({ params }: { params: { slug: st
             )}
           </div>
         </article>
+        <Cronograma sessoes={ev.sessoes} contagens={await contarPorSessao(createAdminSupabase(), ev.id)} />
         <p className="text-center text-xs text-muted mt-6">
           Você receberá um ingresso digital com QR code por e-mail.
         </p>

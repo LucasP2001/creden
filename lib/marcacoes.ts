@@ -26,3 +26,20 @@ export async function limparOrfaos(
     .eq('evento_id', eventoId)
     .not('sessao_id', 'in', `(${lista})`)
 }
+
+/** Conta marcações por sessao_id no evento. */
+export async function contarPorSessao(
+  admin: Admin,
+  eventoId: string
+): Promise<Record<string, number>> {
+  const { data } = await admin
+    .from('inscricoes_sessoes')
+    .select('sessao_id')
+    .eq('evento_id', eventoId)
+  const mapa: Record<string, number> = {}
+  for (const row of data ?? []) {
+    const id = (row as { sessao_id: string }).sessao_id
+    mapa[id] = (mapa[id] ?? 0) + 1
+  }
+  return mapa
+}
