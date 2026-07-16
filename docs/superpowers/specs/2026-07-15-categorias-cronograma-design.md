@@ -12,8 +12,9 @@ agrupa por categoria, na ordem definida pelo organizador.
 
 **Categoria é um grupo livre, sem vínculo com data.** Pode conter sessões de dias
 diferentes (ex: uma categoria "Minicursos Simultâneos" com Minicurso A de 11/08 e
-Minicurso B de 12/08). A data, quando o organizador quiser mostrá-la, vai escrita no
-título da categoria — não há campo de data na categoria nem na sessão.
+Minicurso B de 12/08). A categoria não tem campo de data; a **sessão** tem um `dia`
+**opcional** — preenchido quando a categoria mistura dias (a exibição mostra a data
+junto do horário), deixado vazio quando o título da categoria já indica o dia.
 
 Motivação: as programações reais (I Semana Acadêmica) têm temas nomeados que às vezes
 abrangem mais de um dia ("Dias 02 e 03: Prática e Inovação"). Categoria livre modela
@@ -25,7 +26,7 @@ isso; agrupar por dia fixo não modelaria.
 |---|---|
 | Modelo | `eventos.categorias jsonb`; cada categoria tem `titulo` + `sessoes: Sessao[]` |
 | Categoria | Só `id` + `titulo` (sem subtítulo) |
-| `dia` na sessão | **Removido** — data vai no título da categoria |
+| `dia` na sessão | **Opcional** (`string | null`) — categoria multi-dia usa; categoria de 1 dia pode deixar vazio (título já diz) |
 | Agrupamento na exibição | Por categoria, na ordem do array (não mais por dia) |
 | Migração de dados | Evento existente: `sessoes` → uma categoria por dia distinto ("Dia N") |
 | Marcações | `inscricoes_sessoes.sessao_id` inalterado (id da sessão); funções varrem todas as categorias |
@@ -35,7 +36,7 @@ isso; agrupar por dia fixo não modelaria.
 ```ts
 export interface Sessao {
   id: string
-  // 'dia' REMOVIDO
+  dia: string | null  // 'YYYY-MM-DD' | null — opcional; usado quando a categoria cruza dias
   hora_inicio: string // 'HH:MM'
   hora_fim: string    // 'HH:MM'
   titulo: string
@@ -63,7 +64,8 @@ Migration `005_categorias.sql`:
 1. `add column if not exists categorias jsonb not null default '[]'::jsonb;`
 2. Converter dados existentes: para cada evento com `sessoes` não-vazio, agrupar as
    sessões por `dia` (distinto, ordenado), criar uma categoria por dia com
-   `titulo = 'Dia ' || (data formatada)` e as sessões daquele dia (sem o campo `dia`).
+   `titulo = 'Dia ' || (data formatada)` e as sessões daquele dia (preservando o
+   campo `dia` de cada sessão).
    Feito em PL/pgSQL ou via `jsonb` functions. **Isso é só um ponto de partida
    automático** (categoria por dia é a conversão mais natural do formato antigo); o
    organizador pode depois renomear, mesclar ou reagrupar categorias livremente pelo
@@ -96,16 +98,17 @@ e usam `todasSessoes()` internamente. Assinaturas afetadas:
 
 Bloco "Programação" vira dois níveis:
 - Lista de categorias; cada uma com input de título + botão remover.
-- Dentro de cada categoria, a lista de sessões (mesmos campos de hoje, menos `dia`)
-  + botão "＋ Adicionar sessão".
+- Dentro de cada categoria, a lista de sessões (mesmos campos de hoje; `dia` continua,
+  agora opcional — pode ficar vazio) + botão "＋ Adicionar sessão".
 - Botão "＋ Adicionar categoria" no topo do bloco.
 - Estado client `categorias: Categoria[]`; vai no FormData como `categorias` (JSON).
 
 ## Render (pública, inscrição, ingresso, relatório)
 
 - **`components/Cronograma.tsx`** — recebe `categorias`; itera categorias na ordem do
-  array; para cada, mostra o `titulo` como cabeçalho e as sessões dentro (sem
-  reordenar por dia). Mantém badge de tipo, vagas, palestrante, local.
+  array; para cada, mostra o `titulo` como cabeçalho e as sessões dentro. Mantém badge
+  de tipo, vagas, palestrante, local. Se a sessão tem `dia`, exibe a data junto do
+  horário (ex: "12/08 · 08:00–12:00"); sem `dia`, mostra só o horário.
 - **`/e/[slug]`** — passa `ev.categorias`.
 - **inscrição** — checkboxes agrupados por categoria (título da categoria como
   cabeçalho).
