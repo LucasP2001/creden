@@ -20,13 +20,25 @@ Nunca expor a `service_role` key no browser. Variáveis em `.env.local`
 ## Modelo de dados
 
 - **eventos** — pertence a um organizador (`user_id`). Campos: nome, descrição, data/hora,
-  local, vagas máximas, valor, slug público, campos extras do formulário (jsonb).
+  local, vagas máximas, valor, slug público, campos extras do formulário (jsonb),
+  `imagem_url text` (nullable — capa do evento; `null` usa o gradiente de fallback).
 - **inscricoes** — pertence a um evento (`evento_id`). Campos: nome, e-mail, dados extras (jsonb),
   status (`inscrito` | `presente` | `cancelado`), token do ingresso, hora do check-in.
 
 Toda tabela com `created_at` e `updated_at`; **trigger** para `updated_at` automático.
 Criar **índices** em `eventos.slug`, `eventos.user_id`, `inscricoes.evento_id`,
 `inscricoes.token`.
+
+## Storage — capa do evento
+
+Bucket **público** `eventos-capas`, para a imagem de capa em `eventos.imagem_url`.
+
+- **Path do objeto:** `{user_id}/{evento_id}.{ext}` — a primeira pasta é o `user_id` do dono.
+- **Policies:** `select` público (qualquer um lê); `insert`/`update`/`delete` somente pelo
+  dono, via `auth.uid()::text = (storage.foldername(name))[1]`.
+- **Formatos aceitos:** jpeg, png, webp; **máx. 5 MB** — validado em `lib/imagem.ts`.
+- **Upload sempre via Server Action**, usando o client de sessão (RLS aplica); nunca usar
+  a `service_role` key no browser.
 
 ## RLS (Row Level Security) — obrigatório
 
