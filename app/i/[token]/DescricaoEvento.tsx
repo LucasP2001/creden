@@ -11,9 +11,9 @@ export function DescricaoEvento({ texto }: { texto: string }) {
   const longa = texto.length > LIMITE_CHARS
 
   return (
-    <div className="mt-4">
+    <div className="mt-3">
       <p
-        className={`text-[15px] leading-relaxed text-[#3a3833] whitespace-pre-line break-words ${
+        className={`text-sm leading-relaxed text-[#3a3833] whitespace-pre-line break-words ${
           longa && !aberta ? 'line-clamp-2' : ''
         }`}
       >
@@ -23,7 +23,7 @@ export function DescricaoEvento({ texto }: { texto: string }) {
         <button
           type="button"
           onClick={() => setAberta((v) => !v)}
-          className="text-sm font-semibold text-primary underline underline-offset-4 decoration-primary/40 mt-1.5 min-h-[44px]"
+          className="text-xs font-semibold text-primary underline underline-offset-4 decoration-primary/40 mt-1 min-h-[44px]"
         >
           {aberta ? 'Ver menos' : 'Ver mais'}
         </button>

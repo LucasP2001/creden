@@ -7,7 +7,6 @@ import { CardIngresso } from './CardIngresso'
 import { DescricaoEvento } from './DescricaoEvento'
 import { Cronograma } from '@/components/Cronograma'
 import { marcacoesDaInscricao, contarPorSessao } from '@/lib/marcacoes'
-import { Logo } from '@/components/Logo'
 
 function formatarData(iso: string): string {
   return new Date(iso).toLocaleString('pt-BR', {
@@ -54,32 +53,39 @@ export default async function ParticipantePage({ params }: { params: { token: st
 
   return (
     <main className="min-h-screen bg-sand pb-24">
-      <header className="h-14 flex items-center px-6 border-b border-line bg-surface">
-        <Logo />
-      </header>
+      {/* Topo do evento: a capa aparece inteira (é a arte do organizador),
+          o texto vem abaixo. Sem header próprio — a marca assina o ingresso. */}
+      {ev.imagem_url ? (
+        <div className="relative h-44 sm:h-52 w-full" style={{ backgroundColor: ev.cor_capa }}>
+          <Image
+            src={ev.imagem_url}
+            alt={`Capa de ${ev.nome}`}
+            fill
+            priority
+            className="object-contain"
+          />
+        </div>
+      ) : (
+        <div className="h-24 w-full bg-gradient-to-br from-secondary via-primary to-primary-light" />
+      )}
+
+      <div className="max-w-[980px] mx-auto px-5">
+        <div className="py-6 border-b border-line">
+          <p className="text-sm font-semibold text-primary">
+            ✓ Inscrição confirmada, {insc.nome.split(' ')[0]}
+          </p>
+          <h1 className="font-display text-[clamp(1.5rem,5vw,2rem)] font-semibold text-secondary leading-tight mt-1 break-words">
+            {ev.nome}
+          </h1>
+          <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted mt-2">
+            <span>📅 {formatarData(ev.data_hora)}</span>
+            {ev.local && <span>📍 {ev.local}</span>}
+          </div>
+          {ev.descricao && <DescricaoEvento texto={ev.descricao} />}
+        </div>
+      </div>
 
       <div className="max-w-[980px] mx-auto px-5 pb-8">
-        {/* Informações do evento: contexto fixo, acima das abas. */}
-        <div className="card overflow-hidden min-w-0 mt-6">
-          {ev.imagem_url && (
-            <div className="relative h-40 w-full" style={{ backgroundColor: ev.cor_capa }}>
-              <Image src={ev.imagem_url} alt={`Capa de ${ev.nome}`} fill className="object-contain" />
-            </div>
-          )}
-          <div className="p-6">
-            <p className="text-sm text-primary font-semibold">
-              Sua inscrição está confirmada, {insc.nome.split(' ')[0]} 👋
-            </p>
-            <h1 className="font-display text-2xl font-semibold text-secondary mt-1 break-words">
-              {ev.nome}
-            </h1>
-            <div className="text-sm text-muted mt-2 grid gap-1">
-              <div>📅 {formatarData(ev.data_hora)}</div>
-              {ev.local && <div>📍 {ev.local}</div>}
-            </div>
-            {ev.descricao && <DescricaoEvento texto={ev.descricao} />}
-          </div>
-        </div>
 
         {/* Abas: Inscrição (escolher) · Programação (consultar) · Ingresso (validar).
             No desktop o ingresso também fica fixo na lateral — na porta do evento,

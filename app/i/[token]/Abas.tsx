@@ -1,6 +1,6 @@
 'use client'
 
-import type { ReactNode } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 
 export type AbaId = 'inscricao' | 'programacao' | 'ingresso'
 
@@ -20,15 +20,36 @@ const ABAS: { id: AbaId; rotulo: string }[] = [
 ]
 
 /**
- * Barra de abas da página do participante. Gruda no topo ao rolar, junto de uma
- * linha fina com o nome do evento — a referência de "onde estou" não some numa
- * lista de vários dias. Estado fica no pai (o conteúdo depende das marcações).
+ * Barra de abas da página do participante. Gruda no topo ao rolar e, só quando o
+ * título do evento sai de vista, revela o nome dele — assim a referência de
+ * "onde estou" não some numa lista de vários dias, sem repetir o título à toa.
+ * Estado fica no pai (o conteúdo depende das marcações).
  */
 export function Abas({ nomeEvento, ativa, onTrocar, selo, children }: Props) {
+  const sentinela = useRef<HTMLDivElement>(null)
+  const [grudada, setGrudada] = useState(false)
+
+  useEffect(() => {
+    const el = sentinela.current
+    if (!el) return
+    const obs = new IntersectionObserver(([e]) => setGrudada(!e.isIntersecting))
+    obs.observe(el)
+    return () => obs.disconnect()
+  }, [])
+
   return (
     <div className="min-w-0">
+      {/* Marca onde a barra deixa de estar no fluxo e passa a grudar. */}
+      <div ref={sentinela} aria-hidden className="h-px" />
+
       <div className="sticky top-0 z-30 -mx-5 px-5 bg-sand/95 backdrop-blur border-b border-line">
-        <div className="pt-2 text-xs text-muted truncate">{nomeEvento}</div>
+        <div
+          className={`text-xs text-muted truncate transition-all ${
+            grudada ? 'pt-2 max-h-6 opacity-100' : 'max-h-0 opacity-0'
+          }`}
+        >
+          {nomeEvento}
+        </div>
         <div className="flex gap-0.5 sm:gap-1" role="tablist">
           {ABAS.map((a) => {
             const on = ativa === a.id

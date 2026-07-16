@@ -200,8 +200,13 @@ export function PainelParticipante({
 
   const conteudoInscricao = (
     <div className="card p-5 sm:p-6 pb-8 min-w-0">
-      {/* Status: em zero convida à ação; com marcações, confirma o que está feito. */}
-      <div className="flex items-baseline justify-between gap-3 pb-3 mb-1 border-b border-line">
+      {/* Status: em zero convida à ação; com marcações, confirma o que está feito.
+          Sem nada marcável não há o que convidar — só a mensagem de vazio. */}
+      <div
+        className={`flex items-baseline justify-between gap-3 ${
+          diasMarcaveis.length === 0 ? 'hidden' : 'pb-3 mb-1 border-b border-line'
+        }`}
+      >
         {marcadas.length === 0 ? (
           <span className="text-sm font-semibold text-primary">
             👇 Toque nas palestras que você quer assistir
