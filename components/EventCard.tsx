@@ -59,6 +59,9 @@ export function EventCard({ evento }: { evento: EventoComStats }) {
           <ButtonLink variant="ghost" href={`/eventos/${evento.id}/editar`}>
             Editar
           </ButtonLink>
+          <ButtonLink variant="ghost" href={`/eventos/${evento.id}/sessoes`}>
+            Programação
+          </ButtonLink>
           <ButtonLink variant="secondary" href={`/eventos/${evento.id}/inscritos`}>
             Gerenciar
           </ButtonLink>
