@@ -40,11 +40,16 @@ interface Sessao {
   hora_fim: string    // 'HH:MM'
   titulo: string
   tipo: 'palestra' | 'minicurso' | 'servico' | 'outro'
+  tipo_outro: string | null // rótulo livre quando tipo === 'outro'; senão null
   palestrante: string | null
   local: string | null
   vagas_max: number | null // null = ilimitado
 }
 ```
+
+Quando `tipo === 'outro'`, o form mostra um campo de texto para o organizador
+escrever o nome do tipo (ex: "Mesa redonda", "Oficina"), guardado em `tipo_outro`.
+Na exibição (badge), usa `tipo_outro` se presente, senão o rótulo padrão do `tipo`.
 
 ### Tabela `inscricoes_sessoes`
 
@@ -116,8 +121,8 @@ build passa.
 Bloco "Programação" no `EventoForm` (criar/editar), estado client como o de
 `campos_extras`:
 - lista de sessões; cada uma: dia (date), hora início/fim (time), título (text),
-  tipo (select), palestrante (text opcional), local (text opcional),
-  vagas_max (number opcional);
+  tipo (select); se tipo = "outro", campo de texto tipo_outro pro rótulo livre;
+  palestrante (text opcional), local (text opcional), vagas_max (number opcional);
 - botão "＋ Adicionar sessão"; remover por item;
 - vai no FormData como `sessoes` (JSON), igual `campos_extras`.
 
