@@ -33,6 +33,7 @@ create table if not exists public.eventos (
   vagas_max     integer,
   valor         integer not null default 0,        -- 0 = grátis; senão centavos
   slug          text not null unique,
+  imagem_url    text,                              -- capa (Storage); null = gradiente
   campos_extras jsonb not null default '[]'::jsonb,
   created_at    timestamptz not null default now(),
   updated_at    timestamptz not null default now()
