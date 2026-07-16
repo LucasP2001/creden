@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation'
 import { createServerSupabase } from '@/lib/supabase'
 import { slugify } from '@/lib/slug'
 import { uploadCapa } from '@/lib/capa'
+import { corCapaValida } from '@/lib/imagem'
 import { CampoExtra } from '@/types'
 
 export interface CriarEventoResult {
@@ -55,6 +56,7 @@ export async function criarEvento(formData: FormData): Promise<CriarEventoResult
       valor: valorRaw ? Math.round(Number(valorRaw) * 100) : 0, // reais -> centavos
       slug,
       campos_extras: camposExtras,
+      cor_capa: corCapaValida(String(formData.get('cor_capa') ?? '')),
     })
     .select('id')
     .single()

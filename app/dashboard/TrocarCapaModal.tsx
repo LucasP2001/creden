@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/Button'
 import { trocarCapa } from './actions'
 
 // Modal de troca de capa no dashboard. Reusa ImageUpload; envia via server action.
-export function TrocarCapaModal({ eventoId }: { eventoId: string }) {
+export function TrocarCapaModal({ eventoId, corAtual }: { eventoId: string; corAtual?: string | null }) {
   const [aberto, setAberto] = useState(false)
   const [enviando, setEnviando] = useState(false)
   const [erro, setErro] = useState<string | null>(null)
@@ -39,7 +39,7 @@ export function TrocarCapaModal({ eventoId }: { eventoId: string }) {
           <div className="card p-6 w-[min(420px,94vw)]" onClick={(e) => e.stopPropagation()}>
             <h3 className="text-lg font-semibold mb-4">Trocar foto de capa</h3>
             <form action={enviar} className="grid gap-4">
-              <ImageUpload name="capa" label="Nova foto" />
+              <ImageUpload name="capa" label="Nova foto" defaultCor={corAtual} />
               {erro && <p className="text-error text-sm">{erro}</p>}
               <div className="flex gap-3 justify-end">
                 <Button type="button" variant="ghost" onClick={() => setAberto(false)} disabled={enviando}>

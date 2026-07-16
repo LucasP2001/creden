@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { createServerSupabase } from '@/lib/supabase'
 import { uploadCapa } from '@/lib/capa'
+import { corCapaValida } from '@/lib/imagem'
 
 export interface TrocarCapaResult {
   ok: boolean
@@ -31,7 +32,7 @@ export async function trocarCapa(formData: FormData): Promise<TrocarCapaResult> 
 
   const { error: dbErr } = await supabase
     .from('eventos')
-    .update({ imagem_url: url })
+    .update({ imagem_url: url, cor_capa: corCapaValida(String(formData.get('cor_capa') ?? '')) })
     .eq('id', eventoId)
   if (dbErr) return { ok: false, erro: 'Não foi possível salvar a imagem.' }
 

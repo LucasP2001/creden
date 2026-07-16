@@ -36,4 +36,11 @@ describe('montarPayloadUpdate', () => {
     expect(montarPayloadUpdate(fd({ nome: '', data_hora: '2026-08-01T14:00' })).erro).toBeTruthy()
     expect(montarPayloadUpdate(fd({ nome: 'X', data_hora: '' })).erro).toBeTruthy()
   })
+
+  it('cor_capa: preset válido passa; ausente/inválida vira branco', () => {
+    const base = { nome: 'X', data_hora: '2026-08-01T14:00', campos_extras: '[]' }
+    expect(montarPayloadUpdate(fd({ ...base, cor_capa: '#0E5C56' })).payload.cor_capa).toBe('#0E5C56')
+    expect(montarPayloadUpdate(fd({ ...base, cor_capa: '#abcabc' })).payload.cor_capa).toBe('#FFFFFF')
+    expect(montarPayloadUpdate(fd(base)).payload.cor_capa).toBe('#FFFFFF')
+  })
 })

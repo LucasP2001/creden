@@ -25,6 +25,7 @@ export interface Evento {
   valor: number // 0 = grátis (em centavos se pago)
   slug: string // usado em /e/[slug]
   imagem_url: string | null // URL pública da capa no Storage; null = gradiente
+  cor_capa: string // cor de fundo atrás da capa (hex); default #FFFFFF
   campos_extras: CampoExtra[] // jsonb no banco
   created_at: string
   updated_at: string

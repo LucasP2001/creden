@@ -22,14 +22,14 @@ export function EventCard({ evento }: { evento: EventoComStats }) {
 
   return (
     <article className="card flex flex-col overflow-hidden transition hover:shadow-lift hover:-translate-y-0.5">
-      <div className="relative h-[90px] overflow-hidden">
+      <div className="relative h-[90px] overflow-hidden" style={evento.imagem_url ? { backgroundColor: evento.cor_capa } : undefined}>
         {evento.imagem_url ? (
-          <Image src={evento.imagem_url} alt={`Capa de ${evento.nome}`} fill className="object-cover" />
+          <Image src={evento.imagem_url} alt={`Capa de ${evento.nome}`} fill className="object-contain" />
         ) : (
           <div className="absolute inset-0 bg-gradient-to-br from-primary to-primary-light" />
         )}
         <div className="absolute top-2 right-2">
-          <TrocarCapaModal eventoId={evento.id} />
+          <TrocarCapaModal eventoId={evento.id} corAtual={evento.cor_capa} />
         </div>
       </div>
       <div className="p-[18px] flex-1 flex flex-col">

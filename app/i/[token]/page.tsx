@@ -52,8 +52,8 @@ export default async function IngressoPage({ params }: { params: { token: string
           </div>
 
           {ev.imagem_url && (
-            <div className="relative h-28 w-full">
-              <Image src={ev.imagem_url} alt={`Capa de ${ev.nome}`} fill className="object-cover" />
+            <div className="relative h-28 w-full" style={{ backgroundColor: ev.cor_capa }}>
+              <Image src={ev.imagem_url} alt={`Capa de ${ev.nome}`} fill className="object-contain" />
             </div>
           )}
 

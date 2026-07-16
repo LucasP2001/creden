@@ -55,9 +55,9 @@ export default async function EventoPublicoPage({ params }: { params: { slug: st
       </header>
 
       {/* Hero */}
-      <div className="relative h-[260px] overflow-hidden">
+      <div className="relative h-[260px] overflow-hidden" style={ev.imagem_url ? { backgroundColor: ev.cor_capa } : undefined}>
         {ev.imagem_url ? (
-          <Image src={ev.imagem_url} alt={`Capa de ${ev.nome}`} fill priority className="object-cover" />
+          <Image src={ev.imagem_url} alt={`Capa de ${ev.nome}`} fill priority className="object-contain" />
         ) : (
           <div className="absolute inset-0 bg-gradient-to-br from-secondary via-primary to-primary-light" />
         )}

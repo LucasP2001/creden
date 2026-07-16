@@ -1,4 +1,5 @@
 import { CampoExtra } from '@/types'
+import { corCapaValida } from '@/lib/imagem'
 
 export interface PayloadUpdate {
   nome: string
@@ -8,6 +9,7 @@ export interface PayloadUpdate {
   vagas_max: number | null
   valor: number
   campos_extras: CampoExtra[]
+  cor_capa: string
 }
 
 /**
@@ -45,6 +47,7 @@ export function montarPayloadUpdate(
       vagas_max: vagasRaw ? Number(vagasRaw) : null,
       valor: valorRaw ? Math.round(Number(valorRaw) * 100) : 0,
       campos_extras: camposExtras,
+      cor_capa: corCapaValida(String(formData.get('cor_capa') ?? '')),
     },
   }
 }

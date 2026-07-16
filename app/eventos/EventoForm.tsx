@@ -71,7 +71,7 @@ export function EventoForm({ modo, evento }: Props) {
             />
           </div>
           <div className="mb-[18px]">
-            <ImageUpload name="capa" defaultPreview={evento?.imagem_url ?? null} />
+            <ImageUpload name="capa" defaultPreview={evento?.imagem_url ?? null} defaultCor={evento?.cor_capa ?? null} />
           </div>
           <div className="mb-[18px]">
             <label className="block text-[13px] font-semibold mb-1.5">Descrição</label>
