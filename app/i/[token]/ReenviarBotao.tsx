@@ -25,7 +25,9 @@ export function ReenviarBotao({ token, email }: { token: string; email: string }
       <button
         onClick={reenviar}
         disabled={estado === 'enviando' || estado === 'ok'}
-        className="text-sm text-white/90 underline underline-offset-2 disabled:no-underline disabled:opacity-70"
+        className={`text-sm font-semibold underline underline-offset-4 decoration-primary/40 disabled:no-underline min-h-[44px] px-3 ${
+          estado === 'ok' ? 'text-success' : 'text-primary'
+        }`}
       >
         {estado === 'enviando'
           ? 'Reenviando…'
@@ -34,7 +36,7 @@ export function ReenviarBotao({ token, email }: { token: string; email: string }
             : '✉ Reenviar e-mail'}
       </button>
       {msg && (
-        <p className={`text-xs mt-1 ${estado === 'erro' ? 'text-error' : 'text-white/60'}`}>{msg}</p>
+        <p className={`text-xs mt-1 ${estado === 'erro' ? 'text-error' : 'text-muted'}`}>{msg}</p>
       )}
     </div>
   )

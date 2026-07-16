@@ -4,6 +4,7 @@ import { gerarQrDataUrl } from '@/lib/qr'
 import { Evento, Inscricao } from '@/types'
 import { ReenviarBotao } from './ReenviarBotao'
 import { SessoesEditor } from './SessoesEditor'
+import { IngressoFlutuante } from './IngressoFlutuante'
 import { marcacoesDaInscricao, contarPorSessao } from '@/lib/marcacoes'
 import { Logo } from '@/components/Logo'
 
@@ -47,28 +48,35 @@ export default async function ParticipantePage({ params }: { params: { token: st
   const temPrograma = (ev.dias ?? []).length > 0
 
   return (
-    <main className="min-h-screen bg-sand">
+    <main className="min-h-screen bg-sand pb-24">
       <header className="h-14 flex items-center px-6 border-b border-line bg-surface">
         <Logo />
       </header>
 
       <div className="max-w-[980px] mx-auto px-5 py-8 grid gap-6 lg:grid-cols-[1fr_340px] items-start">
-        {/* Coluna principal: evento + programação */}
-        <div className="grid gap-6 order-2 lg:order-1">
-          <div className="card overflow-hidden">
+        {/* Coluna principal: evento + programação.
+            No mobile vem antes do ingresso: quem abre a página fora do evento quer
+            escolher palestras; o QR fica a um toque pelo botão flutuante. */}
+        <div className="grid gap-6 order-1 min-w-0">
+          <div className="card overflow-hidden min-w-0">
             {ev.imagem_url && (
               <div className="relative h-40 w-full" style={{ backgroundColor: ev.cor_capa }}>
                 <Image src={ev.imagem_url} alt={`Capa de ${ev.nome}`} fill className="object-contain" />
               </div>
             )}
             <div className="p-6">
-              <h1 className="font-display text-2xl font-semibold text-secondary">{ev.nome}</h1>
+              <p className="text-sm text-primary font-semibold">
+                Sua inscrição está confirmada, {insc.nome.split(' ')[0]} 👋
+              </p>
+              <h1 className="font-display text-2xl font-semibold text-secondary mt-1 break-words">
+                {ev.nome}
+              </h1>
               <div className="text-sm text-muted mt-2 grid gap-1">
                 <div>📅 {formatarData(ev.data_hora)}</div>
                 {ev.local && <div>📍 {ev.local}</div>}
               </div>
               {ev.descricao && (
-                <p className="text-[15px] leading-relaxed text-[#3a3833] whitespace-pre-line mt-4">
+                <p className="text-[15px] leading-relaxed text-[#3a3833] whitespace-pre-line break-words mt-4">
                   {ev.descricao}
                 </p>
               )}
@@ -76,7 +84,7 @@ export default async function ParticipantePage({ params }: { params: { token: st
           </div>
 
           {temPrograma && (
-            <div className="card p-6">
+            <div className="card p-6 pb-8 min-w-0">
               <h2 className="font-display text-xl font-semibold">Escolha suas palestras</h2>
               <p className="text-sm text-muted mt-1 mb-4">
                 Marque as sessões que você vai participar. Você pode voltar aqui e alterar quando quiser.
@@ -91,8 +99,8 @@ export default async function ParticipantePage({ params }: { params: { token: st
           )}
         </div>
 
-        {/* Coluna lateral: ingresso com QR */}
-        <aside className="order-1 lg:order-2 lg:sticky lg:top-8">
+        {/* Coluna lateral: ingresso com QR. Desktop: sticky ao lado. */}
+        <aside id="ingresso" className="order-2 lg:sticky lg:top-8 scroll-mt-6">
           <div className="bg-surface rounded-[24px] overflow-hidden shadow-lift">
             <div className="bg-primary text-white px-6 py-4 flex items-center justify-between">
               <Logo variant="dark" />
@@ -124,6 +132,8 @@ export default async function ParticipantePage({ params }: { params: { token: st
           <ReenviarBotao token={insc.token} email={insc.email} />
         </aside>
       </div>
+
+      {temPrograma && <IngressoFlutuante />}
     </main>
   )
 }
