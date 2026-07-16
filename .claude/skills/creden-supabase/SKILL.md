@@ -22,12 +22,14 @@ Nunca expor a `service_role` key no browser. Variáveis em `.env.local`
 - **eventos** — pertence a um organizador (`user_id`). Campos: nome, descrição, data/hora,
   local, vagas máximas, valor, slug público, campos extras do formulário (jsonb),
   `imagem_url text` (nullable — capa do evento; `null` usa o gradiente de fallback),
-  `sessoes jsonb` (cronograma do evento — array de `Sessao`; `[]` quando não há programação).
+  `categorias jsonb` (cronograma do evento — array de `Categoria`; `[]` quando não há
+  programação). Estrutura: `categorias[] { id, titulo, sessoes[] }`, onde cada `Sessao`
+  tem `dia` opcional (agrupamento livre por categoria, não mais "um dia = uma seção fixa").
 - **inscricoes** — pertence a um evento (`evento_id`). Campos: nome, e-mail, dados extras (jsonb),
   status (`inscrito` | `presente` | `cancelado`), token do ingresso, hora do check-in.
 - **inscricoes_sessoes** — marcações de interesse do participante em sessões do cronograma.
-  Campos: `inscricao_id`, `evento_id`, `sessao_id` (id da sessão dentro do jsonb, não FK).
-  **Unique** em `(inscricao_id, sessao_id)` — evita marcação duplicada.
+  Campos: `inscricao_id`, `evento_id`, `sessao_id` (id da sessão dentro do jsonb de `categorias`,
+  não FK). **Unique** em `(inscricao_id, sessao_id)` — evita marcação duplicada.
 
 Toda tabela com `created_at` e `updated_at`; **trigger** para `updated_at` automático.
 Criar **índices** em `eventos.slug`, `eventos.user_id`, `inscricoes.evento_id`,
