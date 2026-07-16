@@ -4,8 +4,8 @@ import { useMemo, useState } from 'react'
 import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
 import { ImageUpload } from '@/components/ImageUpload'
-import { CampoExtra, CampoExtraTipo, Evento, Sessao, TipoSessao } from '@/types'
-import { novaSessao } from '@/lib/sessoes'
+import { CampoExtra, CampoExtraTipo, Evento, Categoria, Sessao, TipoSessao } from '@/types'
+import { novaCategoria, novaSessao } from '@/lib/sessoes'
 import { slugify } from '@/lib/slug'
 import { criarEvento } from './novo/actions'
 import { atualizarEvento } from './[id]/editar/actions'
@@ -33,7 +33,7 @@ export function EventoForm({ modo, evento }: Props) {
   const [nome, setNome] = useState(evento?.nome ?? '')
   const [valorPago, setValorPago] = useState((evento?.valor ?? 0) > 0)
   const [campos, setCampos] = useState<CampoExtra[]>(evento?.campos_extras ?? [])
-  const [sessoes, setSessoes] = useState<Sessao[]>(evento?.sessoes ?? [])
+  const [categorias, setCategorias] = useState<Categoria[]>(evento?.categorias ?? [])
   const [enviando, setEnviando] = useState(false)
   const [erro, setErro] = useState<string | null>(null)
 
@@ -43,8 +43,27 @@ export function EventoForm({ modo, evento }: Props) {
     setCampos((cs) => cs.map((c) => (c.id === id ? { ...c, ...patch } : c)))
   }
 
-  function atualizarSessao(id: string, patch: Partial<Sessao>) {
-    setSessoes((ss) => ss.map((s) => (s.id === id ? { ...s, ...patch } : s)))
+  function atualizarCategoria(id: string, patch: Partial<Categoria>) {
+    setCategorias((cs) => cs.map((c) => (c.id === id ? { ...c, ...patch } : c)))
+  }
+  function addSessao(catId: string) {
+    setCategorias((cs) =>
+      cs.map((c) => (c.id === catId ? { ...c, sessoes: [...c.sessoes, novaSessao()] } : c))
+    )
+  }
+  function atualizarSessao(catId: string, sid: string, patch: Partial<Sessao>) {
+    setCategorias((cs) =>
+      cs.map((c) =>
+        c.id === catId
+          ? { ...c, sessoes: c.sessoes.map((s) => (s.id === sid ? { ...s, ...patch } : s)) }
+          : c
+      )
+    )
+  }
+  function removerSessao(catId: string, sid: string) {
+    setCategorias((cs) =>
+      cs.map((c) => (c.id === catId ? { ...c, sessoes: c.sessoes.filter((s) => s.id !== sid) } : c))
+    )
   }
 
   async function enviar(formData: FormData) {
@@ -52,7 +71,7 @@ export function EventoForm({ modo, evento }: Props) {
     setErro(null)
     // Anexa os campos extras (estado client) como JSON.
     formData.set('campos_extras', JSON.stringify(campos))
-    formData.set('sessoes', JSON.stringify(sessoes))
+    formData.set('categorias', JSON.stringify(categorias))
     const res =
       modo === 'editar' && evento
         ? await atualizarEvento(evento.id, formData)
@@ -188,96 +207,119 @@ export function EventoForm({ modo, evento }: Props) {
         <div className="card p-[22px]">
           <h2 className="text-lg font-semibold">Programação</h2>
           <p className="text-xs text-muted mt-1 mb-4">
-            Palestras, minicursos e atividades. O participante pode marcar interesse em cada uma.
+            Organize em categorias (ex: "Dia 01 — Gestão Municipal"). Uma categoria pode ter sessões de dias diferentes.
           </p>
-          {sessoes.map((s) => (
-            <div key={s.id} className="border border-line rounded-md p-3 mb-3 grid gap-2.5">
+          {categorias.map((c) => (
+            <div key={c.id} className="border border-line rounded-md p-3 mb-4 grid gap-3">
               <div className="flex gap-2.5 items-center">
                 <input
-                  className="input flex-1"
-                  placeholder="Título (ex: Logística e Cadeia de Suprimentos)"
-                  value={s.titulo}
-                  onChange={(e) => atualizarSessao(s.id, { titulo: e.target.value })}
+                  className="input flex-1 font-semibold"
+                  placeholder="Título da categoria (ex: Dia 01 (10/08) — Gestão Municipal)"
+                  value={c.titulo}
+                  onChange={(e) => atualizarCategoria(c.id, { titulo: e.target.value })}
                 />
                 <button
                   type="button"
-                  onClick={() => setSessoes((ss) => ss.filter((x) => x.id !== s.id))}
+                  onClick={() => setCategorias((cs) => cs.filter((x) => x.id !== c.id))}
                   className="text-muted hover:text-error px-1.5 text-lg"
-                  aria-label="Remover sessão"
+                  aria-label="Remover categoria"
                 >
                   ✕
                 </button>
               </div>
-              <div className="grid grid-cols-3 gap-2.5 max-[860px]:grid-cols-1">
-                <input
-                  type="date"
-                  className="input"
-                  value={s.dia}
-                  onChange={(e) => atualizarSessao(s.id, { dia: e.target.value })}
-                />
-                <input
-                  type="time"
-                  className="input"
-                  value={s.hora_inicio}
-                  onChange={(e) => atualizarSessao(s.id, { hora_inicio: e.target.value })}
-                />
-                <input
-                  type="time"
-                  className="input"
-                  value={s.hora_fim}
-                  onChange={(e) => atualizarSessao(s.id, { hora_fim: e.target.value })}
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-2.5 max-[860px]:grid-cols-1">
-                <select
-                  className="input"
-                  value={s.tipo}
-                  onChange={(e) => atualizarSessao(s.id, { tipo: e.target.value as TipoSessao })}
-                >
-                  <option value="palestra">Palestra</option>
-                  <option value="minicurso">Minicurso</option>
-                  <option value="servico">Serviço</option>
-                  <option value="outro">Outro</option>
-                </select>
-                {s.tipo === 'outro' ? (
+              {c.sessoes.map((s) => (
+                <div key={s.id} className="border border-line rounded-md p-3 grid gap-2.5 bg-sand">
+                  <div className="flex gap-2.5 items-center">
+                    <input
+                      className="input flex-1"
+                      placeholder="Título da sessão"
+                      value={s.titulo}
+                      onChange={(e) => atualizarSessao(c.id, s.id, { titulo: e.target.value })}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => removerSessao(c.id, s.id)}
+                      className="text-muted hover:text-error px-1.5 text-lg"
+                      aria-label="Remover sessão"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                  <div className="grid grid-cols-3 gap-2.5 max-[860px]:grid-cols-1">
+                    <input
+                      type="date"
+                      className="input"
+                      value={s.dia ?? ''}
+                      onChange={(e) => atualizarSessao(c.id, s.id, { dia: e.target.value || null })}
+                    />
+                    <input
+                      type="time"
+                      className="input"
+                      value={s.hora_inicio}
+                      onChange={(e) => atualizarSessao(c.id, s.id, { hora_inicio: e.target.value })}
+                    />
+                    <input
+                      type="time"
+                      className="input"
+                      value={s.hora_fim}
+                      onChange={(e) => atualizarSessao(c.id, s.id, { hora_fim: e.target.value })}
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-2.5 max-[860px]:grid-cols-1">
+                    <select
+                      className="input"
+                      value={s.tipo}
+                      onChange={(e) => atualizarSessao(c.id, s.id, { tipo: e.target.value as TipoSessao })}
+                    >
+                      <option value="palestra">Palestra</option>
+                      <option value="minicurso">Minicurso</option>
+                      <option value="servico">Serviço</option>
+                      <option value="outro">Outro</option>
+                    </select>
+                    {s.tipo === 'outro' ? (
+                      <input
+                        className="input"
+                        placeholder="Nome do tipo (ex: Mesa redonda)"
+                        value={s.tipo_outro ?? ''}
+                        onChange={(e) => atualizarSessao(c.id, s.id, { tipo_outro: e.target.value || null })}
+                      />
+                    ) : (
+                      <div />
+                    )}
+                  </div>
+                  <div className="grid grid-cols-2 gap-2.5 max-[860px]:grid-cols-1">
+                    <input
+                      className="input"
+                      placeholder="Palestrante (opcional)"
+                      value={s.palestrante ?? ''}
+                      onChange={(e) => atualizarSessao(c.id, s.id, { palestrante: e.target.value || null })}
+                    />
+                    <input
+                      className="input"
+                      placeholder="Local/sala (opcional)"
+                      value={s.local ?? ''}
+                      onChange={(e) => atualizarSessao(c.id, s.id, { local: e.target.value || null })}
+                    />
+                  </div>
                   <input
+                    type="number"
+                    min={1}
                     className="input"
-                    placeholder="Nome do tipo (ex: Mesa redonda)"
-                    value={s.tipo_outro ?? ''}
-                    onChange={(e) => atualizarSessao(s.id, { tipo_outro: e.target.value || null })}
+                    placeholder="Vagas (deixe vazio p/ ilimitado)"
+                    value={s.vagas_max ?? ''}
+                    onChange={(e) =>
+                      atualizarSessao(c.id, s.id, { vagas_max: e.target.value ? Number(e.target.value) : null })
+                    }
                   />
-                ) : (
-                  <div />
-                )}
-              </div>
-              <div className="grid grid-cols-2 gap-2.5 max-[860px]:grid-cols-1">
-                <input
-                  className="input"
-                  placeholder="Palestrante (opcional)"
-                  value={s.palestrante ?? ''}
-                  onChange={(e) => atualizarSessao(s.id, { palestrante: e.target.value || null })}
-                />
-                <input
-                  className="input"
-                  placeholder="Local/sala (opcional)"
-                  value={s.local ?? ''}
-                  onChange={(e) => atualizarSessao(s.id, { local: e.target.value || null })}
-                />
-              </div>
-              <input
-                type="number"
-                min={1}
-                className="input"
-                placeholder="Vagas (deixe vazio p/ ilimitado)"
-                value={s.vagas_max ?? ''}
-                onChange={(e) =>
-                  atualizarSessao(s.id, { vagas_max: e.target.value ? Number(e.target.value) : null })
-                }
-              />
+                </div>
+              ))}
+              <Button type="button" variant="ghost" onClick={() => addSessao(c.id)}>
+                ＋ Adicionar sessão
+              </Button>
             </div>
           ))}
-          <Button type="button" variant="ghost" onClick={() => setSessoes((ss) => [...ss, novaSessao()])}>
-            ＋ Adicionar sessão
+          <Button type="button" variant="ghost" onClick={() => setCategorias((cs) => [...cs, novaCategoria()])}>
+            ＋ Adicionar categoria
           </Button>
         </div>
 

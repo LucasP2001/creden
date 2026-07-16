@@ -5,7 +5,7 @@ import { createServerSupabase } from '@/lib/supabase'
 import { slugify } from '@/lib/slug'
 import { uploadCapa } from '@/lib/capa'
 import { corCapaValida } from '@/lib/imagem'
-import { parseSessoes } from '@/lib/sessoes'
+import { parseCategorias } from '@/lib/sessoes'
 import { CampoExtra } from '@/types'
 
 export interface CriarEventoResult {
@@ -57,7 +57,7 @@ export async function criarEvento(formData: FormData): Promise<CriarEventoResult
       valor: valorRaw ? Math.round(Number(valorRaw) * 100) : 0, // reais -> centavos
       slug,
       campos_extras: camposExtras,
-      sessoes: parseSessoes(String(formData.get('sessoes') ?? '[]')),
+      categorias: parseCategorias(String(formData.get('categorias') ?? '[]')),
       cor_capa: corCapaValida(String(formData.get('cor_capa') ?? '')),
     })
     .select('id')
