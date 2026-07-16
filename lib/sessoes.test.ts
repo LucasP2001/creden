@@ -45,7 +45,8 @@ describe('rotuloTipo', () => {
 
 describe('idsDeSessoes', () => {
   it('extrai os ids', () => {
-    expect(idsDeSessoes([s({ id: 'a' }), s({ id: 'b' })])).toEqual(['a', 'b'])
+    const cats: Categoria[] = [{ id: 'c1', titulo: 'A', sessoes: [s({ id: 'a' }), s({ id: 'b' })] }]
+    expect(idsDeSessoes(cats)).toEqual(['a', 'b'])
     expect(idsDeSessoes([])).toEqual([])
   })
 })
