@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url'
 export default defineConfig({
   test: {
     environment: 'node',
-    include: ['lib/**/*.test.ts', 'tests/**/*.test.ts'],
+    include: ['lib/**/*.test.ts', 'tests/**/*.test.ts', 'app/**/*.test.ts'],
   },
   resolve: {
     alias: {
