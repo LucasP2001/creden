@@ -3,11 +3,23 @@
 import { createAdminSupabase } from '@/lib/supabase'
 import { gerarToken } from '@/lib/qr'
 import { enviarIngresso } from '@/lib/email'
+import { gravarMarcacoes } from '@/lib/marcacoes'
 import { Evento } from '@/types'
 
 export interface InscreverResult {
   ok: boolean
   erro?: string
+  aviso?: string
+}
+
+/** Parseia o jsonb de ids marcados vindo do FormData; [] em qualquer erro. */
+function parseIds(json: string): string[] {
+  try {
+    const v = JSON.parse(json)
+    return Array.isArray(v) ? v.map(String) : []
+  } catch {
+    return []
+  }
 }
 
 /**
@@ -55,16 +67,25 @@ export async function inscrever(slug: string, formData: FormData): Promise<Inscr
 
   const token = gerarToken()
 
-  const { error } = await supabase.from('inscricoes').insert({
-    evento_id: evento.id,
-    nome,
-    email,
-    dados_extras: dadosExtras,
-    status: 'inscrito',
-    token,
-  })
+  const { data: inscricaoRow, error } = await supabase
+    .from('inscricoes')
+    .insert({
+      evento_id: evento.id,
+      nome,
+      email,
+      dados_extras: dadosExtras,
+      status: 'inscrito',
+      token,
+    })
+    .select('id')
+    .single()
 
-  if (error) return { ok: false, erro: 'Não foi possível concluir sua inscrição. Tente novamente.' }
+  if (error || !inscricaoRow) {
+    return { ok: false, erro: 'Não foi possível concluir sua inscrição. Tente novamente.' }
+  }
+
+  const marcados = parseIds(String(formData.get('sessoes_marcadas') ?? '[]'))
+  const rejeitadas = await gravarMarcacoes(supabase, evento.id, inscricaoRow.id, marcados, evento.sessoes)
 
   // Envia o ingresso. Se o e-mail falhar, a inscrição já existe — não bloqueia o sucesso,
   // mas registra o erro (o participante ainda pode acessar /i/[token]).
@@ -85,6 +106,10 @@ export async function inscrever(slug: string, formData: FormData): Promise<Inscr
     })
   } catch (e) {
     console.error('Falha ao enviar ingresso por e-mail:', e)
+  }
+
+  if (rejeitadas.length > 0) {
+    return { ok: true, aviso: `Estas sessões já estavam lotadas: ${rejeitadas.join(', ')}.` }
   }
 
   return { ok: true }

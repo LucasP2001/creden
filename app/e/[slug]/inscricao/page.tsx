@@ -1,7 +1,8 @@
-import { createServerSupabase } from '@/lib/supabase'
+import { createServerSupabase, createAdminSupabase } from '@/lib/supabase'
 import { Evento } from '@/types'
 import { InscricaoForm } from './InscricaoForm'
 import { Logo } from '@/components/Logo'
+import { contarPorSessao } from '@/lib/marcacoes'
 
 // Formulário de inscrição (/e/[slug]/inscricao). Público.
 export default async function InscricaoPage({ params }: { params: { slug: string } }) {
@@ -17,6 +18,7 @@ export default async function InscricaoPage({ params }: { params: { slug: string
   }
 
   const ev = evento as Evento
+  const contagens = await contarPorSessao(createAdminSupabase(), ev.id)
 
   return (
     <main className="min-h-screen">
@@ -27,7 +29,7 @@ export default async function InscricaoPage({ params }: { params: { slug: string
         <a href={`/e/${ev.slug}`} className="text-muted text-sm">← Voltar ao evento</a>
         <h1 className="font-display text-3xl font-semibold mt-3">Fazer inscrição</h1>
         <p className="text-muted mt-1 mb-7">{ev.nome}</p>
-        <InscricaoForm slug={ev.slug} camposExtras={ev.campos_extras ?? []} />
+        <InscricaoForm slug={ev.slug} camposExtras={ev.campos_extras ?? []} sessoes={ev.sessoes} contagens={contagens} />
       </div>
     </main>
   )

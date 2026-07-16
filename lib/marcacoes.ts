@@ -43,3 +43,36 @@ export async function contarPorSessao(
   }
   return mapa
 }
+
+/**
+ * Insere marcações para uma inscrição, respeitando vaga por sessão.
+ * Retorna os títulos das sessões rejeitadas por lotação (para avisar o participante).
+ */
+export async function gravarMarcacoes(
+  admin: Admin,
+  eventoId: string,
+  inscricaoId: string,
+  sessaoIds: string[],
+  sessoes: Sessao[]
+): Promise<string[]> {
+  if (sessaoIds.length === 0) return []
+  const contagens = await contarPorSessao(admin, eventoId)
+  const porId = new Map(sessoes.map((s) => [s.id, s]))
+  const rejeitadas: string[] = []
+  const inserir: { inscricao_id: string; evento_id: string; sessao_id: string }[] = []
+
+  for (const id of sessaoIds) {
+    const sessao = porId.get(id)
+    if (!sessao) continue // id inexistente, ignora
+    if (sessao.vagas_max != null && (contagens[id] ?? 0) >= sessao.vagas_max) {
+      rejeitadas.push(sessao.titulo)
+      continue
+    }
+    inserir.push({ inscricao_id: inscricaoId, evento_id: eventoId, sessao_id: id })
+  }
+
+  if (inserir.length > 0) {
+    await admin.from('inscricoes_sessoes').insert(inserir)
+  }
+  return rejeitadas
+}
