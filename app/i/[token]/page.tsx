@@ -89,6 +89,12 @@ export default async function IngressoPage({ params }: { params: { token: string
             <Row k="Participante" v={insc.nome} />
           </div>
 
+          {ev.descricao && (
+            <div className="px-7 py-3 text-sm text-muted whitespace-pre-line border-t border-line">
+              {ev.descricao}
+            </div>
+          )}
+
           {(ev.dias ?? []).length > 0 && (
             <SessoesEditor
               token={insc.token}

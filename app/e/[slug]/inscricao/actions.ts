@@ -3,23 +3,13 @@
 import { createAdminSupabase } from '@/lib/supabase'
 import { gerarToken } from '@/lib/qr'
 import { enviarIngresso } from '@/lib/email'
-import { gravarMarcacoes } from '@/lib/marcacoes'
 import { Evento } from '@/types'
 
 export interface InscreverResult {
   ok: boolean
   erro?: string
-  aviso?: string
-}
-
-/** Parseia o jsonb de ids marcados vindo do FormData; [] em qualquer erro. */
-function parseIds(json: string): string[] {
-  try {
-    const v = JSON.parse(json)
-    return Array.isArray(v) ? v.map(String) : []
-  } catch {
-    return []
-  }
+  /** Token da inscrição criada — o form redireciona para /i/[token]. */
+  token?: string
 }
 
 /**
@@ -67,25 +57,21 @@ export async function inscrever(slug: string, formData: FormData): Promise<Inscr
 
   const token = gerarToken()
 
-  const { data: inscricaoRow, error } = await supabase
-    .from('inscricoes')
-    .insert({
-      evento_id: evento.id,
-      nome,
-      email,
-      dados_extras: dadosExtras,
-      status: 'inscrito',
-      token,
-    })
-    .select('id')
-    .single()
+  const { error } = await supabase.from('inscricoes').insert({
+    evento_id: evento.id,
+    nome,
+    email,
+    dados_extras: dadosExtras,
+    status: 'inscrito',
+    token,
+  })
 
-  if (error || !inscricaoRow) {
+  if (error) {
     return { ok: false, erro: 'Não foi possível concluir sua inscrição. Tente novamente.' }
   }
 
-  const marcados = parseIds(String(formData.get('sessoes_marcadas') ?? '[]'))
-  const rejeitadas = await gravarMarcacoes(supabase, evento.id, inscricaoRow.id, marcados, evento.dias)
+  // As sessões (palestras/minicursos) o participante escolhe depois, na página dele
+  // (/i/[token]) — não no formulário de inscrição.
 
   // Envia o ingresso. Se o e-mail falhar, a inscrição já existe — não bloqueia o sucesso,
   // mas registra o erro (o participante ainda pode acessar /i/[token]).
@@ -108,9 +94,5 @@ export async function inscrever(slug: string, formData: FormData): Promise<Inscr
     console.error('Falha ao enviar ingresso por e-mail:', e)
   }
 
-  if (rejeitadas.length > 0) {
-    return { ok: true, aviso: `Estas sessões já estavam lotadas: ${rejeitadas.join(', ')}.` }
-  }
-
-  return { ok: true }
+  return { ok: true, token }
 }
