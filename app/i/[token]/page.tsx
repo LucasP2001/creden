@@ -1,3 +1,4 @@
+import Image from 'next/image'
 import { createAdminSupabase } from '@/lib/supabase'
 import { gerarQrDataUrl } from '@/lib/qr'
 import { Evento, Inscricao } from '@/types'
@@ -49,6 +50,12 @@ export default async function IngressoPage({ params }: { params: { token: string
             <Logo variant="dark" />
             <span className="text-xs opacity-85">INGRESSO</span>
           </div>
+
+          {ev.imagem_url && (
+            <div className="relative h-28 w-full">
+              <Image src={ev.imagem_url} alt={`Capa de ${ev.nome}`} fill className="object-cover" />
+            </div>
+          )}
 
           <div
             className={`flex items-center justify-center gap-2 font-bold text-sm py-2.5 ${

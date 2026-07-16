@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import Image from 'next/image'
 import { createServerSupabase } from '@/lib/supabase'
 import { Evento } from '@/types'
 import { Logo } from '@/components/Logo'
@@ -54,7 +55,12 @@ export default async function EventoPublicoPage({ params }: { params: { slug: st
       </header>
 
       {/* Hero */}
-      <div className="relative h-[260px] bg-gradient-to-br from-secondary via-primary to-primary-light overflow-hidden">
+      <div className="relative h-[260px] overflow-hidden">
+        {ev.imagem_url ? (
+          <Image src={ev.imagem_url} alt={`Capa de ${ev.nome}`} fill priority className="object-cover" />
+        ) : (
+          <div className="absolute inset-0 bg-gradient-to-br from-secondary via-primary to-primary-light" />
+        )}
         <div className="absolute inset-0 bg-grid opacity-40" />
         <div className="absolute inset-0 flex items-end">
           <div className="max-w-[760px] mx-auto w-full px-6 pb-8">

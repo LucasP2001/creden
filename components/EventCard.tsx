@@ -1,3 +1,4 @@
+import Image from 'next/image'
 import { EventoComStats } from '@/types'
 import { ButtonLink } from './ui/Button'
 
@@ -20,7 +21,13 @@ export function EventCard({ evento }: { evento: EventoComStats }) {
 
   return (
     <article className="card flex flex-col overflow-hidden transition hover:shadow-lift hover:-translate-y-0.5">
-      <div className="h-[90px] bg-gradient-to-br from-primary to-primary-light" />
+      <div className="relative h-[90px] overflow-hidden">
+        {evento.imagem_url ? (
+          <Image src={evento.imagem_url} alt={`Capa de ${evento.nome}`} fill className="object-cover" />
+        ) : (
+          <div className="absolute inset-0 bg-gradient-to-br from-primary to-primary-light" />
+        )}
+      </div>
       <div className="p-[18px] flex-1 flex flex-col">
         <h3 className="text-[19px] font-semibold text-secondary">{evento.nome}</h3>
         <div className="text-[13px] text-muted mt-1">📅 {formatarData(evento.data_hora)}</div>
