@@ -3,6 +3,7 @@
 import { redirect } from 'next/navigation'
 import { createServerSupabase } from '@/lib/supabase'
 import { slugify } from '@/lib/slug'
+import { validarImagem, extensaoImagem } from '@/lib/imagem'
 import { CampoExtra } from '@/types'
 
 export interface CriarEventoResult {
@@ -42,19 +43,39 @@ export async function criarEvento(formData: FormData): Promise<CriarEventoResult
   const base = slugify(nome) || 'evento'
   const slug = await slugUnico(supabase, base)
 
-  const { error } = await supabase.from('eventos').insert({
-    user_id: user.id,
-    nome,
-    descricao: String(formData.get('descricao') ?? '') || null,
-    data_hora: new Date(dataHora).toISOString(),
-    local: String(formData.get('local') ?? '') || null,
-    vagas_max: vagasRaw ? Number(vagasRaw) : null,
-    valor: valorRaw ? Math.round(Number(valorRaw) * 100) : 0, // reais -> centavos
-    slug,
-    campos_extras: camposExtras,
-  })
+  const { data: novo, error } = await supabase
+    .from('eventos')
+    .insert({
+      user_id: user.id,
+      nome,
+      descricao: String(formData.get('descricao') ?? '') || null,
+      data_hora: new Date(dataHora).toISOString(),
+      local: String(formData.get('local') ?? '') || null,
+      vagas_max: vagasRaw ? Number(vagasRaw) : null,
+      valor: valorRaw ? Math.round(Number(valorRaw) * 100) : 0, // reais -> centavos
+      slug,
+      campos_extras: camposExtras,
+    })
+    .select('id')
+    .single()
 
-  if (error) return { ok: false, erro: 'Não foi possível publicar o evento. Tente novamente.' }
+  if (error || !novo) {
+    return { ok: false, erro: 'Não foi possível publicar o evento. Tente novamente.' }
+  }
+
+  // Upload da capa (opcional). Falha aqui não bloqueia a publicação.
+  const capa = formData.get('capa')
+  if (capa instanceof File && capa.size > 0 && !validarImagem(capa)) {
+    const ext = extensaoImagem(capa.type)
+    const path = `${user.id}/${novo.id}.${ext}`
+    const { error: upErr } = await supabase.storage
+      .from('eventos-capas')
+      .upload(path, capa, { upsert: true, contentType: capa.type })
+    if (!upErr) {
+      const { data: pub } = supabase.storage.from('eventos-capas').getPublicUrl(path)
+      await supabase.from('eventos').update({ imagem_url: pub.publicUrl }).eq('id', novo.id)
+    }
+  }
 
   redirect('/dashboard')
 }

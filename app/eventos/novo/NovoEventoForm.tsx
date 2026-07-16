@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react'
 import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
+import { ImageUpload } from '@/components/ImageUpload'
 import { CampoExtra, CampoExtraTipo } from '@/types'
 import { slugify } from '@/lib/slug'
 import { criarEvento } from './actions'
@@ -53,6 +54,9 @@ export function NovoEventoForm() {
               value={nome}
               onChange={(e) => setNome(e.target.value)}
             />
+          </div>
+          <div className="mb-[18px]">
+            <ImageUpload name="capa" />
           </div>
           <div className="mb-[18px]">
             <label className="block text-[13px] font-semibold mb-1.5">Descrição</label>
