@@ -14,9 +14,8 @@ interface Props {
   evento?: Evento
 }
 
-let _id = 0
 const novoCampo = (): CampoExtra => ({
-  id: `c${_id++}`,
+  id: crypto.randomUUID(),
   label: '',
   tipo: 'texto',
   obrigatorio: false,
