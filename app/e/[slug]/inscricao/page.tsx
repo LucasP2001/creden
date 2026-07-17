@@ -39,16 +39,28 @@ export default async function InscricaoPage({ params }: { params: { slug: string
           </>
         ) : (
           <div className="card mt-3 overflow-hidden">
-            {/* Capa do evento: traz a identidade dele para a tela de aviso, em vez
-                de um card genérico. Cai no gradiente quando não há imagem. */}
+            {/* Topo em "palco": a capa desfocada preenche o fundo e a logo nítida
+                fica por cima, o mesmo tratamento da página pública. Tudo dentro
+                do card (overflow-hidden), então a logo não sai da faixa. */}
             {ev.imagem_url ? (
-              <div className="relative h-36 w-full" style={{ backgroundColor: ev.cor_capa }}>
+              <div className="relative h-40 w-full grid place-items-center overflow-hidden bg-secondary">
                 <Image
                   src={ev.imagem_url}
-                  alt={`Capa de ${ev.nome}`}
+                  alt=""
+                  aria-hidden
                   fill
-                  className="object-contain"
+                  className="object-cover scale-125 blur-2xl saturate-150"
                 />
+                <div className="absolute inset-0 bg-secondary/35" />
+                <div className="relative w-[160px] aspect-[3/2] rounded-xl overflow-hidden bg-white shadow-lift ring-1 ring-black/5">
+                  <Image
+                    src={ev.imagem_url}
+                    alt={`Capa de ${ev.nome}`}
+                    fill
+                    sizes="160px"
+                    className="object-contain p-2"
+                  />
+                </div>
               </div>
             ) : (
               <div className="h-20 w-full bg-gradient-to-br from-secondary via-primary to-primary-light" />

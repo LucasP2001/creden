@@ -64,24 +64,45 @@ export default async function ParticipantePage({ params }: { params: { token: st
 
   return (
     <main className="min-h-screen bg-sand pb-24">
-      {/* Topo do evento: a capa aparece inteira (é a arte do organizador),
-          o texto vem abaixo. Sem header próprio — a marca assina o ingresso. */}
-      {ev.imagem_url ? (
-        <div className="relative h-44 sm:h-52 w-full" style={{ backgroundColor: ev.cor_capa }}>
-          <Image
-            src={ev.imagem_url}
-            alt={`Capa de ${ev.nome}`}
-            fill
-            priority
-            className="object-contain"
-          />
+      {/* Topo em "palco": a capa preenche o fundo desfocada; a logo nítida
+          vem sobreposta abaixo, encostando no bloco de dados. Mesmo tratamento
+          da página pública, pra a identidade do evento ser a mesma nas telas. */}
+      <div className="relative h-40 sm:h-48 overflow-hidden bg-secondary">
+        {ev.imagem_url ? (
+          <>
+            <Image
+              src={ev.imagem_url}
+              alt=""
+              aria-hidden
+              fill
+              priority
+              sizes="100vw"
+              className="object-cover scale-125 blur-2xl saturate-150"
+            />
+            <div className="absolute inset-0 bg-secondary/35" />
+          </>
+        ) : (
+          <div className="absolute inset-0 bg-gradient-to-br from-secondary via-primary to-primary-light" />
+        )}
+      </div>
+
+      {ev.imagem_url && (
+        <div className="max-w-[980px] mx-auto px-5 relative z-10 flex justify-center -mt-[84px] pointer-events-none">
+          <div className="relative w-full max-w-[200px] aspect-[3/2] rounded-2xl overflow-hidden bg-white shadow-lift ring-1 ring-black/5">
+            <Image
+              src={ev.imagem_url}
+              alt={`Capa de ${ev.nome}`}
+              fill
+              priority
+              sizes="200px"
+              className="object-contain p-2"
+            />
+          </div>
         </div>
-      ) : (
-        <div className="h-24 w-full bg-gradient-to-br from-secondary via-primary to-primary-light" />
       )}
 
-      <div className="max-w-[980px] mx-auto px-5">
-        <div className="py-6 border-b border-line">
+      <div className={`max-w-[980px] mx-auto px-5 relative ${ev.imagem_url ? '-mt-10' : ''}`}>
+        <div className={`pb-6 border-b border-line ${ev.imagem_url ? 'pt-14' : 'py-6'}`}>
           <p className="text-sm font-semibold text-primary">
             ✓ Inscrição confirmada, {insc.nome.split(' ')[0]}
           </p>
