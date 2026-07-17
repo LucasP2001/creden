@@ -27,7 +27,7 @@ function d(over: Partial<Dia>): Dia {
 }
 
 describe('diasSelecionaveis', () => {
-  it('mantém intervalo que fica entre duas marcáveis', () => {
+  it('remove intervalo entre duas marcáveis — aqui a lista é só para decidir', () => {
     const dias = [
       d({
         sessoes: [
@@ -38,10 +38,10 @@ describe('diasSelecionaveis', () => {
       }),
     ]
     const r = diasSelecionaveis(dias)
-    expect(r[0].sessoes.map((x) => x.id)).toEqual(['a', 'p', 'b'])
+    expect(r[0].sessoes.map((x) => x.id)).toEqual(['a', 'b'])
   })
 
-  it('remove intervalo no começo do dia (nada a separar antes)', () => {
+  it('remove intervalo no começo do dia', () => {
     const dias = [
       d({
         sessoes: [
@@ -67,7 +67,7 @@ describe('diasSelecionaveis', () => {
     expect(r[0].sessoes.map((x) => x.id)).toEqual(['a'])
   })
 
-  it('colapsa intervalos seguidos entre marcáveis num só', () => {
+  it('remove intervalos seguidos', () => {
     const dias = [
       d({
         sessoes: [
@@ -79,8 +79,7 @@ describe('diasSelecionaveis', () => {
       }),
     ]
     const r = diasSelecionaveis(dias)
-    // mantém o primeiro do bloco, descarta o resto
-    expect(r[0].sessoes.map((x) => x.id)).toEqual(['a', 'p1', 'b'])
+    expect(r[0].sessoes.map((x) => x.id)).toEqual(['a', 'b'])
   })
 
   it('dia só com intervalos some por completo', () => {
@@ -120,7 +119,7 @@ describe('diasSelecionaveis', () => {
     expect(r[0].categorias.map((c) => c.id)).toEqual(['c1'])
   })
 
-  it('intervalo entre marcáveis dentro de uma categoria fica', () => {
+  it('intervalo dentro de uma categoria também sai', () => {
     const dias = [
       d({
         categorias: [
@@ -137,7 +136,7 @@ describe('diasSelecionaveis', () => {
       }),
     ]
     const r = diasSelecionaveis(dias)
-    expect(r[0].categorias[0].sessoes.map((x) => x.id)).toEqual(['a', 'p', 'b'])
+    expect(r[0].categorias[0].sessoes.map((x) => x.id)).toEqual(['a', 'b'])
   })
 
   it('não muta os dias originais', () => {
