@@ -11,10 +11,12 @@ interface Props {
   children: ReactNode
 }
 
-const ABAS: { id: AbaId; rotulo: string }[] = [
+const ABAS: { id: AbaId; rotulo: string; soMobile?: boolean }[] = [
   { id: 'inscricao', rotulo: 'Inscrição' },
   { id: 'programacao', rotulo: 'Programação' },
-  { id: 'ingresso', rotulo: 'Ingresso' },
+  // No desktop o ingresso já fica fixo na coluna lateral: a aba deixaria a
+  // coluna principal vazia.
+  { id: 'ingresso', rotulo: 'Ingresso', soMobile: true },
 ]
 
 /**
@@ -82,6 +84,8 @@ export function Abas({ nomeEvento, ativa, onTrocar, children }: Props) {
                 aria-selected={on}
                 onClick={() => onTrocar(a.id)}
                 className={`flex-1 sm:flex-none px-2 sm:px-3.5 py-3 text-sm whitespace-nowrap min-h-[44px] border-b-2 transition-colors ${
+                  a.soMobile ? 'lg:hidden' : ''
+                } ${
                   on
                     ? 'border-primary text-primary font-semibold'
                     : 'border-transparent text-muted hover:text-secondary'

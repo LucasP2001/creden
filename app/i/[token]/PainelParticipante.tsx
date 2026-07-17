@@ -268,10 +268,19 @@ export function PainelParticipante({
     </div>
   )
 
+  // A aba Ingresso não existe no desktop (lá o QR fica fixo na lateral). Se ela
+  // estiver ativa quando a tela alarga, o desktop cai na Inscrição — senão a
+  // coluna principal ficaria vazia.
+  const classeAba = (id: AbaId) => {
+    if (aba === id) return ''
+    if (id === 'inscricao' && aba === 'ingresso') return 'hidden lg:block'
+    return 'hidden'
+  }
+
   return (
     <Abas nomeEvento={nomeEvento} ativa={aba} onTrocar={setAba}>
-      <div hidden={aba !== 'inscricao'}>{conteudoInscricao}</div>
-      <div hidden={aba !== 'programacao'}>
+      <div className={classeAba('inscricao')}>{conteudoInscricao}</div>
+      <div className={classeAba('programacao')}>
         <div className="card p-5 sm:p-6 min-w-0">
           {dias.length > 0 ? (
             // `marcadas` (e não `salvas`): a timeline reflete a escolha na hora,
@@ -288,7 +297,7 @@ export function PainelParticipante({
           )}
         </div>
       </div>
-      <div hidden={aba !== 'ingresso'}>{ingresso}</div>
+      <div className={aba === 'ingresso' ? 'lg:hidden' : 'hidden'}>{ingresso}</div>
 
       {/* Barra de salvar — só na aba Inscrição, e só quando há de fato o que salvar
           (ou logo após salvar, para confirmar). */}

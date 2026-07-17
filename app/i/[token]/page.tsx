@@ -17,6 +17,16 @@ function formatarData(iso: string): string {
   })
 }
 
+/** Data do canhoto do ingresso: 'Seg, 10 de agosto · 09:00'. */
+function formatarDataIngresso(iso: string): string {
+  const d = new Date(iso)
+  const semana = d.toLocaleDateString('pt-BR', { weekday: 'short' }).replace('.', '')
+  const dia = d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'long' })
+  const hora = d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+  // Só a primeira letra: `capitalize` do CSS viraria "10 De Ago. De 2026".
+  return `${semana.charAt(0).toUpperCase()}${semana.slice(1)}, ${dia} · ${hora}`
+}
+
 // Página do participante (/i/[token]). Pública — quem tem o token (link do e-mail) acessa.
 // Mostra a inscrição, o ingresso com QR, os dados do evento e o cronograma onde o
 // participante escolhe as palestras.
@@ -42,11 +52,21 @@ export default async function ParticipantePage({ params }: { params: { token: st
 
   const insc = inscricao as Inscricao & { eventos: Evento }
   const ev = insc.eventos
-  const qr = await gerarQrDataUrl(insc.token)
+  // Creme da superfície: o QR fica embutido no ingresso, sem caixa branca.
+  const qr = await gerarQrDataUrl(insc.token, '#FBF8F1')
   const usado = insc.status === 'presente'
 
   const cardIngresso = (
-    <CardIngresso qr={qr} nome={insc.nome} email={insc.email} usado={usado} token={insc.token} />
+    <CardIngresso
+      qr={qr}
+      nome={insc.nome}
+      email={insc.email}
+      usado={usado}
+      token={insc.token}
+      nomeEvento={ev.nome}
+      dataEvento={formatarDataIngresso(ev.data_hora)}
+      local={ev.local}
+    />
   )
 
   return (

@@ -23,11 +23,20 @@ export function urlIngresso(token: string): string {
  * Gera um QR code como data URL (PNG base64), pronto para <img src=...> ou e-mail.
  * O conteúdo do QR é o token (o leitor no check-in lê o token e valida no banco).
  */
-export async function gerarQrDataUrl(token: string): Promise<string> {
+export async function gerarQrDataUrl(
+  token: string,
+  /**
+   * Cor de fundo do QR. Deve ser a do fundo onde ele será exibido, senão o código
+   * vira uma caixa recortada. Default branco (e-mail herda o fundo do cliente);
+   * na tela do ingresso, passe o creme da superfície.
+   */
+  fundo = '#FFFFFF'
+): Promise<string> {
   return QRCode.toDataURL(token, {
-    width: 320,
+    // Renderizado em até 240px CSS: 640 cobre telas 2x sem borrar.
+    width: 640,
     margin: 1,
-    color: { dark: '#16302E', light: '#FFFFFF' }, // cores da marca
+    color: { dark: '#16302E', light: fundo }, // cores da marca
     errorCorrectionLevel: 'M',
   })
 }
