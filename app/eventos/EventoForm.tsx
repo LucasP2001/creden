@@ -282,6 +282,8 @@ export function EventoForm({ modo, evento }: Props) {
                   >
                     <option value="texto">Texto</option>
                     <option value="numero">Número</option>
+                    <option value="cpf">CPF</option>
+                    <option value="telefone">Telefone</option>
                     <option value="opcoes">Opções</option>
                   </select>
                   <button

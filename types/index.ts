@@ -3,7 +3,7 @@
 export type InscricaoStatus = 'inscrito' | 'presente' | 'cancelado'
 
 /** Tipo de um campo extra do formulário de inscrição definido pelo organizador. */
-export type CampoExtraTipo = 'texto' | 'numero' | 'opcoes'
+export type CampoExtraTipo = 'texto' | 'numero' | 'opcoes' | 'cpf' | 'telefone'
 
 export interface CampoExtra {
   id: string
