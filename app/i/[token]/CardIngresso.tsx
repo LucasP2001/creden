@@ -1,4 +1,5 @@
 import { ReenviarBotao } from './ReenviarBotao'
+import { MetaIcon } from '@/components/MetaIcon'
 
 interface Props {
   qr: string
@@ -48,7 +49,12 @@ export function CardIngresso({
             {nomeEvento}
           </div>
           <div className="text-xs text-white/70 mt-1.5">{dataEvento}</div>
-          {local && <div className="text-xs text-white/70 mt-0.5 break-words">📍 {local}</div>}
+          {local && (
+            <div className="text-xs text-white/70 mt-0.5 break-words inline-flex items-start gap-1.5">
+              <MetaIcon nome="local" className="w-3.5 h-3.5 mt-0.5 shrink-0" />
+              {local}
+            </div>
+          )}
         </div>
 
         {/* Vinco entre o canhoto e o QR: um tracejado sobre a faixa creme.

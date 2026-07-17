@@ -3,6 +3,7 @@ import Image from 'next/image'
 import { createServerSupabase, createAdminSupabase } from '@/lib/supabase'
 import { Evento } from '@/types'
 import { Logo } from '@/components/Logo'
+import { MetaIcon } from '@/components/MetaIcon'
 import { CompartilharBotao } from './CompartilharBotao'
 import { Cronograma } from '@/components/Cronograma'
 import { RecuperarAcesso } from './RecuperarAcesso'
@@ -64,7 +65,7 @@ export default async function EventoPublicoPage({ params }: { params: { slug: st
               sizes="100vw"
               className="object-cover scale-125 blur-2xl saturate-150"
             />
-            <div className="absolute inset-0 bg-secondary/35" />
+            <div className="absolute inset-0 bg-gradient-to-b from-secondary/30 to-secondary/10" />
           </>
         ) : (
           <>
@@ -112,10 +113,10 @@ export default async function EventoPublicoPage({ params }: { params: { slug: st
             <p className="text-muted mt-2 text-sm">Organizado com Creden</p>
 
             <div className="grid sm:grid-cols-2 gap-3.5 mt-6">
-              <MetaItem icon="📅" label="Data e hora" valor={capitalizar(formatarDataLonga(ev.data_hora))} />
-              {ev.local && <MetaItem icon="📍" label="Local" valor={ev.local} />}
+              <MetaItem icon="calendario" label="Data e hora" valor={capitalizar(formatarDataLonga(ev.data_hora))} />
+              {ev.local && <MetaItem icon="local" label="Local" valor={ev.local} />}
               <MetaItem
-                icon="🎟"
+                icon="ingresso"
                 label="Inscrições"
                 valor={
                   ev.vagas_max != null
@@ -124,7 +125,7 @@ export default async function EventoPublicoPage({ params }: { params: { slug: st
                 }
               />
               <MetaItem
-                icon="💳"
+                icon="valor"
                 label="Valor"
                 valor={ev.valor > 0 ? `R$ ${(ev.valor / 100).toFixed(2)}` : 'Gratuito'}
               />
@@ -201,10 +202,20 @@ function capitalizar(s: string): string {
   return s.charAt(0).toUpperCase() + s.slice(1)
 }
 
-function MetaItem({ icon, label, valor }: { icon: string; label: string; valor: string }) {
+function MetaItem({
+  icon,
+  label,
+  valor,
+}: {
+  icon: 'calendario' | 'local' | 'ingresso' | 'valor'
+  label: string
+  valor: string
+}) {
   return (
     <div className="flex gap-3 items-start">
-      <span className="meta-ic text-lg">{icon}</span>
+      <span className="meta-ic text-primary">
+        <MetaIcon nome={icon} className="w-5 h-5" />
+      </span>
       <div>
         <div className="text-xs text-muted uppercase tracking-wide">{label}</div>
         <div className="font-semibold text-[15px]">{valor}</div>

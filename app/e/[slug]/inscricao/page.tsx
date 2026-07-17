@@ -58,7 +58,7 @@ export default async function InscricaoPage({ params }: { params: { slug: string
               sizes="100vw"
               className="object-cover scale-125 blur-2xl saturate-150"
             />
-            <div className="absolute inset-0 bg-secondary/35" />
+            <div className="absolute inset-0 bg-gradient-to-b from-secondary/30 to-secondary/10" />
           </>
         ) : (
           <div className="absolute inset-0 bg-gradient-to-br from-secondary via-primary to-primary-light" />

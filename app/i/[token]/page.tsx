@@ -5,6 +5,7 @@ import { Evento, Inscricao } from '@/types'
 import { PainelParticipante } from './PainelParticipante'
 import { CardIngresso } from './CardIngresso'
 import { DescricaoEvento } from './DescricaoEvento'
+import { MetaIcon } from '@/components/MetaIcon'
 import { marcacoesDaInscricao, contarPorSessao } from '@/lib/marcacoes'
 import { inscricoesAbertas, rotuloPeriodo } from '@/lib/periodo'
 import { FUSO_BR, formatarDataHora, formatarHora } from '@/lib/datas'
@@ -79,7 +80,7 @@ export default async function ParticipantePage({ params }: { params: { token: st
               sizes="100vw"
               className="object-cover scale-125 blur-2xl saturate-150"
             />
-            <div className="absolute inset-0 bg-secondary/35" />
+            <div className="absolute inset-0 bg-gradient-to-b from-secondary/30 to-secondary/10" />
           </>
         ) : (
           <div className="absolute inset-0 bg-gradient-to-br from-secondary via-primary to-primary-light" />
@@ -110,8 +111,16 @@ export default async function ParticipantePage({ params }: { params: { token: st
             {ev.nome}
           </h1>
           <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted mt-2">
-            <span>📅 {formatarDataHora(ev.data_hora)}</span>
-            {ev.local && <span>📍 {ev.local}</span>}
+            <span className="inline-flex items-center gap-1.5">
+              <MetaIcon nome="calendario" className="w-4 h-4 text-primary" />
+              {formatarDataHora(ev.data_hora)}
+            </span>
+            {ev.local && (
+              <span className="inline-flex items-center gap-1.5">
+                <MetaIcon nome="local" className="w-4 h-4 text-primary" />
+                {ev.local}
+              </span>
+            )}
           </div>
           {ev.descricao && <DescricaoEvento texto={ev.descricao} />}
         </div>
