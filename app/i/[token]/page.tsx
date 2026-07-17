@@ -67,7 +67,7 @@ export default async function ParticipantePage({ params }: { params: { token: st
       {/* Topo em "palco": a capa preenche o fundo desfocada; a logo nítida
           vem sobreposta abaixo, encostando no bloco de dados. Mesmo tratamento
           da página pública, pra a identidade do evento ser a mesma nas telas. */}
-      <div className="relative h-40 sm:h-48 overflow-hidden bg-secondary">
+      <div className="relative h-[200px] overflow-hidden bg-secondary">
         {ev.imagem_url ? (
           <>
             <Image
@@ -87,14 +87,14 @@ export default async function ParticipantePage({ params }: { params: { token: st
       </div>
 
       {ev.imagem_url && (
-        <div className="max-w-[980px] mx-auto px-5 relative z-10 flex justify-center -mt-[84px] pointer-events-none">
-          <div className="relative w-full max-w-[200px] aspect-[3/2] rounded-2xl overflow-hidden bg-white shadow-lift ring-1 ring-black/5">
+        <div className="max-w-[980px] mx-auto px-5 relative z-10 flex justify-center -mt-[130px] pointer-events-none">
+          <div className="relative w-full max-w-[220px] aspect-[3/2] rounded-2xl overflow-hidden bg-white shadow-lift ring-1 ring-black/5">
             <Image
               src={ev.imagem_url}
               alt={`Capa de ${ev.nome}`}
               fill
               priority
-              sizes="200px"
+              sizes="220px"
               className="object-contain p-2"
             />
           </div>
