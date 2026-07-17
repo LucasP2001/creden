@@ -269,12 +269,7 @@ export function PainelParticipante({
   )
 
   return (
-    <Abas
-      nomeEvento={nomeEvento}
-      ativa={aba}
-      onTrocar={setAba}
-      selo={totalSelecionaveis > 0 ? `${marcadas.length}/${totalSelecionaveis}` : undefined}
-    >
+    <Abas nomeEvento={nomeEvento} ativa={aba} onTrocar={setAba}>
       <div hidden={aba !== 'inscricao'}>{conteudoInscricao}</div>
       <div hidden={aba !== 'programacao'}>{programacao}</div>
       <div hidden={aba !== 'ingresso'}>{ingresso}</div>

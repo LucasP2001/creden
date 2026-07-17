@@ -8,8 +8,6 @@ interface Props {
   nomeEvento: string
   ativa: AbaId
   onTrocar: (id: AbaId) => void
-  /** Mostrado ao lado do rótulo "Inscrição" (ex.: "2/8"). */
-  selo?: string
   children: ReactNode
 }
 
@@ -25,7 +23,7 @@ const ABAS: { id: AbaId; rotulo: string }[] = [
  * "onde estou" não some numa lista de vários dias, sem repetir o título à toa.
  * Estado fica no pai (o conteúdo depende das marcações).
  */
-export function Abas({ nomeEvento, ativa, onTrocar, selo, children }: Props) {
+export function Abas({ nomeEvento, ativa, onTrocar, children }: Props) {
   const sentinela = useRef<HTMLDivElement>(null)
   const [grudada, setGrudada] = useState(false)
 
@@ -66,15 +64,6 @@ export function Abas({ nomeEvento, ativa, onTrocar, selo, children }: Props) {
                 }`}
               >
                 {a.rotulo}
-                {a.id === 'inscricao' && selo && (
-                  <span
-                    className={`ml-1.5 text-[11px] tabular-nums px-1.5 py-0.5 rounded-pill ${
-                      on ? 'bg-status-inscrito-bg text-primary' : 'bg-line/60 text-muted'
-                    }`}
-                  >
-                    {selo}
-                  </span>
-                )}
               </button>
             )
           })}
