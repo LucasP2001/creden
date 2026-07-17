@@ -5,7 +5,6 @@ import { Evento, Inscricao } from '@/types'
 import { PainelParticipante } from './PainelParticipante'
 import { CardIngresso } from './CardIngresso'
 import { DescricaoEvento } from './DescricaoEvento'
-import { Cronograma } from '@/components/Cronograma'
 import { marcacoesDaInscricao, contarPorSessao } from '@/lib/marcacoes'
 
 function formatarData(iso: string): string {
@@ -45,7 +44,6 @@ export default async function ParticipantePage({ params }: { params: { token: st
   const ev = insc.eventos
   const qr = await gerarQrDataUrl(insc.token)
   const usado = insc.status === 'presente'
-  const temPrograma = (ev.dias ?? []).length > 0
 
   const cardIngresso = (
     <CardIngresso qr={qr} nome={insc.nome} email={insc.email} usado={usado} token={insc.token} />
@@ -97,21 +95,6 @@ export default async function ParticipantePage({ params }: { params: { token: st
             marcadasIniciais={await marcacoesDaInscricao(supabase, insc.id)}
             contagens={await contarPorSessao(supabase, ev.id)}
             nomeEvento={ev.nome}
-            programacao={
-              temPrograma ? (
-                <div className="card p-5 sm:p-6 min-w-0">
-                  <Cronograma
-                    dias={ev.dias ?? []}
-                    contagens={await contarPorSessao(supabase, ev.id)}
-                    semTitulo
-                  />
-                </div>
-              ) : (
-                <div className="card p-6 min-w-0">
-                  <p className="text-sm text-muted">Programação em breve.</p>
-                </div>
-              )
-            }
             ingresso={<div className="lg:hidden">{cardIngresso}</div>}
           />
 

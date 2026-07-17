@@ -5,6 +5,7 @@ import { Dia, Sessao } from '@/types'
 import { rotuloTipo } from '@/lib/sessoes'
 import { sessoesEmConflito, sessoesDoDia, formatarDiaLongo } from '@/lib/conflitos'
 import { diasSelecionaveis, contarSelecionaveis } from '@/lib/abas'
+import { Cronograma } from '@/components/Cronograma'
 import { Abas, type AbaId } from './Abas'
 import { atualizarSessoes } from './actions'
 
@@ -14,8 +15,6 @@ interface Props {
   marcadasIniciais: string[]
   contagens: Record<string, number>
   nomeEvento: string
-  /** Cronograma completo (read-only), renderizado no servidor. */
-  programacao: ReactNode
   /** Card do ingresso com QR, renderizado no servidor. */
   ingresso: ReactNode
 }
@@ -136,7 +135,6 @@ export function PainelParticipante({
   marcadasIniciais,
   contagens,
   nomeEvento,
-  programacao,
   ingresso,
 }: Props) {
   const [marcadas, setMarcadas] = useState<string[]>(marcadasIniciais)
@@ -273,7 +271,23 @@ export function PainelParticipante({
   return (
     <Abas nomeEvento={nomeEvento} ativa={aba} onTrocar={setAba}>
       <div hidden={aba !== 'inscricao'}>{conteudoInscricao}</div>
-      <div hidden={aba !== 'programacao'}>{programacao}</div>
+      <div hidden={aba !== 'programacao'}>
+        <div className="card p-5 sm:p-6 min-w-0">
+          {dias.length > 0 ? (
+            // `marcadas` (e não `salvas`): a timeline reflete a escolha na hora,
+            // sem esperar o salvamento.
+            <Cronograma
+              dias={dias}
+              contagens={contagens}
+              marcadas={marcadas}
+              semTitulo
+              fundo="surface"
+            />
+          ) : (
+            <p className="text-sm text-muted">Programação em breve.</p>
+          )}
+        </div>
+      </div>
       <div hidden={aba !== 'ingresso'}>{ingresso}</div>
 
       {/* Barra de salvar — só na aba Inscrição, e só quando há de fato o que salvar
