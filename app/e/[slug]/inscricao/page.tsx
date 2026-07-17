@@ -80,9 +80,9 @@ export default async function InscricaoPage({ params }: { params: { slug: string
         </div>
       )}
 
-      <div className={`max-w-[560px] mx-auto px-4 relative ${ev.imagem_url ? '-mt-24' : '-mt-12'}`}>
+      <div className={`max-w-[560px] mx-auto px-4 relative ${ev.imagem_url ? '-mt-16' : '-mt-12'}`}>
         <div className="card shadow-lift overflow-hidden">
-          <div className={`px-8 pb-24 text-center ${ev.imagem_url ? 'pt-20' : 'pt-10'}`}>
+          <div className={`px-8 pb-24 text-center ${ev.imagem_url ? 'pt-16' : 'pt-10'}`}>
             <div className="text-4xl">{estado === 'encerrado' ? '🔒' : '⏳'}</div>
             <h1 className="font-display text-2xl font-semibold mt-4">
               {estado === 'encerrado' ? 'Inscrições encerradas' : 'Inscrições ainda não abriram'}
