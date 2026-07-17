@@ -102,10 +102,10 @@ export default async function EventoPublicoPage({ params }: { params: { slug: st
         </div>
       )}
 
-      <div className={`max-w-[760px] mx-auto px-5 relative ${ev.imagem_url ? '-mt-6' : '-mt-12'}`}>
+      <div className={`max-w-[760px] mx-auto px-5 relative ${ev.imagem_url ? '-mt-12' : '-mt-12'}`}>
         <article className="card shadow-lift overflow-hidden animate-fade-up">
           {/* Com a logo sobreposta, o título precisa começar abaixo dela. */}
-          <div className={`px-7 sm:px-9 pb-7 sm:pb-9 ${ev.imagem_url ? 'pt-7' : 'pt-7 sm:pt-9'}`}>
+          <div className={`px-7 sm:px-9 pb-7 sm:pb-9 ${ev.imagem_url ? 'pt-14' : 'pt-7 sm:pt-9'}`}>
             <h1 className="font-display text-[clamp(1.8rem,4vw,2.6rem)] font-semibold leading-tight">
               {ev.nome}
             </h1>
