@@ -82,12 +82,12 @@ export default async function InscricaoPage({ params }: { params: { slug: string
 
       <div className={`max-w-[520px] mx-auto px-5 relative ${ev.imagem_url ? '-mt-12' : '-mt-12'}`}>
         <div className="card shadow-lift overflow-hidden">
-          <div className={`px-8 pb-8 text-center ${ev.imagem_url ? 'pt-14' : 'pt-8'}`}>
-            <div className="text-3xl">{estado === 'encerrado' ? '🔒' : '⏳'}</div>
-            <h1 className="font-display text-2xl font-semibold mt-3">
+          <div className={`px-8 pb-14 text-center ${ev.imagem_url ? 'pt-16' : 'pt-10'}`}>
+            <div className="text-4xl">{estado === 'encerrado' ? '🔒' : '⏳'}</div>
+            <h1 className="font-display text-2xl font-semibold mt-4">
               {estado === 'encerrado' ? 'Inscrições encerradas' : 'Inscrições ainda não abriram'}
             </h1>
-            <p className="text-muted mt-2 text-sm">{ev.nome}</p>
+            <p className="text-muted mt-3 text-sm">{ev.nome}</p>
             {/* Só faz sentido quando ainda vai abrir: aí o rótulo diz a data.
                 Encerrado, ele repetiria o título. */}
             {estado === 'nao_abriu' && (
@@ -95,7 +95,7 @@ export default async function InscricaoPage({ params }: { params: { slug: string
                 {rotuloPeriodo(ev.inscricoes_abrem_em, ev.inscricoes_fecham_em)}
               </p>
             )}
-            <a href={`/e/${ev.slug}`} className="btn btn-secondary mt-6 inline-flex">
+            <a href={`/e/${ev.slug}`} className="btn btn-secondary mt-8 inline-flex">
               Ver o evento
             </a>
           </div>
