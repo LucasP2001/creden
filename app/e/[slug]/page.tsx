@@ -49,14 +49,41 @@ export default async function EventoPublicoPage({ params }: { params: { slug: st
         <CompartilharBotao nome={ev.nome} />
       </header>
 
-      {/* Hero */}
-      <div className="relative h-[260px] overflow-hidden" style={ev.imagem_url ? { backgroundColor: ev.cor_capa } : undefined}>
+      {/* Hero em "palco": a própria capa, ampliada e desfocada, preenche o fundo;
+          por cima, a capa nítida com bordas. Enche o espaço com a identidade do
+          evento sem cortar a arte nem depender de uma cor de fundo configurada. */}
+      <div className="relative h-[280px] overflow-hidden bg-secondary">
         {ev.imagem_url ? (
-          <Image src={ev.imagem_url} alt={`Capa de ${ev.nome}`} fill priority className="object-contain" />
+          <>
+            <Image
+              src={ev.imagem_url}
+              alt=""
+              aria-hidden
+              fill
+              priority
+              sizes="100vw"
+              className="object-cover scale-125 blur-2xl saturate-150"
+            />
+            <div className="absolute inset-0 bg-secondary/35" />
+            <div className="absolute inset-0 grid place-items-center p-6">
+              <div className="relative w-full max-w-[300px] aspect-[3/2] rounded-2xl overflow-hidden bg-white shadow-lift ring-1 ring-white/20">
+                <Image
+                  src={ev.imagem_url}
+                  alt={`Capa de ${ev.nome}`}
+                  fill
+                  priority
+                  sizes="300px"
+                  className="object-contain p-2"
+                />
+              </div>
+            </div>
+          </>
         ) : (
-          <div className="absolute inset-0 bg-gradient-to-br from-secondary via-primary to-primary-light" />
+          <>
+            <div className="absolute inset-0 bg-gradient-to-br from-secondary via-primary to-primary-light" />
+            <div className="absolute inset-0 bg-grid opacity-40" />
+          </>
         )}
-        <div className="absolute inset-0 bg-grid opacity-40" />
         <div className="absolute inset-0 flex items-end">
           <div className="max-w-[760px] mx-auto w-full px-6 pb-8">
             {vagasRestantes != null && (
