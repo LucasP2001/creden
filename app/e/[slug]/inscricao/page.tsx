@@ -46,7 +46,7 @@ export default async function InscricaoPage({ params }: { params: { slug: string
         <Logo />
       </header>
 
-      <div className="relative h-[150px] overflow-hidden bg-secondary">
+      <div className="relative h-[110px] overflow-hidden bg-secondary">
         {ev.imagem_url ? (
           <>
             <Image
