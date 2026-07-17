@@ -65,8 +65,10 @@ export default async function EventoPublicoPage({ params }: { params: { slug: st
               className="object-cover scale-125 blur-2xl saturate-150"
             />
             <div className="absolute inset-0 bg-secondary/35" />
-            <div className="absolute inset-0 grid place-items-center p-6">
-              <div className="relative w-full max-w-[300px] aspect-[3/2] rounded-2xl overflow-hidden bg-white shadow-lift ring-1 ring-white/20">
+            {/* Logo ancorada acima do centro: o card sobe (-mt-12) e cobriria a
+                base dela se ficasse centralizada. */}
+            <div className="absolute inset-x-0 top-0 grid place-items-center px-6 pt-7">
+              <div className="relative w-full max-w-[280px] aspect-[3/2] rounded-2xl overflow-hidden bg-white shadow-lift ring-1 ring-white/20">
                 <Image
                   src={ev.imagem_url}
                   alt={`Capa de ${ev.nome}`}
