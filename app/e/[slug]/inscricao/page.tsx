@@ -1,3 +1,4 @@
+import Image from 'next/image'
 import { createServerSupabase } from '@/lib/supabase'
 import { Evento } from '@/types'
 import { InscricaoForm } from './InscricaoForm'
@@ -37,22 +38,39 @@ export default async function InscricaoPage({ params }: { params: { slug: string
             <InscricaoForm slug={ev.slug} camposExtras={ev.campos_extras ?? []} />
           </>
         ) : (
-          <div className="card p-8 mt-3 text-center">
-            <div className="text-3xl">{estado === 'encerrado' ? '🔒' : '⏳'}</div>
-            <h1 className="font-display text-2xl font-semibold mt-3">
-              {estado === 'encerrado' ? 'Inscrições encerradas' : 'Inscrições ainda não abriram'}
-            </h1>
-            <p className="text-muted mt-2 text-sm">{ev.nome}</p>
-            {/* Só faz sentido quando ainda vai abrir: aí o rótulo diz a data.
-                Encerrado, ele repetiria o título. */}
-            {estado === 'nao_abriu' && (
-              <p className="text-secondary font-semibold text-sm mt-1">
-                {rotuloPeriodo(ev.inscricoes_abrem_em, ev.inscricoes_fecham_em)}
-              </p>
+          <div className="card mt-3 overflow-hidden">
+            {/* Capa do evento: traz a identidade dele para a tela de aviso, em vez
+                de um card genérico. Cai no gradiente quando não há imagem. */}
+            {ev.imagem_url ? (
+              <div className="relative h-36 w-full" style={{ backgroundColor: ev.cor_capa }}>
+                <Image
+                  src={ev.imagem_url}
+                  alt={`Capa de ${ev.nome}`}
+                  fill
+                  className="object-contain"
+                />
+              </div>
+            ) : (
+              <div className="h-20 w-full bg-gradient-to-br from-secondary via-primary to-primary-light" />
             )}
-            <a href={`/e/${ev.slug}`} className="btn btn-secondary mt-6 inline-flex">
-              Ver o evento
-            </a>
+
+            <div className="p-8 text-center">
+              <div className="text-3xl">{estado === 'encerrado' ? '🔒' : '⏳'}</div>
+              <h1 className="font-display text-2xl font-semibold mt-3">
+                {estado === 'encerrado' ? 'Inscrições encerradas' : 'Inscrições ainda não abriram'}
+              </h1>
+              <p className="text-muted mt-2 text-sm">{ev.nome}</p>
+              {/* Só faz sentido quando ainda vai abrir: aí o rótulo diz a data.
+                  Encerrado, ele repetiria o título. */}
+              {estado === 'nao_abriu' && (
+                <p className="text-secondary font-semibold text-sm mt-1">
+                  {rotuloPeriodo(ev.inscricoes_abrem_em, ev.inscricoes_fecham_em)}
+                </p>
+              )}
+              <a href={`/e/${ev.slug}`} className="btn btn-secondary mt-6 inline-flex">
+                Ver o evento
+              </a>
+            </div>
           </div>
         )}
       </div>
