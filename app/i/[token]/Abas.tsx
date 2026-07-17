@@ -25,6 +25,7 @@ const ABAS: { id: AbaId; rotulo: string }[] = [
  */
 export function Abas({ nomeEvento, ativa, onTrocar, children }: Props) {
   const sentinela = useRef<HTMLDivElement>(null)
+  const barra = useRef<HTMLDivElement>(null)
   const [grudada, setGrudada] = useState(false)
 
   useEffect(() => {
@@ -35,12 +36,35 @@ export function Abas({ nomeEvento, ativa, onTrocar, children }: Props) {
     return () => obs.disconnect()
   }, [])
 
+  // Publica a altura real da barra para quem gruda abaixo dela (o header do dia).
+  // Ela cresce quando o nome do evento aparece, então um valor fixo desalinharia.
+  // A var vai no <html> — escrever num ancestral observado realimentaria o
+  // ResizeObserver.
+  useEffect(() => {
+    const el = barra.current
+    if (!el) return
+    let ultima = -1
+    const medir = () => {
+      const h = Math.round(el.getBoundingClientRect().height)
+      if (h === ultima) return
+      ultima = h
+      document.documentElement.style.setProperty('--altura-abas', `${h}px`)
+    }
+    medir()
+    const obs = new ResizeObserver(medir)
+    obs.observe(el)
+    return () => obs.disconnect()
+  }, [])
+
   return (
     <div className="min-w-0">
       {/* Marca onde a barra deixa de estar no fluxo e passa a grudar. */}
       <div ref={sentinela} aria-hidden className="h-px" />
 
-      <div className="sticky top-0 z-30 -mx-5 px-5 bg-sand/95 backdrop-blur border-b border-line">
+      <div
+        ref={barra}
+        className="sticky top-0 z-30 -mx-5 px-5 bg-sand backdrop-blur border-b border-line"
+      >
         <div
           className={`text-xs text-muted truncate transition-all ${
             grudada ? 'pt-2 max-h-6 opacity-100' : 'max-h-0 opacity-0'

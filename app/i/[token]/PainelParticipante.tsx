@@ -233,8 +233,10 @@ export function PainelParticipante({
         <div className="grid gap-6 mt-4 min-w-0">
           {diasMarcaveis.map((d, i) => (
             <div key={d.id} className="min-w-0">
-              {/* Header do dia — gruda abaixo da barra de abas */}
-              <div className="sticky top-[86px] z-10 -mx-1 px-1 py-2 bg-surface/95 backdrop-blur border-b border-line">
+              {/* Header do dia — gruda logo abaixo da barra de abas, cuja altura
+                  varia (ela revela o nome do evento ao rolar). Fundo opaco: com
+                  translucidez os cards apareciam por baixo ao passar. */}
+              <div className="sticky top-[var(--altura-abas,64px)] z-10 -mx-1 px-1 py-2 bg-surface border-b border-line">
                 <div className="flex items-baseline gap-2">
                   <span className="font-display text-base font-semibold text-primary">
                     Dia {i + 1}
