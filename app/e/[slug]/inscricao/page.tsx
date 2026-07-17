@@ -66,7 +66,7 @@ export default async function InscricaoPage({ params }: { params: { slug: string
       </div>
 
       {ev.imagem_url && (
-        <div className="max-w-[560px] mx-auto px-4 relative z-10 flex justify-center -mt-[80px] pointer-events-none">
+        <div className="max-w-[560px] mx-auto px-4 relative z-10 flex justify-center -mt-[100px] pointer-events-none">
           <div className="relative w-full max-w-[220px] aspect-[3/2] rounded-2xl overflow-hidden bg-white shadow-lift ring-1 ring-black/5">
             <Image
               src={ev.imagem_url}
