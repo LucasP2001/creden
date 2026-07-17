@@ -49,10 +49,10 @@ export default async function EventoPublicoPage({ params }: { params: { slug: st
         <CompartilharBotao nome={ev.nome} />
       </header>
 
-      {/* Hero em "palco": a própria capa, ampliada e desfocada, preenche o fundo;
-          por cima, a capa nítida com bordas. Enche o espaço com a identidade do
-          evento sem cortar a arte nem depender de uma cor de fundo configurada. */}
-      <div className="relative h-[280px] overflow-hidden bg-secondary">
+      {/* Hero em "palco": a própria capa, ampliada e desfocada, preenche o fundo.
+          A logo nítida NÃO fica aqui dentro (overflow-hidden a prenderia) — vem
+          logo abaixo, sobrepondo hero e card. */}
+      <div className="relative h-[220px] overflow-hidden bg-secondary">
         {ev.imagem_url ? (
           <>
             <Image
@@ -65,20 +65,6 @@ export default async function EventoPublicoPage({ params }: { params: { slug: st
               className="object-cover scale-125 blur-2xl saturate-150"
             />
             <div className="absolute inset-0 bg-secondary/35" />
-            {/* Logo ancorada acima do centro: o card sobe (-mt-12) e cobriria a
-                base dela se ficasse centralizada. */}
-            <div className="absolute inset-x-0 top-0 grid place-items-center px-6 pt-7">
-              <div className="relative w-full max-w-[280px] aspect-[3/2] rounded-2xl overflow-hidden bg-white shadow-lift ring-1 ring-white/20">
-                <Image
-                  src={ev.imagem_url}
-                  alt={`Capa de ${ev.nome}`}
-                  fill
-                  priority
-                  sizes="300px"
-                  className="object-contain p-2"
-                />
-              </div>
-            </div>
           </>
         ) : (
           <>
@@ -86,8 +72,8 @@ export default async function EventoPublicoPage({ params }: { params: { slug: st
             <div className="absolute inset-0 bg-grid opacity-40" />
           </>
         )}
-        <div className="absolute inset-0 flex items-end">
-          <div className="max-w-[760px] mx-auto w-full px-6 pb-8">
+        <div className="absolute inset-0 flex items-start">
+          <div className="max-w-[760px] mx-auto w-full px-6 pt-6">
             {vagasRestantes != null && (
               <span
                 className={`badge font-bold ${lotado ? 'bg-error text-white' : 'bg-white/95 text-primary'}`}
@@ -99,7 +85,24 @@ export default async function EventoPublicoPage({ params }: { params: { slug: st
         </div>
       </div>
 
-      <div className="max-w-[760px] mx-auto -mt-12 px-5 relative">
+      {/* Logo nítida sobrepondo hero e card: sobe sobre o desfoque e desce um
+          pouco sobre o card de informações, ficando na frente dos dois. */}
+      {ev.imagem_url && (
+        <div className="max-w-[760px] mx-auto px-5 relative z-10 flex justify-center -mt-[110px] pointer-events-none">
+          <div className="relative w-full max-w-[260px] aspect-[3/2] rounded-2xl overflow-hidden bg-white shadow-lift ring-1 ring-black/5">
+            <Image
+              src={ev.imagem_url}
+              alt={`Capa de ${ev.nome}`}
+              fill
+              priority
+              sizes="260px"
+              className="object-contain p-2"
+            />
+          </div>
+        </div>
+      )}
+
+      <div className={`max-w-[760px] mx-auto px-5 relative ${ev.imagem_url ? '-mt-9' : '-mt-12'}`}>
         <article className="card shadow-lift overflow-hidden animate-fade-up">
           <div className="p-7 sm:p-9">
             <h1 className="font-display text-[clamp(1.8rem,4vw,2.6rem)] font-semibold leading-tight">
