@@ -13,9 +13,29 @@ export function EventCard({ evento }: { evento: EventoComStats }) {
 
   return (
     <article className="card flex flex-col overflow-hidden transition hover:shadow-lift hover:-translate-y-0.5">
-      <div className="relative h-[90px] overflow-hidden" style={evento.imagem_url ? { backgroundColor: evento.cor_capa } : undefined}>
+      {/* Mesmo "palco" das telas públicas, em miniatura: capa desfocada no
+          fundo e a logo nítida por cima, sem cortar a arte. */}
+      <div className="relative h-[104px] grid place-items-center overflow-hidden bg-secondary">
         {evento.imagem_url ? (
-          <Image src={evento.imagem_url} alt={`Capa de ${evento.nome}`} fill className="object-contain" />
+          <>
+            <Image
+              src={evento.imagem_url}
+              alt=""
+              aria-hidden
+              fill
+              className="object-cover scale-125 blur-2xl saturate-150"
+            />
+            <div className="absolute inset-0 bg-secondary/35" />
+            <div className="relative h-[72px] aspect-[3/2] rounded-lg overflow-hidden bg-white shadow-card ring-1 ring-black/5">
+              <Image
+                src={evento.imagem_url}
+                alt={`Capa de ${evento.nome}`}
+                fill
+                sizes="108px"
+                className="object-contain p-1.5"
+              />
+            </div>
+          </>
         ) : (
           <div className="absolute inset-0 bg-gradient-to-br from-primary to-primary-light" />
         )}
