@@ -2,6 +2,28 @@ import { CampoExtra, Dia } from '@/types'
 import { corCapaValida } from '@/lib/imagem'
 import { parseDias } from '@/lib/sessoes'
 
+/**
+ * Limpa os campos extras vindos do form:
+ *  - descarta campos sem label (linha em branco que o organizador não preencheu);
+ *  - em campos "opcoes", trima e remove opções vazias, e rebaixa para "texto"
+ *    se sobrar nenhuma (um select sem opção não serviria a ninguém).
+ */
+export function sanitizarCampos(brutos: CampoExtra[]): CampoExtra[] {
+  if (!Array.isArray(brutos)) return []
+  return brutos
+    .map((c) => {
+      const label = String(c.label ?? '').trim()
+      if (c.tipo === 'opcoes') {
+        const opcoes = (c.opcoes ?? []).map((o) => String(o).trim()).filter(Boolean)
+        return opcoes.length
+          ? { ...c, label, opcoes }
+          : { ...c, label, tipo: 'texto' as const, opcoes: undefined }
+      }
+      return { ...c, label, opcoes: undefined }
+    })
+    .filter((c) => c.label.length > 0)
+}
+
 export interface PayloadUpdate {
   nome: string
   descricao: string | null
@@ -72,7 +94,7 @@ export function montarPayloadUpdate(
   const camposJson = String(formData.get('campos_extras') ?? '[]')
   let camposExtras: CampoExtra[] = []
   try {
-    camposExtras = JSON.parse(camposJson)
+    camposExtras = sanitizarCampos(JSON.parse(camposJson))
   } catch {
     camposExtras = []
   }

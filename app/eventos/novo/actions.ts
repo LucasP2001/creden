@@ -6,7 +6,7 @@ import { slugify } from '@/lib/slug'
 import { uploadCapa } from '@/lib/capa'
 import { corCapaValida } from '@/lib/imagem'
 import { parseDias } from '@/lib/sessoes'
-import { lerPeriodo } from '@/app/eventos/[id]/editar/payload'
+import { lerPeriodo, sanitizarCampos } from '@/app/eventos/[id]/editar/payload'
 import { CampoExtra } from '@/types'
 
 export interface CriarEventoResult {
@@ -41,7 +41,7 @@ export async function criarEvento(formData: FormData): Promise<CriarEventoResult
 
   let camposExtras: CampoExtra[] = []
   try {
-    camposExtras = JSON.parse(camposJson)
+    camposExtras = sanitizarCampos(JSON.parse(camposJson))
   } catch {
     camposExtras = []
   }

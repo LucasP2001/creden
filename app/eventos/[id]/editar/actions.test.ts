@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
-import { montarPayloadUpdate } from './payload'
+import { montarPayloadUpdate, sanitizarCampos } from './payload'
+import { CampoExtra } from '@/types'
 
 function fd(campos: Record<string, string>): FormData {
   const f = new FormData()
@@ -81,5 +82,48 @@ describe('montarPayloadUpdate', () => {
   it('data de inscrição inválida é recusada', () => {
     const base = { nome: 'X', data_hora: '2026-08-01T14:00', campos_extras: '[]' }
     expect(montarPayloadUpdate(fd({ ...base, inscricoes_abrem_em: 'xxx' })).erro).toBeTruthy()
+  })
+})
+
+describe('sanitizarCampos', () => {
+  const campo = (over: Partial<CampoExtra>): CampoExtra => ({
+    id: 'c1',
+    label: 'Instituição',
+    tipo: 'texto',
+    obrigatorio: false,
+    ...over,
+  })
+
+  it('descarta campos sem label (linha em branco)', () => {
+    const out = sanitizarCampos([campo({ label: '   ' }), campo({ id: 'c2', label: 'Curso' })])
+    expect(out).toHaveLength(1)
+    expect(out[0].label).toBe('Curso')
+  })
+
+  it('trima label e opções, removendo opções vazias', () => {
+    const out = sanitizarCampos([
+      campo({ tipo: 'opcoes', label: '  Turno  ', opcoes: [' Manhã ', '', '  ', 'Noite'] }),
+    ])
+    expect(out[0].label).toBe('Turno')
+    expect(out[0].opcoes).toEqual(['Manhã', 'Noite'])
+  })
+
+  it('opcoes sem nenhuma opção válida vira texto', () => {
+    const out = sanitizarCampos([campo({ tipo: 'opcoes', label: 'X', opcoes: ['', '  '] })])
+    expect(out[0].tipo).toBe('texto')
+    expect(out[0].opcoes).toBeUndefined()
+  })
+
+  it('preserva obrigatorio e limpa opcoes de campos texto/numero', () => {
+    const out = sanitizarCampos([
+      campo({ tipo: 'numero', label: 'Idade', obrigatorio: true, opcoes: ['lixo'] }),
+    ])
+    expect(out[0].obrigatorio).toBe(true)
+    expect(out[0].opcoes).toBeUndefined()
+  })
+
+  it('entrada não-array vira []', () => {
+    // @ts-expect-error validando robustez em runtime
+    expect(sanitizarCampos(null)).toEqual([])
   })
 })
