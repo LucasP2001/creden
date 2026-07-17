@@ -88,7 +88,7 @@ export default async function ParticipantePage({ params }: { params: { token: st
       </div>
 
       {ev.imagem_url && (
-        <div className="max-w-[980px] mx-auto px-5 relative z-20 flex justify-center -mt-[124px] pointer-events-none">
+        <div className="max-w-[980px] mx-auto px-5 relative z-10 flex justify-center -mt-[130px] pointer-events-none">
           <div className="relative w-full max-w-[220px] aspect-[3/2] rounded-2xl overflow-hidden bg-white shadow-lift ring-1 ring-black/5">
             <Image
               src={ev.imagem_url}
@@ -102,14 +102,8 @@ export default async function ParticipantePage({ params }: { params: { token: st
         </div>
       )}
 
-      <div className="max-w-[980px] mx-auto px-5">
-        {/* Bloco de info como "folha": sobe sobre o palco com os cantos
-            superiores arredondados, deslizando por cima da faixa desfocada. */}
-        <div
-          className={`relative z-10 bg-sand px-5 pb-6 border-b border-line ${
-            ev.imagem_url ? '-mt-8 rounded-t-[28px] pt-14' : 'py-6'
-          }`}
-        >
+      <div className={`max-w-[980px] mx-auto px-5 relative ${ev.imagem_url ? '-mt-10' : ''}`}>
+        <div className={`pb-6 border-b border-line ${ev.imagem_url ? 'pt-14' : 'py-6'}`}>
           <p className="text-sm font-semibold text-primary">
             ✓ Inscrição confirmada, {insc.nome.split(' ')[0]}
           </p>
