@@ -42,9 +42,14 @@ export default async function InscricaoPage({ params }: { params: { slug: string
             <h1 className="font-display text-2xl font-semibold mt-3">
               {estado === 'encerrado' ? 'Inscrições encerradas' : 'Inscrições ainda não abriram'}
             </h1>
-            <p className="text-muted mt-2 text-sm">
-              {rotuloPeriodo(ev.inscricoes_abrem_em, ev.inscricoes_fecham_em) ?? ev.nome}
-            </p>
+            <p className="text-muted mt-2 text-sm">{ev.nome}</p>
+            {/* Só faz sentido quando ainda vai abrir: aí o rótulo diz a data.
+                Encerrado, ele repetiria o título. */}
+            {estado === 'nao_abriu' && (
+              <p className="text-secondary font-semibold text-sm mt-1">
+                {rotuloPeriodo(ev.inscricoes_abrem_em, ev.inscricoes_fecham_em)}
+              </p>
+            )}
             <a href={`/e/${ev.slug}`} className="btn btn-secondary mt-6 inline-flex">
               Ver o evento
             </a>

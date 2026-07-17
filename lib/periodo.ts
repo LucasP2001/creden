@@ -6,6 +6,8 @@
  * (é o comportamento de todo evento criado antes desta funcionalidade).
  */
 
+import { FUSO_BR, formatarHora } from './datas'
+
 export type EstadoInscricao = 'nao_abriu' | 'aberto' | 'encerrado'
 
 /** Data ISO -> Date; null se ausente ou inválida (config quebrada não pode travar a página). */
@@ -45,13 +47,14 @@ export function inscricoesAbertas(
   return estadoInscricao(abreEm, fechaEm, agora) === 'aberto'
 }
 
+/** '01 de dezembro às 09:00' — sempre no horário de Brasília (ver lib/datas). */
 function formatar(d: Date): string {
-  return d.toLocaleString('pt-BR', {
+  const data = d.toLocaleDateString('pt-BR', {
     day: '2-digit',
     month: 'long',
-    hour: '2-digit',
-    minute: '2-digit',
+    timeZone: FUSO_BR,
   })
+  return `${data} às ${formatarHora(d.toISOString())}`
 }
 
 /**

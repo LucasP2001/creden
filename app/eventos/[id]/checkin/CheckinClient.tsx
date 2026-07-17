@@ -6,6 +6,7 @@ import { BuscaManual } from './BuscaManual'
 import { Logo } from '@/components/Logo'
 import { createBrowserSupabase } from '@/lib/supabase-browser'
 import { tokenValido } from '@/lib/qr'
+import { formatarHora } from '@/lib/datas'
 import { CheckinResultado, Inscricao } from '@/types'
 
 // Estilos de feedback por estado (skill creden-design).
@@ -26,7 +27,7 @@ export function CheckinClient({ eventoId }: { eventoId: string }) {
   const confirmarEntrada = useCallback(async (inscricao: InscricaoCheckin) => {
     if (inscricao.status === 'presente') {
       const hora = inscricao.checkin_at
-        ? new Date(inscricao.checkin_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+        ? formatarHora(inscricao.checkin_at)
         : ''
       setResultado({ tipo: 'repetido', nome: inscricao.nome, hora })
       return

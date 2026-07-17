@@ -43,5 +43,10 @@ creden/
   português, mas siga o que já existir no arquivo.
 - **QR/token**: lógica de geração e validação isolada em `lib/qr.ts`.
 - **E-mail**: envio via Brevo (API REST com `fetch`, sem SDK) isolado em `lib/email.ts`.
+- **Datas**: formate sempre por `lib/datas.ts` (`formatarDataHora`, `formatarHora`, etc.),
+  nunca `toLocaleString` solto. Os helpers fixam `America/Sao_Paulo` — sem isso, o servidor
+  usa o fuso da máquina e a Vercel (UTC) mostra a hora errada. Exceção: datas puras
+  `YYYY-MM-DD` sem hora (ex.: `formatarDia`), que **não** levam timeZone — meia-noite local
+  formatada em Brasília num servidor UTC cairia no dia anterior.
 
 Skills relacionadas: `creden-overview`, `creden-design`, `creden-supabase`.

@@ -1,9 +1,10 @@
 import { Inscricao } from '@/types'
 import { Badge } from './ui/Badge'
+import { FUSO_BR, formatarHora } from '@/lib/datas'
 
 function hora(iso: string | null): string {
   if (!iso) return '—'
-  return new Date(iso).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+  return formatarHora(iso)
 }
 
 function dataHora(iso: string): string {
@@ -12,6 +13,7 @@ function dataHora(iso: string): string {
     month: 'short',
     hour: '2-digit',
     minute: '2-digit',
+    timeZone: FUSO_BR,
   })
 }
 

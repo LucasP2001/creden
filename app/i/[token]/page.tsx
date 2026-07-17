@@ -7,25 +7,17 @@ import { CardIngresso } from './CardIngresso'
 import { DescricaoEvento } from './DescricaoEvento'
 import { marcacoesDaInscricao, contarPorSessao } from '@/lib/marcacoes'
 import { inscricoesAbertas, rotuloPeriodo } from '@/lib/periodo'
-
-function formatarData(iso: string): string {
-  return new Date(iso).toLocaleString('pt-BR', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  })
-}
+import { FUSO_BR, formatarDataHora, formatarHora } from '@/lib/datas'
 
 /** Data do canhoto do ingresso: 'Seg, 10 de agosto · 09:00'. */
 function formatarDataIngresso(iso: string): string {
   const d = new Date(iso)
-  const semana = d.toLocaleDateString('pt-BR', { weekday: 'short' }).replace('.', '')
-  const dia = d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'long' })
-  const hora = d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+  const semana = d
+    .toLocaleDateString('pt-BR', { weekday: 'short', timeZone: FUSO_BR })
+    .replace('.', '')
+  const dia = d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', timeZone: FUSO_BR })
   // Só a primeira letra: `capitalize` do CSS viraria "10 De Ago. De 2026".
-  return `${semana.charAt(0).toUpperCase()}${semana.slice(1)}, ${dia} · ${hora}`
+  return `${semana.charAt(0).toUpperCase()}${semana.slice(1)}, ${dia} · ${formatarHora(iso)}`
 }
 
 // Página do participante (/i/[token]). Pública — quem tem o token (link do e-mail) acessa.
@@ -97,7 +89,7 @@ export default async function ParticipantePage({ params }: { params: { token: st
             {ev.nome}
           </h1>
           <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted mt-2">
-            <span>📅 {formatarData(ev.data_hora)}</span>
+            <span>📅 {formatarDataHora(ev.data_hora)}</span>
             {ev.local && <span>📍 {ev.local}</span>}
           </div>
           {ev.descricao && <DescricaoEvento texto={ev.descricao} />}

@@ -33,7 +33,13 @@ export function novoDia(): Dia {
   return { id: crypto.randomUUID(), data: '', sessoes: [], categorias: [] }
 }
 
-/** Formata 'YYYY-MM-DD' como 'dd/mm' (pt-BR). Assume iso não-vazio. */
+/**
+ * Formata 'YYYY-MM-DD' como 'dd/mm' (pt-BR). Assume iso não-vazio.
+ *
+ * Sem timeZone de propósito (ao contrário de lib/datas): a entrada é data pura e
+ * `T00:00:00` sem Z já é meia-noite local — fixar o fuso devolveria o dia
+ * anterior num servidor UTC.
+ */
 export function formatarDia(iso: string): string {
   const d = new Date(`${iso}T00:00:00`)
   return d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })

@@ -1,4 +1,5 @@
 import { createServerSupabase } from '@/lib/supabase'
+import { formatarDataHoraCurta } from '@/lib/datas'
 import { Evento, Inscricao } from '@/types'
 
 // Export CSV dos inscritos de um evento (/eventos/[id]/inscritos/export).
@@ -44,8 +45,8 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
       csv(i.nome),
       csv(i.email),
       csv(STATUS_LABEL[i.status]),
-      csv(new Date(i.created_at).toLocaleString('pt-BR')),
-      csv(i.checkin_at ? new Date(i.checkin_at).toLocaleString('pt-BR') : ''),
+      csv(formatarDataHoraCurta(i.created_at)),
+      csv(i.checkin_at ? formatarDataHoraCurta(i.checkin_at) : ''),
       ...colunasExtras.map((label) => csv(i.dados_extras?.[label] ?? '')),
     ].join(',')
   )

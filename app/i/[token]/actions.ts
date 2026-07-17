@@ -4,6 +4,7 @@ import { createAdminSupabase } from '@/lib/supabase'
 import { enviarIngresso } from '@/lib/email'
 import { reconciliarMarcacoes } from '@/lib/marcacoes'
 import { inscricoesAbertas } from '@/lib/periodo'
+import { formatarDataHora } from '@/lib/datas'
 import { revalidatePath } from 'next/cache'
 import { Evento, Inscricao } from '@/types'
 
@@ -31,13 +32,7 @@ export async function reenviarIngresso(token: string): Promise<ReenviarResult> {
       para: insc.email,
       nomeParticipante: insc.nome,
       nomeEvento: ev.nome,
-      dataEvento: new Date(ev.data_hora).toLocaleString('pt-BR', {
-        day: '2-digit',
-        month: 'short',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-      }),
+      dataEvento: formatarDataHora(ev.data_hora),
       local: ev.local ?? '',
       token: insc.token,
     })

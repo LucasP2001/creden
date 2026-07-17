@@ -8,18 +8,7 @@ import { Cronograma } from '@/components/Cronograma'
 import { RecuperarAcesso } from './RecuperarAcesso'
 import { contarPorSessao } from '@/lib/marcacoes'
 import { estadoInscricao, rotuloPeriodo } from '@/lib/periodo'
-
-function formatarDataLonga(iso: string): string {
-  const d = new Date(iso)
-  const data = d.toLocaleDateString('pt-BR', {
-    weekday: 'long',
-    day: '2-digit',
-    month: 'long',
-    year: 'numeric',
-  })
-  const hora = d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
-  return `${data} · ${hora}`
-}
+import { formatarDataLonga } from '@/lib/datas'
 
 // Página pública do evento (/e/[slug]). Acessível anonimamente.
 export default async function EventoPublicoPage({ params }: { params: { slug: string } }) {

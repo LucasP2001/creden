@@ -4,6 +4,7 @@ import { createAdminSupabase } from '@/lib/supabase'
 import { gerarToken } from '@/lib/qr'
 import { enviarIngresso } from '@/lib/email'
 import { estadoInscricao } from '@/lib/periodo'
+import { formatarDataHora } from '@/lib/datas'
 import { Evento } from '@/types'
 
 export interface InscreverResult {
@@ -91,13 +92,7 @@ export async function inscrever(slug: string, formData: FormData): Promise<Inscr
       para: email,
       nomeParticipante: nome,
       nomeEvento: evento.nome,
-      dataEvento: new Date(evento.data_hora).toLocaleString('pt-BR', {
-        day: '2-digit',
-        month: 'short',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-      }),
+      dataEvento: formatarDataHora(evento.data_hora),
       local: evento.local ?? '',
       token,
     })

@@ -61,7 +61,14 @@ export function sessoesEmConflito(dias: Dia[], marcadas: string[]): Set<string> 
   return conflito
 }
 
-/** Formata 'YYYY-MM-DD' como 'seg, 10/08'. String vazia devolve ''. */
+/**
+ * Formata 'YYYY-MM-DD' como 'seg, 10/08'. String vazia devolve ''.
+ *
+ * Aqui NÃO se fixa timeZone (ao contrário de lib/datas): a entrada é uma data
+ * pura, sem hora, e `T00:00:00` sem Z já é meia-noite local. Formatar isso em
+ * America/Sao_Paulo num servidor UTC devolveria o dia anterior (21:00 de 09/08).
+ * Sem timeZone, a data volta como foi escrita — que é o que o organizador quis.
+ */
 export function formatarDiaLongo(iso: string): string {
   if (!iso) return ''
   const d = new Date(`${iso}T00:00:00`)

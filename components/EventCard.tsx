@@ -2,16 +2,7 @@ import Image from 'next/image'
 import { EventoComStats } from '@/types'
 import { ButtonLink } from './ui/Button'
 import { TrocarCapaModal } from '@/app/dashboard/TrocarCapaModal'
-
-function formatarData(iso: string): string {
-  return new Date(iso).toLocaleString('pt-BR', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  })
-}
+import { formatarDataHora as formatarData } from '@/lib/datas'
 
 // Card de evento no dashboard. Mostra inscritos e % de check-in.
 export function EventCard({ evento }: { evento: EventoComStats }) {
