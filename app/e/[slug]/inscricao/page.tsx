@@ -46,7 +46,7 @@ export default async function InscricaoPage({ params }: { params: { slug: string
         <Logo />
       </header>
 
-      <div className="relative h-[180px] overflow-hidden bg-secondary">
+      <div className="relative h-[150px] overflow-hidden bg-secondary">
         {ev.imagem_url ? (
           <>
             <Image
@@ -66,7 +66,7 @@ export default async function InscricaoPage({ params }: { params: { slug: string
       </div>
 
       {ev.imagem_url && (
-        <div className="max-w-[520px] mx-auto px-5 relative z-10 flex justify-center -mt-[92px] pointer-events-none">
+        <div className="max-w-[560px] mx-auto px-4 relative z-10 flex justify-center -mt-[80px] pointer-events-none">
           <div className="relative w-full max-w-[220px] aspect-[3/2] rounded-2xl overflow-hidden bg-white shadow-lift ring-1 ring-black/5">
             <Image
               src={ev.imagem_url}
@@ -80,9 +80,9 @@ export default async function InscricaoPage({ params }: { params: { slug: string
         </div>
       )}
 
-      <div className={`max-w-[520px] mx-auto px-5 relative ${ev.imagem_url ? '-mt-12' : '-mt-12'}`}>
+      <div className={`max-w-[560px] mx-auto px-4 relative ${ev.imagem_url ? '-mt-12' : '-mt-12'}`}>
         <div className="card shadow-lift overflow-hidden">
-          <div className={`px-8 pb-14 text-center ${ev.imagem_url ? 'pt-16' : 'pt-10'}`}>
+          <div className={`px-8 pb-24 text-center ${ev.imagem_url ? 'pt-16' : 'pt-10'}`}>
             <div className="text-4xl">{estado === 'encerrado' ? '🔒' : '⏳'}</div>
             <h1 className="font-display text-2xl font-semibold mt-4">
               {estado === 'encerrado' ? 'Inscrições encerradas' : 'Inscrições ainda não abriram'}
