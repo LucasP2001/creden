@@ -17,6 +17,10 @@ interface Props {
   nomeEvento: string
   /** Card do ingresso com QR, renderizado no servidor. */
   ingresso: ReactNode
+  /** Fora do período de inscrição as escolhas ficam congeladas (só leitura). */
+  podeEditar: boolean
+  /** Aviso do período, quando há (ex.: "Inscrições até 09 de agosto, 23:59"). */
+  avisoPeriodo?: string | null
 }
 
 type Estado = 'limpo' | 'pendente' | 'salvando' | 'salvo' | 'erro'
@@ -40,6 +44,7 @@ function CardSessao({
   lotada,
   emConflito,
   usadas,
+  travada = false,
   onToggle,
 }: {
   s: Sessao
@@ -47,19 +52,25 @@ function CardSessao({
   lotada: boolean
   emConflito: boolean
   usadas: number
+  /** Período encerrado: mostra a escolha feita, mas não deixa mudar. */
+  travada?: boolean
   onToggle: (on: boolean) => void
 }) {
   const restantes = s.vagas_max != null ? Math.max(0, s.vagas_max - usadas) : null
-  const desabilitada = lotada && !marcada
+  const desabilitada = travada || (lotada && !marcada)
 
   return (
     <label
       className={`flex gap-3 p-3 rounded-2xl border transition-colors min-h-[56px] ${
-        desabilitada
-          ? 'border-line bg-surface opacity-55 cursor-not-allowed'
-          : marcada
-            ? 'border-primary bg-status-inscrito-bg cursor-pointer'
-            : 'border-line bg-surface hover:border-primary/40 cursor-pointer'
+        travada
+          ? marcada
+            ? 'border-primary/50 bg-status-inscrito-bg/60'
+            : 'border-line bg-surface opacity-60'
+          : desabilitada
+            ? 'border-line bg-surface opacity-55 cursor-not-allowed'
+            : marcada
+              ? 'border-primary bg-status-inscrito-bg cursor-pointer'
+              : 'border-line bg-surface hover:border-primary/40 cursor-pointer'
       }`}
     >
       <input
@@ -113,15 +124,18 @@ function CardSessao({
       </div>
 
       {/* Indicador de seleção — 24px, dentro do alvo de 56px do card.
-          Vazio precisa de borda visível, senão o card não parece marcável. */}
-      <div
-        aria-hidden
-        className={`w-6 h-6 shrink-0 self-center rounded-lg border-2 grid place-items-center text-white text-xs font-bold ${
-          marcada ? 'bg-primary border-primary' : 'border-muted/50 bg-white'
-        }`}
-      >
-        {marcada ? '✓' : ''}
-      </div>
+          Vazio precisa de borda visível, senão o card não parece marcável.
+          Travado, a caixa vazia some: ela convidaria a um clique sem efeito. */}
+      {(!travada || marcada) && (
+        <div
+          aria-hidden
+          className={`w-6 h-6 shrink-0 self-center rounded-lg border-2 grid place-items-center text-white text-xs font-bold ${
+            marcada ? 'bg-primary border-primary' : 'border-muted/50 bg-white'
+          }`}
+        >
+          {marcada ? '✓' : ''}
+        </div>
+      )}
     </label>
   )
 }
@@ -136,6 +150,8 @@ export function PainelParticipante({
   contagens,
   nomeEvento,
   ingresso,
+  podeEditar,
+  avisoPeriodo,
 }: Props) {
   const [marcadas, setMarcadas] = useState<string[]>(marcadasIniciais)
   // O que está gravado no banco. Comparar com `marcadas` diz se há algo a salvar —
@@ -159,6 +175,7 @@ export function PainelParticipante({
   }, [marcadas, salvas])
 
   function toggle(id: string, on: boolean) {
+    if (!podeEditar) return // fora do prazo: o servidor recusaria de qualquer forma
     setMarcadas((m) => (on ? [...m, id] : m.filter((x) => x !== id)))
     setEstado('pendente')
     setMsg(null)
@@ -191,6 +208,7 @@ export function PainelParticipante({
         lotada={s.vagas_max != null && usadas >= s.vagas_max}
         emConflito={conflitos.has(s.id)}
         usadas={usadas}
+        travada={!podeEditar}
         onToggle={(on) => toggle(s.id, on)}
       />
     )
@@ -198,6 +216,22 @@ export function PainelParticipante({
 
   const conteudoInscricao = (
     <div className="card p-5 sm:p-6 pb-8 min-w-0">
+      {/* Um cadeado sem explicação frustra: diz o prazo (ou que ele passou). */}
+      {!podeEditar ? (
+        <div className="flex gap-2.5 items-start bg-status-inscrito-bg rounded-2xl p-3 mb-4">
+          <span aria-hidden>🔒</span>
+          <div className="text-xs text-secondary min-w-0">
+            <div className="font-semibold">Prazo encerrado</div>
+            <p className="text-muted mt-0.5">
+              Você ainda vê tudo o que escolheu, mas não dá mais para alterar. Fale com a
+              organização se precisar mudar algo.
+            </p>
+          </div>
+        </div>
+      ) : (
+        avisoPeriodo && <p className="text-xs text-muted mb-3">⏳ {avisoPeriodo}</p>
+      )}
+
       {/* Status: em zero convida à ação; com marcações, confirma o que está feito.
           Sem nada marcável não há o que convidar — só a mensagem de vazio. */}
       <div
@@ -205,7 +239,12 @@ export function PainelParticipante({
           diasMarcaveis.length === 0 ? 'hidden' : 'pb-3 mb-1 border-b border-line'
         }`}
       >
-        {marcadas.length === 0 ? (
+        {!podeEditar ? (
+          <span className="text-sm font-semibold text-secondary">
+            🔒 {marcadas.length}{' '}
+            {marcadas.length === 1 ? 'palestra marcada' : 'palestras marcadas'}
+          </span>
+        ) : marcadas.length === 0 ? (
           <span className="text-sm font-semibold text-primary">
             👇 Toque nas palestras que você quer assistir
           </span>
@@ -301,7 +340,7 @@ export function PainelParticipante({
 
       {/* Barra de salvar — só na aba Inscrição, e só quando há de fato o que salvar
           (ou logo após salvar, para confirmar). */}
-      {aba === 'inscricao' && (sujo || estado === 'salvo' || estado === 'salvando') && (
+      {podeEditar && aba === 'inscricao' && (sujo || estado === 'salvo' || estado === 'salvando') && (
         <div className="fixed bottom-0 inset-x-0 z-30 bg-surface/95 backdrop-blur border-t border-line">
           <div className="max-w-[980px] mx-auto px-5 py-3 flex items-center justify-between gap-4">
             <span className="text-sm">

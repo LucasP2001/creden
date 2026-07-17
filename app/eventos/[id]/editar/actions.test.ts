@@ -52,4 +52,34 @@ describe('montarPayloadUpdate', () => {
     ).toEqual(dias)
     expect(montarPayloadUpdate(fd(base)).payload.dias).toEqual([])
   })
+
+  it('período de inscrição: datas viram ISO; vazio vira null (sem limite)', () => {
+    const base = { nome: 'X', data_hora: '2026-08-01T14:00', campos_extras: '[]' }
+    const { payload } = montarPayloadUpdate(
+      fd({ ...base, inscricoes_abrem_em: '2026-07-01T09:00', inscricoes_fecham_em: '2026-08-09T23:59' })
+    )
+    expect(payload.inscricoes_abrem_em).toBe(new Date('2026-07-01T09:00').toISOString())
+    expect(payload.inscricoes_fecham_em).toBe(new Date('2026-08-09T23:59').toISOString())
+
+    const vazio = montarPayloadUpdate(fd({ ...base, inscricoes_abrem_em: '', inscricoes_fecham_em: '' }))
+    expect(vazio.payload.inscricoes_abrem_em).toBeNull()
+    expect(vazio.payload.inscricoes_fecham_em).toBeNull()
+
+    const ausente = montarPayloadUpdate(fd(base))
+    expect(ausente.payload.inscricoes_abrem_em).toBeNull()
+    expect(ausente.payload.inscricoes_fecham_em).toBeNull()
+  })
+
+  it('período incoerente (fecha antes de abrir) é recusado', () => {
+    const base = { nome: 'X', data_hora: '2026-08-01T14:00', campos_extras: '[]' }
+    const { erro } = montarPayloadUpdate(
+      fd({ ...base, inscricoes_abrem_em: '2026-08-09T23:59', inscricoes_fecham_em: '2026-07-01T09:00' })
+    )
+    expect(erro).toBeTruthy()
+  })
+
+  it('data de inscrição inválida é recusada', () => {
+    const base = { nome: 'X', data_hora: '2026-08-01T14:00', campos_extras: '[]' }
+    expect(montarPayloadUpdate(fd({ ...base, inscricoes_abrem_em: 'xxx' })).erro).toBeTruthy()
+  })
 })

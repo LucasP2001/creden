@@ -6,6 +6,7 @@ import { PainelParticipante } from './PainelParticipante'
 import { CardIngresso } from './CardIngresso'
 import { DescricaoEvento } from './DescricaoEvento'
 import { marcacoesDaInscricao, contarPorSessao } from '@/lib/marcacoes'
+import { inscricoesAbertas, rotuloPeriodo } from '@/lib/periodo'
 
 function formatarData(iso: string): string {
   return new Date(iso).toLocaleString('pt-BR', {
@@ -116,6 +117,8 @@ export default async function ParticipantePage({ params }: { params: { token: st
             contagens={await contarPorSessao(supabase, ev.id)}
             nomeEvento={ev.nome}
             ingresso={<div className="lg:hidden">{cardIngresso}</div>}
+            podeEditar={inscricoesAbertas(ev.inscricoes_abrem_em, ev.inscricoes_fecham_em)}
+            avisoPeriodo={rotuloPeriodo(ev.inscricoes_abrem_em, ev.inscricoes_fecham_em)}
           />
 
           <aside className="hidden lg:block lg:sticky lg:top-8">{cardIngresso}</aside>

@@ -197,6 +197,32 @@ export function EventoForm({ modo, evento }: Props) {
         </div>
 
         <div className="card p-[22px]">
+          <h2 className="text-lg font-semibold">Período de inscrição</h2>
+          <p className="text-xs text-muted mt-1 mb-4">
+            Fora deste período ninguém se inscreve nem escolhe palestras. Deixe em branco para não
+            limitar.
+          </p>
+          <div className="grid grid-cols-2 gap-4 max-[860px]:grid-cols-1">
+            <Input
+              label="Inscrições abrem em"
+              name="inscricoes_abrem_em"
+              type="datetime-local"
+              defaultValue={
+                evento?.inscricoes_abrem_em ? paraDatetimeLocal(evento.inscricoes_abrem_em) : ''
+              }
+            />
+            <Input
+              label="Inscrições fecham em"
+              name="inscricoes_fecham_em"
+              type="datetime-local"
+              defaultValue={
+                evento?.inscricoes_fecham_em ? paraDatetimeLocal(evento.inscricoes_fecham_em) : ''
+              }
+            />
+          </div>
+        </div>
+
+        <div className="card p-[22px]">
           <h2 className="text-lg font-semibold">Campos do formulário de inscrição</h2>
           <p className="text-xs text-muted mt-1 mb-4">
             Nome e e-mail já são coletados. Adicione campos extras se precisar.

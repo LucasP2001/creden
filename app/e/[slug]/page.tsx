@@ -7,6 +7,7 @@ import { CompartilharBotao } from './CompartilharBotao'
 import { Cronograma } from '@/components/Cronograma'
 import { RecuperarAcesso } from './RecuperarAcesso'
 import { contarPorSessao } from '@/lib/marcacoes'
+import { estadoInscricao, rotuloPeriodo } from '@/lib/periodo'
 
 function formatarDataLonga(iso: string): string {
   const d = new Date(iso)
@@ -48,6 +49,8 @@ export default async function EventoPublicoPage({ params }: { params: { slug: st
   const inscritos = ev.inscricoes?.[0]?.count ?? 0
   const vagasRestantes = ev.vagas_max != null ? Math.max(0, ev.vagas_max - inscritos) : null
   const lotado = vagasRestantes === 0
+  const estadoPeriodo = estadoInscricao(ev.inscricoes_abrem_em, ev.inscricoes_fecham_em)
+  const avisoPeriodo = rotuloPeriodo(ev.inscricoes_abrem_em, ev.inscricoes_fecham_em)
   const pctLotacao = ev.vagas_max ? Math.min(100, Math.round((inscritos / ev.vagas_max) * 100)) : 0
 
   return (
@@ -142,10 +145,20 @@ export default async function EventoPublicoPage({ params }: { params: { slug: st
               {ev.valor > 0 ? `R$ ${(ev.valor / 100).toFixed(2)}` : 'Gratuito'}
             </div>
             <span className="text-xs text-muted">
-              {lotado ? 'Não há mais vagas' : 'Inscrição garante sua vaga'}
+              {estadoPeriodo === 'encerrado'
+                ? 'O prazo de inscrição terminou'
+                : estadoPeriodo === 'nao_abriu'
+                  ? (avisoPeriodo ?? 'Inscrições ainda não abriram')
+                  : lotado
+                    ? 'Não há mais vagas'
+                    : (avisoPeriodo ?? 'Inscrição garante sua vaga')}
             </span>
           </div>
-          {lotado ? (
+          {estadoPeriodo !== 'aberto' ? (
+            <button disabled className="btn btn-ghost btn-lg opacity-60 cursor-not-allowed">
+              {estadoPeriodo === 'encerrado' ? 'Encerrado' : 'Em breve'}
+            </button>
+          ) : lotado ? (
             <button disabled className="btn btn-ghost btn-lg opacity-60 cursor-not-allowed">
               Esgotado
             </button>

@@ -3,6 +3,7 @@
 import { createAdminSupabase } from '@/lib/supabase'
 import { gerarToken } from '@/lib/qr'
 import { enviarIngresso } from '@/lib/email'
+import { estadoInscricao } from '@/lib/periodo'
 import { Evento } from '@/types'
 
 export interface InscreverResult {
@@ -31,6 +32,16 @@ export async function inscrever(slug: string, formData: FormData): Promise<Inscr
 
   if (!eventoRow) return { ok: false, erro: 'Evento não encontrado.' }
   const evento = eventoRow as Evento
+
+  // Janela de inscrição. Checada aqui, no servidor: a UI esconde o botão, mas
+  // quem chamar a action direto também precisa ser barrado.
+  const estado = estadoInscricao(evento.inscricoes_abrem_em, evento.inscricoes_fecham_em)
+  if (estado === 'nao_abriu') {
+    return { ok: false, erro: 'As inscrições para este evento ainda não abriram.' }
+  }
+  if (estado === 'encerrado') {
+    return { ok: false, erro: 'As inscrições para este evento estão encerradas.' }
+  }
 
   const nome = String(formData.get('nome') ?? '').trim()
   const email = String(formData.get('email') ?? '').trim().toLowerCase()

@@ -61,6 +61,10 @@ export interface Evento {
   cor_capa: string // cor de fundo atrás da capa (hex); default #FFFFFF
   campos_extras: CampoExtra[] // jsonb no banco
   dias: Dia[] // cronograma (jsonb no banco): dias -> (sessões soltas + categorias)
+  /** Início da janela de inscrição (ISO). Null = aberto desde sempre. */
+  inscricoes_abrem_em: string | null
+  /** Fim da janela de inscrição (ISO, inclusivo). Null = sem prazo. */
+  inscricoes_fecham_em: string | null
   created_at: string
   updated_at: string
 }

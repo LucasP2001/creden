@@ -6,6 +6,7 @@ import { slugify } from '@/lib/slug'
 import { uploadCapa } from '@/lib/capa'
 import { corCapaValida } from '@/lib/imagem'
 import { parseDias } from '@/lib/sessoes'
+import { lerPeriodo } from '@/app/eventos/[id]/editar/payload'
 import { CampoExtra } from '@/types'
 
 export interface CriarEventoResult {
@@ -30,6 +31,9 @@ export async function criarEvento(formData: FormData): Promise<CriarEventoResult
   const dataHora = String(formData.get('data_hora') ?? '')
   if (!nome) return { ok: false, erro: 'Informe o nome do evento.' }
   if (!dataHora) return { ok: false, erro: 'Informe a data e hora do evento.' }
+
+  const periodo = lerPeriodo(formData)
+  if (periodo.erro) return { ok: false, erro: periodo.erro }
 
   const vagasRaw = String(formData.get('vagas_max') ?? '')
   const valorRaw = String(formData.get('valor') ?? '0')
@@ -59,6 +63,8 @@ export async function criarEvento(formData: FormData): Promise<CriarEventoResult
       campos_extras: camposExtras,
       dias: parseDias(String(formData.get('dias') ?? '[]')),
       cor_capa: corCapaValida(String(formData.get('cor_capa') ?? '')),
+      inscricoes_abrem_em: periodo.abre,
+      inscricoes_fecham_em: periodo.fecha,
     })
     .select('id')
     .single()

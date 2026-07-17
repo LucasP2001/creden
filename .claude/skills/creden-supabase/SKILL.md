@@ -26,6 +26,11 @@ Nunca expor a `service_role` key no browser. Variáveis em `.env.local`
   Estrutura: `dias[] { id, data, sessoes[], categorias[] }`. Dentro de um dia, as sessões
   ficam soltas (`sessoes`) ou agrupadas em `categorias[] { id, titulo, sessoes[] }` — a
   categoria é opcional. `Sessao` não tem campo de dia (o dia é o nível de cima).
+  `inscricoes_abrem_em` / `inscricoes_fecham_em` (`timestamptz`, nullable) — janela de
+  inscrição. `null` = sem limite (comportamento de todo evento anterior à coluna). A janela
+  vale para os dois lados: fora dela ninguém se inscreve **nem** altera escolhas de sessão.
+  A regra vive em `lib/periodo.ts` (pura) e é aplicada nas server actions `inscrever` e
+  `atualizarSessoes` — a UI só reflete; quem decide é o servidor.
 - **inscricoes** — pertence a um evento (`evento_id`). Campos: nome, e-mail, dados extras (jsonb),
   status (`inscrito` | `presente` | `cancelado`), token do ingresso, hora do check-in.
 - **inscricoes_sessoes** — marcações de interesse do participante em sessões do cronograma.

@@ -3,6 +3,7 @@
 import { createAdminSupabase } from '@/lib/supabase'
 import { enviarIngresso } from '@/lib/email'
 import { reconciliarMarcacoes } from '@/lib/marcacoes'
+import { inscricoesAbertas } from '@/lib/periodo'
 import { revalidatePath } from 'next/cache'
 import { Evento, Inscricao } from '@/types'
 
@@ -94,6 +95,13 @@ export async function atualizarSessoes(
 
   const insc = data as Inscricao & { eventos: Evento }
   const ev = insc.eventos
+
+  // Fora da janela de inscrição as escolhas ficam congeladas. Checado no servidor:
+  // a UI vira só leitura, mas a action é pública (basta o token).
+  if (!inscricoesAbertas(ev.inscricoes_abrem_em, ev.inscricoes_fecham_em)) {
+    return { ok: false, erro: 'O prazo para escolher palestras está encerrado.' }
+  }
+
   const rejeitadas = await reconciliarMarcacoes(
     admin,
     ev.id,
