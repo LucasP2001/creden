@@ -284,7 +284,7 @@ export function EventoForm({ modo, evento }: Props) {
                     <div className="input flex-1 flex items-center justify-between bg-line/20 text-ink cursor-default">
                       <span>{c.label}</span>
                       <span className="text-[11px] uppercase tracking-wide text-muted">
-                        Sempre coletado
+                        Coletado por padrão
                       </span>
                     </div>
                   ) : (
