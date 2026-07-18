@@ -23,24 +23,31 @@ interface Props {
 // Formulário público de inscrição — só coleta dados. As palestras/sessões o
 // participante escolhe depois, na página dele (/i/[token]), para onde é levado
 // ao concluir. Tom acolhedor (skill creden-design).
+//
+// Validação toda nossa (form noValidate): campo obrigatório vazio fica só com a
+// borda vermelha; campo preenchido de forma inválida (CPF/telefone/e-mail) fica
+// vermelho e mostra a mensagem inline. Nada de balão nativo do browser.
 export function InscricaoForm({ slug, camposExtras }: Props) {
   const router = useRouter()
   const [enviando, setEnviando] = useState(false)
   const [erro, setErro] = useState<string | null>(null)
-  // Valores controlados dos campos validados inline (CPF, telefone, e-mail).
-  // CPF/telefone guardam o texto já mascarado; e-mail guarda o valor cru.
+  // Todos os campos são controlados (para saber se estão vazios). CPF/telefone
+  // guardam o texto mascarado; os demais, o valor cru.
   const [valores, setValores] = useState<Record<string, string>>({})
-  // Campos que o usuário já saiu (blur): só aí mostramos erro, pra não acusar
-  // enquanto ainda está digitando.
+  // Campos que o usuário já saiu (blur) ou que o submit reprovou: só aí acusamos
+  // erro, para não piscar vermelho enquanto ainda está digitando.
   const [tocados, setTocados] = useState<Record<string, boolean>>({})
 
   // Nome e e-mail vêm na lista (fixos), na ordem escolhida pelo organizador.
   // comCamposFixos cobre eventos antigos que ainda não têm os fixos gravados.
   const campos = useMemo(() => comCamposFixos(camposExtras), [camposExtras])
 
-  // Campos com validação inline: CPF, telefone e e-mail (fixo).
-  const ehValidado = (c: CampoExtra) =>
+  // Campos com formato validado (mostram mensagem quando inválidos).
+  const temFormato = (c: CampoExtra) =>
     c.tipo === 'cpf' || c.tipo === 'telefone' || c.fixo === 'email'
+
+  // Nome e e-mail (fixos) são sempre obrigatórios; os demais seguem a marcação.
+  const ehObrigatorio = (c: CampoExtra) => !!c.fixo || !!c.obrigatorio
 
   function aoDigitar(campo: CampoExtra, bruto: string) {
     const v =
@@ -48,37 +55,35 @@ export function InscricaoForm({ slug, camposExtras }: Props) {
         ? formatarCpf(bruto)
         : campo.tipo === 'telefone'
           ? formatarTelefone(bruto)
-          : bruto // e-mail: sem máscara
+          : bruto
     setValores((m) => ({ ...m, [campo.id]: v }))
   }
 
-  function valido(campo: CampoExtra, v: string): boolean {
+  /** Formato válido de um campo preenchido. Campos sem formato próprio = sempre ok. */
+  function formatoValido(campo: CampoExtra, v: string): boolean {
     if (campo.fixo === 'email') return emailValido(v)
     if (campo.tipo === 'cpf') return cpfValido(v)
-    return telefoneValido(v)
+    if (campo.tipo === 'telefone') return telefoneValido(v)
+    return true
   }
 
-  const ehObrigatorio = (c: CampoExtra) => c.fixo === 'email' || !!c.obrigatorio
-
   /**
-   * Estado de validação: 'ok' | 'erro' | null (neutro).
-   * Enquanto o usuário digita (campo não tocado), só confirma o acerto — não
-   * pisca erro em algo incompleto. Depois de sair do campo ou tentar enviar
-   * (`tocados[id]`), passa a acusar vazio-obrigatório e incompleto também.
+   * Estado visual do campo:
+   *  'vazio'  -> obrigatório sem valor, já tocado (só borda vermelha)
+   *  'erro'   -> preenchido com formato inválido (borda + mensagem)
+   *  'ok'     -> preenchido e válido (borda verde + ✓, só para campos com formato)
+   *  null     -> neutro
    */
-  function estadoCampo(campo: CampoExtra): 'ok' | 'erro' | null {
+  function estadoCampo(campo: CampoExtra): 'vazio' | 'erro' | 'ok' | null {
     const v = (valores[campo.id] ?? '').trim()
     const tocado = !!tocados[campo.id]
 
-    if (!v) {
-      // Vazio: só acusa depois de tocado, e se for obrigatório.
-      return tocado && ehObrigatorio(campo) ? 'erro' : null
-    }
+    if (!v) return tocado && ehObrigatorio(campo) ? 'vazio' : null
 
-    if (valido(campo, v)) return 'ok'
+    if (formatoValido(campo, v)) return temFormato(campo) ? 'ok' : null
 
-    // Preenchido mas inválido. Antes de tocar, não acusa se ainda está no meio
-    // da digitação (número curto, e-mail sem @ ainda) — evita erro prematuro.
+    // Preenchido mas inválido. Enquanto não tocou, não acusa se ainda parece
+    // estar no meio da digitação (número curto, e-mail sem @).
     if (!tocado) {
       if (campo.tipo === 'cpf' || campo.tipo === 'telefone') {
         const digitos = v.replace(/\D/g, '')
@@ -92,26 +97,25 @@ export function InscricaoForm({ slug, camposExtras }: Props) {
   }
 
   function msgErroCampo(campo: CampoExtra): string {
-    const v = (valores[campo.id] ?? '').trim()
-    if (!v) return 'Campo obrigatório.'
     if (campo.fixo === 'email') return 'E-mail inválido — verifique se tem "@" e domínio.'
     if (campo.tipo === 'cpf') return 'CPF inválido — confira os números.'
     return 'Telefone inválido — informe DDD e número.'
   }
 
   async function enviar(formData: FormData) {
-    // Valida os campos inline antes de mandar. Marca TODOS os inválidos como
-    // tocados de uma vez, para que cada um mostre seu próprio destaque/mensagem
-    // (o print antigo tinha vários inválidos e nenhum acusava).
-    const invalidos: string[] = []
+    // Reprova campo obrigatório vazio e campo com formato inválido. Marca TODOS
+    // os reprovados de uma vez, para que cada um acenda seu destaque.
+    const reprovados: string[] = []
     for (const c of campos) {
-      if (!ehValidado(c)) continue
       const valor = (valores[c.id] ?? '').trim()
-      if (!valor && !ehObrigatorio(c)) continue
-      if (!valor || !valido(c, valor)) invalidos.push(c.id)
+      if (!valor) {
+        if (ehObrigatorio(c)) reprovados.push(c.id)
+        continue
+      }
+      if (!formatoValido(c, valor)) reprovados.push(c.id)
     }
-    if (invalidos.length > 0) {
-      setTocados((t) => ({ ...t, ...Object.fromEntries(invalidos.map((id) => [id, true])) }))
+    if (reprovados.length > 0) {
+      setTocados((t) => ({ ...t, ...Object.fromEntries(reprovados.map((id) => [id, true])) }))
       setErro(null)
       return
     }
@@ -128,78 +132,77 @@ export function InscricaoForm({ slug, camposExtras }: Props) {
     setErro(res.erro ?? 'Não foi possível concluir sua inscrição. Tente novamente.')
   }
 
+  // Classe da borda conforme o estado (vazio e erro pintam vermelho igual).
+  function classeBorda(estado: 'vazio' | 'erro' | 'ok' | null): string {
+    if (estado === 'vazio' || estado === 'erro')
+      return 'border-error focus:border-error focus:ring-error/20'
+    if (estado === 'ok') return 'border-success focus:border-success focus:ring-success/20'
+    return ''
+  }
+
   return (
-    <form action={enviar} className="card p-[22px] grid gap-[18px]">
+    <form action={enviar} noValidate className="card p-[22px] grid gap-[18px]">
       {campos.map((c) => {
         // Fixos usam o name nativo que a action lê (nome/email); extras usam extra_<id>.
         const name = c.fixo ?? `extra_${c.id}`
+        const estado = estadoCampo(c)
+        const tocar = () => setTocados((t) => ({ ...t, [c.id]: true }))
         return (
           <div key={c.id}>
             <label className="block text-[13px] font-semibold mb-1.5">
               {c.label}
-              {c.obrigatorio && <span className="text-error"> *</span>}
+              {ehObrigatorio(c) && <span className="text-error"> *</span>}
             </label>
-            {c.fixo === 'nome' ? (
-              <input className="input" name={name} type="text" placeholder="Seu nome" required />
-            ) : c.tipo === 'opcoes' ? (
-              <Select name={name} opcoes={c.opcoes ?? []} required={c.obrigatorio} />
-            ) : ehValidado(c) ? (
-              (() => {
-                const ehEmail = c.fixo === 'email'
-                const estado = estadoCampo(c)
-                const mostraErro = estado === 'erro' && tocados[c.id]
-                const mostraOk = estado === 'ok'
-                return (
-                  <div>
-                    <div className="relative">
-                      <input
-                        className={`input pr-10 ${
-                          mostraErro
-                            ? 'border-error focus:border-error focus:ring-error/20'
-                            : mostraOk
-                              ? 'border-success focus:border-success focus:ring-success/20'
-                              : ''
-                        }`}
-                        name={name}
-                        // E-mail como 'text' (não 'email') para o browser não
-                        // sobrepor o nosso balão de validação; inputMode traz o
-                        // teclado certo no celular.
-                        type="text"
-                        inputMode={ehEmail ? 'email' : 'numeric'}
-                        autoCapitalize={ehEmail ? 'none' : undefined}
-                        placeholder={
-                          ehEmail
-                            ? 'seu@email.com'
-                            : c.tipo === 'cpf'
-                              ? '000.000.000-00'
-                              : '(00) 00000-0000'
-                        }
-                        value={valores[c.id] ?? ''}
-                        onChange={(e) => aoDigitar(c, e.target.value)}
-                        onBlur={() => setTocados((t) => ({ ...t, [c.id]: true }))}
-                        // E-mail não usa required nativo (o balão do browser
-                        // conflitaria com o nosso); a validação abaixo cobre vazio.
-                        required={ehEmail ? undefined : c.obrigatorio}
-                        aria-invalid={mostraErro}
-                      />
-                      {mostraOk && (
-                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-success" aria-hidden>
-                          ✓
-                        </span>
-                      )}
-                    </div>
-                    {mostraErro && <p className="text-error text-xs mt-1">{msgErroCampo(c)}</p>}
-                  </div>
-                )
-              })()
-            ) : (
-              <input
-                className="input"
+
+            {c.tipo === 'opcoes' ? (
+              <Select
                 name={name}
-                type={c.tipo === 'numero' ? 'number' : 'text'}
-                required={c.obrigatorio}
+                opcoes={c.opcoes ?? []}
+                value={valores[c.id] ?? ''}
+                onChange={(v) => setValores((m) => ({ ...m, [c.id]: v }))}
+                onBlur={tocar}
+                invalido={estado === 'vazio' || estado === 'erro'}
               />
+            ) : (
+              <div className="relative">
+                <input
+                  className={`input ${temFormato(c) ? 'pr-10' : ''} ${classeBorda(estado)}`}
+                  name={name}
+                  type={c.tipo === 'numero' ? 'number' : 'text'}
+                  inputMode={
+                    c.fixo === 'email'
+                      ? 'email'
+                      : c.tipo === 'cpf' || c.tipo === 'telefone'
+                        ? 'numeric'
+                        : undefined
+                  }
+                  autoCapitalize={c.fixo === 'email' ? 'none' : undefined}
+                  placeholder={
+                    c.fixo === 'nome'
+                      ? 'Seu nome'
+                      : c.fixo === 'email'
+                        ? 'seu@email.com'
+                        : c.tipo === 'cpf'
+                          ? '000.000.000-00'
+                          : c.tipo === 'telefone'
+                            ? '(00) 00000-0000'
+                            : undefined
+                  }
+                  value={valores[c.id] ?? ''}
+                  onChange={(e) => aoDigitar(c, e.target.value)}
+                  onBlur={tocar}
+                  aria-invalid={estado === 'vazio' || estado === 'erro'}
+                />
+                {estado === 'ok' && (
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-success" aria-hidden>
+                    ✓
+                  </span>
+                )}
+              </div>
             )}
+
+            {/* Mensagem só para formato inválido; vazio fica só com a borda. */}
+            {estado === 'erro' && <p className="text-error text-xs mt-1">{msgErroCampo(c)}</p>}
           </div>
         )
       })}

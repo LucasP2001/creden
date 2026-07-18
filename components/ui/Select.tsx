@@ -7,33 +7,57 @@ interface Props {
   opcoes: string[]
   required?: boolean
   placeholder?: string
-  defaultValue?: string
+  /** Controlado: valor atual e callback de mudança. */
+  value?: string
+  onChange?: (valor: string) => void
+  /** Chamado quando o dropdown fecha (equivale ao blur de um input). */
+  onBlur?: () => void
+  /** Pinta a borda de erro (obrigatório vazio). */
+  invalido?: boolean
 }
 
 // Dropdown custom acessível — o <select> nativo abre um menu do SO que não pode
 // ser estilizado (fica azul do Android, quebra a identidade). Aqui o gatilho usa
 // a classe .input (bate com os outros campos) e a lista é nossa: cores da paleta,
 // teclado e fora-clique. O valor real vai num <input hidden> para o form nativo ler.
-export function Select({ name, opcoes, required, placeholder = 'Selecione…', defaultValue = '' }: Props) {
+//
+// Pode ser controlado (value + onChange) ou autônomo (mantém o valor internamente).
+export function Select({
+  name,
+  opcoes,
+  required,
+  placeholder = 'Selecione…',
+  value,
+  onChange,
+  onBlur,
+  invalido,
+}: Props) {
   const [aberto, setAberto] = useState(false)
-  const [valor, setValor] = useState(defaultValue)
+  const [valorInterno, setValorInterno] = useState('')
+  const controlado = value !== undefined
+  const valor = controlado ? value : valorInterno
   const [ativo, setAtivo] = useState(0) // índice destacado pelo teclado
   const raiz = useRef<HTMLDivElement>(null)
   const listaId = useId()
 
-  // Fecha ao clicar fora.
+  // Fecha ao clicar fora (e dispara onBlur, como um input perdendo o foco).
   useEffect(() => {
     if (!aberto) return
     function fora(e: MouseEvent) {
-      if (raiz.current && !raiz.current.contains(e.target as Node)) setAberto(false)
+      if (raiz.current && !raiz.current.contains(e.target as Node)) {
+        setAberto(false)
+        onBlur?.()
+      }
     }
     document.addEventListener('mousedown', fora)
     return () => document.removeEventListener('mousedown', fora)
-  }, [aberto])
+  }, [aberto, onBlur])
 
   function escolher(o: string) {
-    setValor(o)
+    if (controlado) onChange?.(o)
+    else setValorInterno(o)
     setAberto(false)
+    onBlur?.()
   }
 
   function aoTeclar(e: React.KeyboardEvent) {
@@ -50,6 +74,7 @@ export function Select({ name, opcoes, required, placeholder = 'Selecione…', d
       setAtivo((i) => Math.max(i - 1, 0))
     } else if (e.key === 'Escape') {
       setAberto(false)
+      onBlur?.()
     }
   }
 
@@ -66,7 +91,10 @@ export function Select({ name, opcoes, required, placeholder = 'Selecione…', d
         aria-haspopup="listbox"
         onClick={() => setAberto((v) => !v)}
         onKeyDown={aoTeclar}
-        className="input flex items-center justify-between gap-2 text-left"
+        aria-invalid={invalido}
+        className={`input flex items-center justify-between gap-2 text-left ${
+          invalido ? 'border-error focus:border-error focus:ring-error/20' : ''
+        }`}
       >
         <span className={valor ? 'text-ink' : 'text-muted'}>{valor || placeholder}</span>
         <svg
