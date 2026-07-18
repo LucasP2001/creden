@@ -15,7 +15,10 @@ interface ItemProps {
 function ItemTimeline({ s, contagens, marcada = false }: ItemProps) {
   const usadas = contagens?.[s.id] ?? 0
   const restantes = s.vagas_max != null ? Math.max(0, s.vagas_max - usadas) : null
-  const pausa = s.sem_inscricao
+  // Pausa = respiro do dia (intervalo, café): só hora + nome apagado. Um serviço
+  // aberto a todos também é sem_inscricao, mas tem conteúdo (local, o que oferece)
+  // e merece o layout completo — só não entra a parte de vagas/marcação.
+  const pausa = s.sem_inscricao && s.tipo !== 'servico'
 
   if (pausa) {
     return (
