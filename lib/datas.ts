@@ -70,6 +70,56 @@ export function formatarDataHoraCurta(iso: string): string {
   })
 }
 
+/**
+ * Descobre o offset (em minutos) do fuso BR numa data — positivo a oeste de UTC.
+ * Ex.: horário de Brasília sem verão = 180 (UTC-3). Calcula pela diferença entre
+ * a mesma instância formatada em UTC e no fuso, então acompanha verão histórico.
+ */
+function offsetBrMinutos(d: Date): number {
+  const emFuso = new Date(d.toLocaleString('en-US', { timeZone: FUSO }))
+  const emUtc = new Date(d.toLocaleString('en-US', { timeZone: 'UTC' }))
+  return Math.round((emUtc.getTime() - emFuso.getTime()) / 60000)
+}
+
+/**
+ * Converte um valor de <input type="datetime-local"> ('YYYY-MM-DDTHH:mm', sem
+ * fuso) para ISO UTC, interpretando a hora como horário de Brasília.
+ *
+ * Sem isto, `new Date(valor)` interpreta a hora no fuso do servidor (a Vercel
+ * roda em UTC): o organizador marca 14:00 e o banco grava 14:00Z, que a página
+ * exibe como 11:00. Aqui 14:00 de parede vira o instante UTC correto (17:00Z).
+ * Retorna null para entrada vazia/ inválida.
+ */
+export function datetimeLocalBrParaIso(valor: string): string | null {
+  if (!valor) return null
+  // Interpreta como UTC primeiro (determinístico), depois aplica o offset do fuso.
+  const comoUtc = new Date(`${valor}:00Z`)
+  if (Number.isNaN(comoUtc.getTime())) return null
+  const off = offsetBrMinutos(comoUtc)
+  return new Date(comoUtc.getTime() + off * 60000).toISOString()
+}
+
+/**
+ * Inverso de datetimeLocalBrParaIso: ISO UTC -> 'YYYY-MM-DDTHH:mm' na hora de
+ * Brasília, para preencher o <input datetime-local> ao editar. Usa o fuso BR
+ * fixo (não o da máquina do organizador).
+ */
+export function isoParaDatetimeLocalBr(iso: string): string {
+  const d = new Date(iso)
+  if (Number.isNaN(d.getTime())) return ''
+  const p = new Intl.DateTimeFormat('en-CA', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hourCycle: 'h23',
+    timeZone: FUSO,
+  }).formatToParts(d)
+  const g = (t: string) => p.find((x) => x.type === t)?.value ?? ''
+  return `${g('year')}-${g('month')}-${g('day')}T${g('hour')}:${g('minute')}`
+}
+
 /** Dia da semana abreviado + dia/mês: 'ter, 01/12'. */
 export function formatarDiaSemanaCurto(isoData: string): string {
   const d = new Date(isoData)

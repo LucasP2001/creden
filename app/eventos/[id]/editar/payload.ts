@@ -2,6 +2,7 @@ import { CampoExtra, Dia } from '@/types'
 import { corCapaValida } from '@/lib/imagem'
 import { parseDias } from '@/lib/sessoes'
 import { comCamposFixos } from '@/lib/campos'
+import { datetimeLocalBrParaIso } from '@/lib/datas'
 
 /**
  * Limpa os campos vindos do form, preservando a ordem:
@@ -55,9 +56,9 @@ export function lerPeriodo(
 
   function parse(valor: string, rotulo: string): { iso: string | null; erro?: string } {
     if (!valor) return { iso: null }
-    const d = new Date(valor)
-    if (Number.isNaN(d.getTime())) return { iso: null, erro: `Data de ${rotulo} inválida.` }
-    return { iso: d.toISOString() }
+    const iso = datetimeLocalBrParaIso(valor)
+    if (!iso) return { iso: null, erro: `Data de ${rotulo} inválida.` }
+    return { iso }
   }
 
   const a = parse(bruto('inscricoes_abrem_em'), 'abertura das inscrições')
@@ -108,7 +109,7 @@ export function montarPayloadUpdate(
     payload: {
       nome,
       descricao: String(formData.get('descricao') ?? '') || null,
-      data_hora: new Date(dataHora).toISOString(),
+      data_hora: datetimeLocalBrParaIso(dataHora)!,
       local: String(formData.get('local') ?? '') || null,
       vagas_max: vagasRaw ? Number(vagasRaw) : null,
       valor: valorRaw ? Math.round(Number(valorRaw) * 100) : 0,

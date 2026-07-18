@@ -6,6 +6,7 @@ import { slugify } from '@/lib/slug'
 import { uploadCapa } from '@/lib/capa'
 import { corCapaValida } from '@/lib/imagem'
 import { parseDias } from '@/lib/sessoes'
+import { datetimeLocalBrParaIso } from '@/lib/datas'
 import { lerPeriodo, sanitizarCampos } from '@/app/eventos/[id]/editar/payload'
 import { CampoExtra } from '@/types'
 
@@ -55,7 +56,7 @@ export async function criarEvento(formData: FormData): Promise<CriarEventoResult
       user_id: user.id,
       nome,
       descricao: String(formData.get('descricao') ?? '') || null,
-      data_hora: new Date(dataHora).toISOString(),
+      data_hora: datetimeLocalBrParaIso(dataHora)!,
       local: String(formData.get('local') ?? '') || null,
       vagas_max: vagasRaw ? Number(vagasRaw) : null,
       valor: valorRaw ? Math.round(Number(valorRaw) * 100) : 0, // reais -> centavos

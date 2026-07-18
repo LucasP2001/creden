@@ -9,6 +9,7 @@ import { novoDia, novaCategoria, novaSessao } from '@/lib/sessoes'
 import { comCamposFixos, mover } from '@/lib/campos'
 import { hostPublico } from '@/lib/url'
 import { slugify } from '@/lib/slug'
+import { isoParaDatetimeLocalBr } from '@/lib/datas'
 import { criarEvento } from './novo/actions'
 import { atualizarEvento } from './[id]/editar/actions'
 
@@ -24,12 +25,9 @@ const novoCampo = (): CampoExtra => ({
   obrigatorio: false,
 })
 
-// Converte ISO -> valor aceito por <input type="datetime-local"> (YYYY-MM-DDTHH:mm) no fuso local.
-function paraDatetimeLocal(iso: string): string {
-  const d = new Date(iso)
-  const off = d.getTimezoneOffset()
-  return new Date(d.getTime() - off * 60000).toISOString().slice(0, 16)
-}
+// ISO -> valor do <input datetime-local> na hora de Brasília (fuso fixo do
+// produto, não o da máquina). Ver lib/datas.ts.
+const paraDatetimeLocal = isoParaDatetimeLocalBr
 
 export function EventoForm({ modo, evento }: Props) {
   const [nome, setNome] = useState(evento?.nome ?? '')
