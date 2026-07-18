@@ -63,10 +63,36 @@ export async function inscrever(slug: string, formData: FormData): Promise<Inscr
   // Coleta respostas dos campos extras (name="extra_<id>"). Nome e e-mail são
   // fixos (lidos acima) e não entram em dados_extras.
   const dadosExtras: Record<string, string> = {}
+  let cpfLabel: string | null = null
+  let cpfDigitos = ''
   for (const campo of evento.campos_extras ?? []) {
     if (campo.fixo) continue
     const v = formData.get(`extra_${campo.id}`)
     if (v != null) dadosExtras[campo.label] = String(v)
+    if (campo.tipo === 'cpf') {
+      cpfLabel = campo.label
+      cpfDigitos = String(v ?? '').replace(/\D/g, '')
+    }
+  }
+
+  // Não permite inscrição duplicada no mesmo evento (mesmo e-mail ou mesmo CPF).
+  // Inscrições canceladas não contam — a pessoa pode se inscrever de novo.
+  const { data: existentes } = await supabase
+    .from('inscricoes')
+    .select('email, dados_extras')
+    .eq('evento_id', evento.id)
+    .neq('status', 'cancelado')
+
+  for (const insc of (existentes ?? []) as { email: string; dados_extras: Record<string, string> | null }[]) {
+    if (insc.email?.toLowerCase() === email) {
+      return { ok: false, erro: 'Este e-mail já está inscrito neste evento.' }
+    }
+    if (cpfLabel && cpfDigitos) {
+      const cpfExistente = String(insc.dados_extras?.[cpfLabel] ?? '').replace(/\D/g, '')
+      if (cpfExistente && cpfExistente === cpfDigitos) {
+        return { ok: false, erro: 'Este CPF já está inscrito neste evento.' }
+      }
+    }
   }
 
   const token = gerarToken()
