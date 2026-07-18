@@ -1,12 +1,13 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
 import { ImageUpload } from '@/components/ImageUpload'
 import { CampoExtra, CampoExtraTipo, Evento, Dia, Categoria, Sessao, TipoSessao } from '@/types'
 import { novoDia, novaCategoria, novaSessao } from '@/lib/sessoes'
 import { comCamposFixos, mover } from '@/lib/campos'
+import { hostPublico } from '@/lib/url'
 import { slugify } from '@/lib/slug'
 import { criarEvento } from './novo/actions'
 import { atualizarEvento } from './[id]/editar/actions'
@@ -38,6 +39,9 @@ export function EventoForm({ modo, evento }: Props) {
   const [dias, setDias] = useState<Dia[]>(evento?.dias ?? [])
   const [enviando, setEnviando] = useState(false)
   const [erro, setErro] = useState<string | null>(null)
+  // Host real do ambiente, resolvido no cliente (evita mismatch de hidratação).
+  const [host, setHost] = useState('')
+  useEffect(() => setHost(hostPublico()), [])
 
   const slug = useMemo(() => (evento ? evento.slug : slugify(nome) || 'meu-evento'), [nome, evento])
 
@@ -498,7 +502,7 @@ export function EventoForm({ modo, evento }: Props) {
             {modo === 'editar' ? 'URL pública' : 'URL pública gerada'}
           </label>
           <div className="font-body bg-status-inscrito-bg border border-dashed border-primary-light rounded-md px-3.5 py-3 text-sm text-primary break-all">
-            creden.com.br/e/{slug}
+            {host}/e/{slug}
           </div>
           <p className="text-xs text-muted mt-1.5">
             {modo === 'editar'
