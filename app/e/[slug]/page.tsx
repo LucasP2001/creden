@@ -106,15 +106,15 @@ export default async function EventoPublicoPage({ params }: { params: { slug: st
 
       {/* Conteúdo direto no fundo sand (sem card branco), o mesmo tratamento das
           demais telas: o palco com a onda faz a moldura. */}
-      <div className={`max-w-[760px] mx-auto px-5 relative animate-fade-up ${ev.imagem_url ? 'pt-14' : '-mt-12'}`}>
+      <div className={`max-w-[760px] mx-auto px-5 relative animate-fade-up ${ev.imagem_url ? 'pt-9' : '-mt-12'}`}>
         <h1 className="font-display text-[clamp(1.8rem,4vw,2.6rem)] font-semibold leading-tight text-secondary">
           {ev.nome}
         </h1>
-        <p className="text-muted mt-2 text-sm">Organizado com Creden</p>
+        <p className="text-muted mt-1 text-sm">Organizado com Creden</p>
 
         {/* Dados do evento em cards 2×2. Contagem de inscritos fica de fora:
             "0 inscritos" num evento novo só passa má impressão. */}
-        <div className="grid sm:grid-cols-2 gap-3 mt-6">
+        <div className="grid sm:grid-cols-2 gap-2.5 mt-4">
           <MetaItem icon="calendario" label="Data e hora" valor={capitalizar(formatarDataLonga(ev.data_hora))} />
           {ev.local && <MetaItem icon="local" label="Local" valor={ev.local} />}
           <MetaItem
@@ -203,9 +203,9 @@ function MetaItem({
   valor: string
 }) {
   return (
-    <div className="flex gap-3 items-center bg-surface border border-line rounded-xl p-3.5">
-      <span className="grid place-items-center w-10 h-10 rounded-lg bg-[#e9efe7] text-primary shrink-0">
-        <MetaIcon nome={icon} className="w-5 h-5" />
+    <div className="flex gap-3 items-center bg-surface border border-line rounded-xl px-3.5 py-3">
+      <span className="grid place-items-center w-9 h-9 rounded-lg bg-[#e9efe7] text-primary shrink-0">
+        <MetaIcon nome={icon} className="w-[18px] h-[18px]" />
       </span>
       <div className="min-w-0">
         <div className="text-[11px] text-muted uppercase tracking-wide">{label}</div>
