@@ -29,7 +29,7 @@ export function CompartilharBotao({ nome }: { nome: string }) {
   return (
     <button
       onClick={compartilhar}
-      className="text-sm font-semibold text-primary hover:underline flex items-center gap-1.5"
+      className="text-sm font-semibold text-primary bg-white/95 shadow-card ring-1 ring-black/5 rounded-pill px-4 py-2 flex items-center gap-1.5 hover:bg-white transition-colors"
     >
       {copiado ? '✓ Link copiado' : '↗ Compartilhar'}
     </button>

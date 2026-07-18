@@ -2,8 +2,8 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { createServerSupabase, createAdminSupabase } from '@/lib/supabase'
 import { Evento } from '@/types'
-import { Logo } from '@/components/Logo'
 import { MetaIcon } from '@/components/MetaIcon'
+import { OndaPalco } from '@/components/OndaPalco'
 import { CompartilharBotao } from './CompartilharBotao'
 import { Cronograma } from '@/components/Cronograma'
 import { RecuperarAcesso } from './RecuperarAcesso'
@@ -44,11 +44,11 @@ export default async function EventoPublicoPage({ params }: { params: { slug: st
   const pctLotacao = ev.vagas_max ? Math.min(100, Math.round((inscritos / ev.vagas_max) * 100)) : 0
 
   return (
-    <main className="min-h-screen pb-28">
-      <header className="h-14 flex items-center justify-between px-6 border-b border-line bg-surface">
-        <Logo />
+    <main className="min-h-screen pb-28 relative">
+      {/* Sem header: o palco começa no topo. Compartilhar flutua sobre ele. */}
+      <div className="absolute top-4 right-4 z-30">
         <CompartilharBotao nome={ev.nome} />
-      </header>
+      </div>
 
       {/* Hero em "palco": a própria capa, ampliada e desfocada, preenche o fundo.
           A logo nítida NÃO fica aqui dentro (overflow-hidden a prenderia) — vem
@@ -84,6 +84,7 @@ export default async function EventoPublicoPage({ params }: { params: { slug: st
             )}
           </div>
         </div>
+        <OndaPalco />
       </div>
 
       {/* Logo nítida sobrepondo hero e card: sobe sobre o desfoque e desce um
@@ -103,56 +104,46 @@ export default async function EventoPublicoPage({ params }: { params: { slug: st
         </div>
       )}
 
-      <div className={`max-w-[760px] mx-auto px-5 relative ${ev.imagem_url ? '-mt-10' : '-mt-12'}`}>
-        <article className="card shadow-lift overflow-hidden animate-fade-up">
-          {/* Com a logo sobreposta, o título precisa começar abaixo dela. */}
-          <div className={`px-7 sm:px-9 pb-7 sm:pb-9 ${ev.imagem_url ? 'pt-12' : 'pt-7 sm:pt-9'}`}>
-            <h1 className="font-display text-[clamp(1.8rem,4vw,2.6rem)] font-semibold leading-tight">
-              {ev.nome}
-            </h1>
-            <p className="text-muted mt-2 text-sm">Organizado com Creden</p>
+      {/* Conteúdo direto no fundo sand (sem card branco), o mesmo tratamento das
+          demais telas: o palco com a onda faz a moldura. */}
+      <div className={`max-w-[760px] mx-auto px-5 relative animate-fade-up ${ev.imagem_url ? 'pt-14' : '-mt-12'}`}>
+        <h1 className="font-display text-[clamp(1.8rem,4vw,2.6rem)] font-semibold leading-tight text-secondary">
+          {ev.nome}
+        </h1>
+        <p className="text-muted mt-2 text-sm">Organizado com Creden</p>
 
-            <div className="grid sm:grid-cols-2 gap-3.5 mt-6">
-              <MetaItem icon="calendario" label="Data e hora" valor={capitalizar(formatarDataLonga(ev.data_hora))} />
-              {ev.local && <MetaItem icon="local" label="Local" valor={ev.local} />}
-              <MetaItem
-                icon="ingresso"
-                label="Inscrições"
-                valor={
-                  ev.vagas_max != null
-                    ? `${inscritos} de ${ev.vagas_max} vagas`
-                    : `${inscritos} inscrito${inscritos === 1 ? '' : 's'}`
-                }
-              />
-              <MetaItem
-                icon="valor"
-                label="Valor"
-                valor={ev.valor > 0 ? `R$ ${(ev.valor / 100).toFixed(2)}` : 'Gratuito'}
+        {/* Dados do evento em cards 2×2. Contagem de inscritos fica de fora:
+            "0 inscritos" num evento novo só passa má impressão. */}
+        <div className="grid sm:grid-cols-2 gap-3 mt-6">
+          <MetaItem icon="calendario" label="Data e hora" valor={capitalizar(formatarDataLonga(ev.data_hora))} />
+          {ev.local && <MetaItem icon="local" label="Local" valor={ev.local} />}
+          <MetaItem
+            icon="valor"
+            label="Valor"
+            valor={ev.valor > 0 ? `R$ ${(ev.valor / 100).toFixed(2)}` : 'Gratuito'}
+          />
+        </div>
+
+        {ev.vagas_max != null && (
+          <div className="mt-5">
+            <div className="h-2 bg-status-inscrito-bg rounded-pill overflow-hidden">
+              <div
+                className={`h-full rounded-pill ${pctLotacao >= 100 ? 'bg-error' : 'bg-accent'}`}
+                style={{ width: `${Math.max(4, pctLotacao)}%` }}
               />
             </div>
-
-            {ev.vagas_max != null && (
-              <div className="mt-6">
-                <div className="h-2 bg-status-inscrito-bg rounded-pill overflow-hidden">
-                  <div
-                    className={`h-full rounded-pill ${pctLotacao >= 100 ? 'bg-error' : 'bg-accent'}`}
-                    style={{ width: `${Math.max(4, pctLotacao)}%` }}
-                  />
-                </div>
-                <p className="text-xs text-muted mt-2">{pctLotacao}% das vagas preenchidas</p>
-              </div>
-            )}
-
-            {ev.descricao && (
-              <>
-                <hr className="border-line my-7" />
-                <p className="text-[16px] leading-relaxed text-[#3a3833] whitespace-pre-line">
-                  {ev.descricao}
-                </p>
-              </>
-            )}
+            <p className="text-xs text-muted mt-2">{pctLotacao}% das vagas preenchidas</p>
           </div>
-        </article>
+        )}
+
+        {ev.descricao && (
+          <>
+            <hr className="border-line my-7" />
+            <p className="text-[16px] leading-relaxed text-[#3a3833] whitespace-pre-line">
+              {ev.descricao}
+            </p>
+          </>
+        )}
         <Cronograma dias={ev.dias ?? []} contagens={await contarPorSessao(createAdminSupabase(), ev.id)} />
         <p className="text-center text-xs text-muted mt-6">
           Você receberá um ingresso digital com QR code por e-mail.
@@ -212,13 +203,13 @@ function MetaItem({
   valor: string
 }) {
   return (
-    <div className="flex gap-3 items-start">
-      <span className="meta-ic text-primary">
+    <div className="flex gap-3 items-center bg-surface border border-line rounded-xl p-3.5">
+      <span className="grid place-items-center w-10 h-10 rounded-lg bg-[#e9efe7] text-primary shrink-0">
         <MetaIcon nome={icon} className="w-5 h-5" />
       </span>
-      <div>
-        <div className="text-xs text-muted uppercase tracking-wide">{label}</div>
-        <div className="font-semibold text-[15px]">{valor}</div>
+      <div className="min-w-0">
+        <div className="text-[11px] text-muted uppercase tracking-wide">{label}</div>
+        <div className="font-semibold text-[14px] leading-tight break-words">{valor}</div>
       </div>
     </div>
   )
