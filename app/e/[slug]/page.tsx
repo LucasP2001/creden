@@ -73,17 +73,6 @@ export default async function EventoPublicoPage({ params }: { params: { slug: st
             <div className="absolute inset-0 bg-grid opacity-40" />
           </>
         )}
-        <div className="absolute inset-0 flex items-start">
-          <div className="max-w-[760px] mx-auto w-full px-6 pt-5">
-            {vagasRestantes != null && (
-              <span
-                className={`badge font-bold ${lotado ? 'bg-error text-white' : 'bg-white/95 text-primary'}`}
-              >
-                {lotado ? 'Esgotado' : `${vagasRestantes} ${vagasRestantes === 1 ? 'vaga restante' : 'vagas restantes'}`}
-              </span>
-            )}
-          </div>
-        </div>
         <OndaPalco />
       </div>
 
@@ -152,12 +141,12 @@ export default async function EventoPublicoPage({ params }: { params: { slug: st
 
       {/* Barra de inscrição fixa no rodapé */}
       <div className="fixed bottom-0 inset-x-0 z-20 bg-surface/90 backdrop-blur border-t border-line">
-        <div className="max-w-[760px] mx-auto px-5 py-3.5 flex items-center justify-between gap-4">
-          <div>
-            <div className="font-display font-semibold text-xl text-secondary leading-none">
+        <div className="max-w-[760px] mx-auto px-5 py-3 flex items-center justify-between gap-3">
+          <div className="min-w-0">
+            <div className="font-display font-semibold text-xl text-secondary leading-tight">
               {ev.valor > 0 ? `R$ ${(ev.valor / 100).toFixed(2)}` : 'Gratuito'}
             </div>
-            <span className="text-xs text-muted">
+            <span className="block text-xs text-muted truncate">
               {estadoPeriodo === 'encerrado'
                 ? 'O prazo de inscrição terminou'
                 : estadoPeriodo === 'nao_abriu'
@@ -168,15 +157,15 @@ export default async function EventoPublicoPage({ params }: { params: { slug: st
             </span>
           </div>
           {estadoPeriodo !== 'aberto' ? (
-            <button disabled className="btn btn-ghost btn-lg opacity-60 cursor-not-allowed">
+            <button disabled className="btn btn-ghost btn-lg opacity-60 cursor-not-allowed shrink-0">
               {estadoPeriodo === 'encerrado' ? 'Encerrado' : 'Em breve'}
             </button>
           ) : lotado ? (
-            <button disabled className="btn btn-ghost btn-lg opacity-60 cursor-not-allowed">
+            <button disabled className="btn btn-ghost btn-lg opacity-60 cursor-not-allowed shrink-0">
               Esgotado
             </button>
           ) : (
-            <Link href={`/e/${ev.slug}/inscricao`} className="btn btn-accent btn-lg">
+            <Link href={`/e/${ev.slug}/inscricao`} className="btn btn-accent btn-lg shrink-0 whitespace-nowrap">
               Fazer inscrição →
             </Link>
           )}
