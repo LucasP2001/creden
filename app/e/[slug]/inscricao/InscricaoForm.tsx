@@ -58,43 +58,62 @@ export function InscricaoForm({ slug, camposExtras }: Props) {
     return telefoneValido(v)
   }
 
-  /** Estado de validação: 'ok' | 'erro' | null (vazio/ainda digitando). */
+  const ehObrigatorio = (c: CampoExtra) => c.fixo === 'email' || !!c.obrigatorio
+
+  /**
+   * Estado de validação: 'ok' | 'erro' | null (neutro).
+   * Enquanto o usuário digita (campo não tocado), só confirma o acerto — não
+   * pisca erro em algo incompleto. Depois de sair do campo ou tentar enviar
+   * (`tocados[id]`), passa a acusar vazio-obrigatório e incompleto também.
+   */
   function estadoCampo(campo: CampoExtra): 'ok' | 'erro' | null {
     const v = (valores[campo.id] ?? '').trim()
-    if (!v) return null
-    // Enquanto incompleto não acusa erro (só depois de "parecer" completo).
-    if (campo.tipo === 'cpf' || campo.tipo === 'telefone') {
-      const digitos = v.replace(/\D/g, '')
-      const completo = campo.tipo === 'cpf' ? digitos.length === 11 : digitos.length >= 10
-      if (!completo) return null
-    } else if (campo.fixo === 'email') {
-      // E-mail: só acusa depois que o usuário incluiu um '@' (senão pisca cedo demais).
-      if (!v.includes('@')) return null
+    const tocado = !!tocados[campo.id]
+
+    if (!v) {
+      // Vazio: só acusa depois de tocado, e se for obrigatório.
+      return tocado && ehObrigatorio(campo) ? 'erro' : null
     }
-    return valido(campo, v) ? 'ok' : 'erro'
+
+    if (valido(campo, v)) return 'ok'
+
+    // Preenchido mas inválido. Antes de tocar, não acusa se ainda está no meio
+    // da digitação (número curto, e-mail sem @ ainda) — evita erro prematuro.
+    if (!tocado) {
+      if (campo.tipo === 'cpf' || campo.tipo === 'telefone') {
+        const digitos = v.replace(/\D/g, '')
+        const completo = campo.tipo === 'cpf' ? digitos.length === 11 : digitos.length >= 10
+        if (!completo) return null
+      } else if (campo.fixo === 'email' && !v.includes('@')) {
+        return null
+      }
+    }
+    return 'erro'
   }
 
-  const msgErroCampo = (campo: CampoExtra) =>
-    campo.fixo === 'email'
-      ? 'E-mail inválido — verifique se tem "@" e domínio.'
-      : campo.tipo === 'cpf'
-        ? 'CPF inválido — confira os números.'
-        : 'Telefone inválido.'
+  function msgErroCampo(campo: CampoExtra): string {
+    const v = (valores[campo.id] ?? '').trim()
+    if (!v) return 'Campo obrigatório.'
+    if (campo.fixo === 'email') return 'E-mail inválido — verifique se tem "@" e domínio.'
+    if (campo.tipo === 'cpf') return 'CPF inválido — confira os números.'
+    return 'Telefone inválido — informe DDD e número.'
+  }
 
   async function enviar(formData: FormData) {
-    // Valida os campos inline antes de mandar; marca como tocado e acusa o
-    // primeiro inválido pelo próprio destaque inline (sem mensagem genérica).
+    // Valida os campos inline antes de mandar. Marca TODOS os inválidos como
+    // tocados de uma vez, para que cada um mostre seu próprio destaque/mensagem
+    // (o print antigo tinha vários inválidos e nenhum acusava).
+    const invalidos: string[] = []
     for (const c of campos) {
       if (!ehValidado(c)) continue
-      // E-mail (fixo) é sempre obrigatório; os demais seguem a marcação.
-      const obrigatorio = c.fixo === 'email' || c.obrigatorio
       const valor = (valores[c.id] ?? '').trim()
-      if (!valor && !obrigatorio) continue
-      if (!valor || !valido(c, valor)) {
-        setTocados((t) => ({ ...t, [c.id]: true }))
-        setErro(null)
-        return
-      }
+      if (!valor && !ehObrigatorio(c)) continue
+      if (!valor || !valido(c, valor)) invalidos.push(c.id)
+    }
+    if (invalidos.length > 0) {
+      setTocados((t) => ({ ...t, ...Object.fromEntries(invalidos.map((id) => [id, true])) }))
+      setErro(null)
+      return
     }
 
     setEnviando(true)
