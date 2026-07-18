@@ -90,14 +90,14 @@ export default async function EventoPublicoPage({ params }: { params: { slug: st
       {/* Logo nítida sobrepondo hero e card: sobe sobre o desfoque e desce um
           pouco sobre o card de informações, ficando na frente dos dois. */}
       {ev.imagem_url && (
-        <div className="max-w-[760px] mx-auto px-5 relative z-10 flex justify-center -mt-[150px] pointer-events-none">
-          <div className="relative w-full max-w-[220px] aspect-[3/2] rounded-2xl overflow-hidden bg-white shadow-lift ring-1 ring-black/5">
+        <div className="max-w-[760px] mx-auto px-5 relative z-10 flex justify-center -mt-[124px] pointer-events-none">
+          <div className="relative w-full max-w-[200px] aspect-[3/2] rounded-2xl overflow-hidden bg-white shadow-lift ring-1 ring-black/5">
             <Image
               src={ev.imagem_url}
               alt={`Capa de ${ev.nome}`}
               fill
               priority
-              sizes="220px"
+              sizes="200px"
               className="object-contain p-2"
             />
           </div>
