@@ -113,6 +113,9 @@ function offsetMinutos(d: Date, fuso: string): number {
  */
 export function datetimeLocalParaIso(valor: string, fuso: string = FUSO): string | null {
   if (!valor) return null
+  // Exige o formato exato do input: 'YYYY-MM-DDTHH:mm'. Sem isto, o `new Date`
+  // do V8 aceita lixo ('xxx:00Z' vira uma data qualquer) e gravaríamos errado.
+  if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(valor)) return null
   // Interpreta como UTC primeiro (determinístico), depois aplica o offset do fuso.
   const comoUtc = new Date(`${valor}:00Z`)
   if (Number.isNaN(comoUtc.getTime())) return null

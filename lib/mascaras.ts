@@ -55,3 +55,12 @@ export function telefoneValido(v: string): boolean {
   const n = apenasDigitos(v).length
   return n === 10 || n === 11
 }
+
+/**
+ * E-mail plausível: algo@algo.algo, sem espaços. Não valida entrega — só barra
+ * o erro óbvio (faltou @, faltou domínio) com feedback imediato, igual ao que o
+ * servidor exige.
+ */
+export function emailValido(v: string): boolean {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim())
+}

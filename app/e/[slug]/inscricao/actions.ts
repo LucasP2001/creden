@@ -5,7 +5,7 @@ import { gerarToken } from '@/lib/qr'
 import { enviarIngresso } from '@/lib/email'
 import { estadoInscricao } from '@/lib/periodo'
 import { formatarDataHora } from '@/lib/datas'
-import { cpfValido, telefoneValido } from '@/lib/mascaras'
+import { cpfValido, telefoneValido, emailValido } from '@/lib/mascaras'
 import { Evento } from '@/types'
 
 export interface InscreverResult {
@@ -48,6 +48,7 @@ export async function inscrever(slug: string, formData: FormData): Promise<Inscr
   const nome = String(formData.get('nome') ?? '').trim()
   const email = String(formData.get('email') ?? '').trim().toLowerCase()
   if (!nome || !email) return { ok: false, erro: 'Preencha nome e e-mail.' }
+  if (!emailValido(email)) return { ok: false, erro: 'E-mail inválido.' }
 
   // Valida vagas restantes, se houver limite.
   if (evento.vagas_max != null) {

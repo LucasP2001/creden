@@ -5,6 +5,7 @@ import {
   formatarTelefone,
   cpfValido,
   telefoneValido,
+  emailValido,
 } from './mascaras'
 
 describe('apenasDigitos', () => {
@@ -58,5 +59,18 @@ describe('telefoneValido', () => {
   it('rejeita tamanhos fora disso', () => {
     expect(telefoneValido('9232')).toBe(false)
     expect(telefoneValido('929912345678')).toBe(false)
+  })
+})
+
+describe('emailValido', () => {
+  it('aceita e-mail com @ e domínio', () => {
+    expect(emailValido('lucas@sasi.com.br')).toBe(true)
+    expect(emailValido(' lucas@sasi.com ')).toBe(true) // trima
+  })
+  it('rejeita sem @, sem domínio ou com espaço', () => {
+    expect(emailValido('lucaspinheiro.tapaua2mail')).toBe(false) // caso do print
+    expect(emailValido('lucas@sasi')).toBe(false)
+    expect(emailValido('lucas @sasi.com')).toBe(false)
+    expect(emailValido('')).toBe(false)
   })
 })

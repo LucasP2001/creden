@@ -60,8 +60,9 @@ describe('montarPayloadUpdate', () => {
     const { payload } = montarPayloadUpdate(
       fd({ ...base, inscricoes_abrem_em: '2026-07-01T09:00', inscricoes_fecham_em: '2026-08-09T23:59' })
     )
-    expect(payload.inscricoes_abrem_em).toBe(new Date('2026-07-01T09:00').toISOString())
-    expect(payload.inscricoes_fecham_em).toBe(new Date('2026-08-09T23:59').toISOString())
+    // Sem fuso no form, o default é Brasília (UTC-3): 09:00 BR = 12:00 UTC.
+    expect(payload.inscricoes_abrem_em).toBe('2026-07-01T12:00:00.000Z')
+    expect(payload.inscricoes_fecham_em).toBe('2026-08-10T02:59:00.000Z')
 
     const vazio = montarPayloadUpdate(fd({ ...base, inscricoes_abrem_em: '', inscricoes_fecham_em: '' }))
     expect(vazio.payload.inscricoes_abrem_em).toBeNull()
