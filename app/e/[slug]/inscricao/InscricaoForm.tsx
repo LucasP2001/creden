@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/Button'
+import { Select } from '@/components/ui/Select'
 import { CampoExtra } from '@/types'
 import { comCamposFixos } from '@/lib/campos'
 import { formatarCpf, formatarTelefone, cpfValido, telefoneValido } from '@/lib/mascaras'
@@ -81,14 +82,7 @@ export function InscricaoForm({ slug, camposExtras }: Props) {
             ) : c.fixo === 'nome' ? (
               <input className="input" name={name} type="text" placeholder="Seu nome" required />
             ) : c.tipo === 'opcoes' ? (
-              <select className="input" name={name} required={c.obrigatorio}>
-                <option value="">Selecione…</option>
-                {c.opcoes?.map((o) => (
-                  <option key={o} value={o}>
-                    {o}
-                  </option>
-                ))}
-              </select>
+              <Select name={name} opcoes={c.opcoes ?? []} required={c.obrigatorio} />
             ) : c.tipo === 'cpf' || c.tipo === 'telefone' ? (
               <input
                 className="input"
