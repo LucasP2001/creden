@@ -146,7 +146,7 @@ export default async function EventoPublicoPage({ params }: { params: { slug: st
             <div className="font-display font-semibold text-xl text-secondary leading-tight">
               {ev.valor > 0 ? `R$ ${(ev.valor / 100).toFixed(2)}` : 'Gratuito'}
             </div>
-            <span className="block text-xs text-muted truncate">
+            <span className="block text-xs text-muted leading-snug">
               {estadoPeriodo === 'encerrado'
                 ? 'O prazo de inscrição terminou'
                 : estadoPeriodo === 'nao_abriu'
