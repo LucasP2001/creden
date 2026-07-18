@@ -6,6 +6,7 @@ import { PainelParticipante } from './PainelParticipante'
 import { CardIngresso } from './CardIngresso'
 import { DescricaoEvento } from './DescricaoEvento'
 import { MetaIcon } from '@/components/MetaIcon'
+import { OndaPalco } from '@/components/OndaPalco'
 import { marcacoesDaInscricao, contarPorSessao } from '@/lib/marcacoes'
 import { inscricoesAbertas, rotuloPeriodo } from '@/lib/periodo'
 import { FUSO_BR, formatarDataHora, formatarHora } from '@/lib/datas'
@@ -85,6 +86,7 @@ export default async function ParticipantePage({ params }: { params: { token: st
         ) : (
           <div className="absolute inset-0 bg-gradient-to-br from-secondary via-primary to-primary-light" />
         )}
+        <OndaPalco />
       </div>
 
       {ev.imagem_url && (

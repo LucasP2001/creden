@@ -4,6 +4,7 @@ import { Evento } from '@/types'
 import { InscricaoForm } from './InscricaoForm'
 import { Logo } from '@/components/Logo'
 import { MetaIcon } from '@/components/MetaIcon'
+import { OndaPalco } from '@/components/OndaPalco'
 import { estadoInscricao, rotuloPeriodo } from '@/lib/periodo'
 import { formatarDataHora } from '@/lib/datas'
 
@@ -49,6 +50,7 @@ export default async function InscricaoPage({ params }: { params: { slug: string
           ) : (
             <div className="absolute inset-0 bg-gradient-to-br from-secondary via-primary to-primary-light" />
           )}
+          <OndaPalco />
         </div>
 
         {ev.imagem_url && (
@@ -119,6 +121,7 @@ export default async function InscricaoPage({ params }: { params: { slug: string
         ) : (
           <div className="absolute inset-0 bg-gradient-to-br from-secondary via-primary to-primary-light" />
         )}
+        <OndaPalco />
       </div>
 
       {ev.imagem_url && (
