@@ -41,6 +41,21 @@ export async function gerarQrDataUrl(
   })
 }
 
+/**
+ * QR como base64 puro (sem prefixo data:), para anexo inline (cid) no e-mail.
+ * Clientes como Gmail/Outlook bloqueiam <img src="data:...">, então o QR vai
+ * embedado como attachment e é referenciado por cid no HTML.
+ */
+export async function gerarQrBase64(token: string, fundo = '#FFFFFF'): Promise<string> {
+  const buf = await QRCode.toBuffer(token, {
+    width: 640,
+    margin: 1,
+    color: { dark: '#16302E', light: fundo },
+    errorCorrectionLevel: 'M',
+  })
+  return buf.toString('base64')
+}
+
 /** Validação básica do formato do token lido pela câmera, antes de bater no banco. */
 export function tokenValido(raw: string): boolean {
   return /^[a-f0-9]{32}$/.test(raw.trim())
