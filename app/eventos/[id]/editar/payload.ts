@@ -1,17 +1,22 @@
 import { CampoExtra, Dia } from '@/types'
 import { corCapaValida } from '@/lib/imagem'
 import { parseDias } from '@/lib/sessoes'
+import { comCamposFixos } from '@/lib/campos'
 
 /**
- * Limpa os campos extras vindos do form:
- *  - descarta campos sem label (linha em branco que o organizador não preencheu);
+ * Limpa os campos vindos do form, preservando a ordem:
+ *  - nome/e-mail (fixos) passam intactos, normalizados para o valor canônico;
+ *  - descarta campos extras sem label (linha em branco não preenchida);
  *  - em campos "opcoes", trima e remove opções vazias, e rebaixa para "texto"
- *    se sobrar nenhuma (um select sem opção não serviria a ninguém).
+ *    se não sobrar nenhuma (um select sem opção não serviria a ninguém).
+ * Ao fim garante que nome e e-mail existam (comCamposFixos), sem duplicá-los.
  */
 export function sanitizarCampos(brutos: CampoExtra[]): CampoExtra[] {
   if (!Array.isArray(brutos)) return []
-  return brutos
+  const limpos = brutos
+    .filter((c) => c.fixo || String(c.label ?? '').trim().length > 0)
     .map((c) => {
+      if (c.fixo) return c // normalização acontece em comCamposFixos
       const label = String(c.label ?? '').trim()
       if (c.tipo === 'opcoes') {
         const opcoes = (c.opcoes ?? []).map((o) => String(o).trim()).filter(Boolean)
@@ -21,7 +26,7 @@ export function sanitizarCampos(brutos: CampoExtra[]): CampoExtra[] {
       }
       return { ...c, label, opcoes: undefined }
     })
-    .filter((c) => c.label.length > 0)
+  return comCamposFixos(limpos)
 }
 
 export interface PayloadUpdate {

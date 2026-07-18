@@ -60,9 +60,11 @@ export async function inscrever(slug: string, formData: FormData): Promise<Inscr
     }
   }
 
-  // Coleta respostas dos campos extras (name="extra_<id>").
+  // Coleta respostas dos campos extras (name="extra_<id>"). Nome e e-mail são
+  // fixos (lidos acima) e não entram em dados_extras.
   const dadosExtras: Record<string, string> = {}
   for (const campo of evento.campos_extras ?? []) {
+    if (campo.fixo) continue
     const v = formData.get(`extra_${campo.id}`)
     if (v != null) dadosExtras[campo.label] = String(v)
   }

@@ -1,10 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
 import { CampoExtra } from '@/types'
+import { comCamposFixos } from '@/lib/campos'
 import { formatarCpf, formatarTelefone, cpfValido, telefoneValido } from '@/lib/mascaras'
 import { inscrever } from './actions'
 
@@ -23,6 +23,10 @@ export function InscricaoForm({ slug, camposExtras }: Props) {
   // CPF e telefone são controlados para aplicar máscara enquanto digita.
   const [mascarados, setMascarados] = useState<Record<string, string>>({})
 
+  // Nome e e-mail vêm na lista (fixos), na ordem escolhida pelo organizador.
+  // comCamposFixos cobre eventos antigos que ainda não têm os fixos gravados.
+  const campos = useMemo(() => comCamposFixos(camposExtras), [camposExtras])
+
   function aoDigitar(campo: CampoExtra, bruto: string) {
     const v = campo.tipo === 'cpf' ? formatarCpf(bruto) : formatarTelefone(bruto)
     setMascarados((m) => ({ ...m, [campo.id]: v }))
@@ -30,7 +34,7 @@ export function InscricaoForm({ slug, camposExtras }: Props) {
 
   async function enviar(formData: FormData) {
     // Valida CPF/telefone preenchidos antes de mandar (o servidor não formata).
-    for (const c of camposExtras) {
+    for (const c of campos) {
       const valor = (mascarados[c.id] ?? '').trim()
       if (!valor && !c.obrigatorio) continue
       if (c.tipo === 'cpf' && valor && !cpfValido(valor)) {
@@ -57,45 +61,56 @@ export function InscricaoForm({ slug, camposExtras }: Props) {
 
   return (
     <form action={enviar} className="card p-[22px] grid gap-[18px]">
-      <Input label="Nome completo" name="nome" required placeholder="Seu nome" />
-      <Input label="E-mail" name="email" type="email" required placeholder="seu@email.com" />
-
-      {camposExtras.map((c) => (
-        <div key={c.id}>
-          <label className="block text-[13px] font-semibold mb-1.5">
-            {c.label}
-            {c.obrigatorio && <span className="text-error"> *</span>}
-          </label>
-          {c.tipo === 'opcoes' ? (
-            <select className="input" name={`extra_${c.id}`} required={c.obrigatorio}>
-              <option value="">Selecione…</option>
-              {c.opcoes?.map((o) => (
-                <option key={o} value={o}>
-                  {o}
-                </option>
-              ))}
-            </select>
-          ) : c.tipo === 'cpf' || c.tipo === 'telefone' ? (
-            <input
-              className="input"
-              name={`extra_${c.id}`}
-              type="text"
-              inputMode="numeric"
-              placeholder={c.tipo === 'cpf' ? '000.000.000-00' : '(00) 00000-0000'}
-              value={mascarados[c.id] ?? ''}
-              onChange={(e) => aoDigitar(c, e.target.value)}
-              required={c.obrigatorio}
-            />
-          ) : (
-            <input
-              className="input"
-              name={`extra_${c.id}`}
-              type={c.tipo === 'numero' ? 'number' : 'text'}
-              required={c.obrigatorio}
-            />
-          )}
-        </div>
-      ))}
+      {campos.map((c) => {
+        // Fixos usam o name nativo que a action lê (nome/email); extras usam extra_<id>.
+        const name = c.fixo ?? `extra_${c.id}`
+        return (
+          <div key={c.id}>
+            <label className="block text-[13px] font-semibold mb-1.5">
+              {c.label}
+              {c.obrigatorio && <span className="text-error"> *</span>}
+            </label>
+            {c.fixo === 'email' ? (
+              <input
+                className="input"
+                name={name}
+                type="email"
+                placeholder="seu@email.com"
+                required
+              />
+            ) : c.fixo === 'nome' ? (
+              <input className="input" name={name} type="text" placeholder="Seu nome" required />
+            ) : c.tipo === 'opcoes' ? (
+              <select className="input" name={name} required={c.obrigatorio}>
+                <option value="">Selecione…</option>
+                {c.opcoes?.map((o) => (
+                  <option key={o} value={o}>
+                    {o}
+                  </option>
+                ))}
+              </select>
+            ) : c.tipo === 'cpf' || c.tipo === 'telefone' ? (
+              <input
+                className="input"
+                name={name}
+                type="text"
+                inputMode="numeric"
+                placeholder={c.tipo === 'cpf' ? '000.000.000-00' : '(00) 00000-0000'}
+                value={mascarados[c.id] ?? ''}
+                onChange={(e) => aoDigitar(c, e.target.value)}
+                required={c.obrigatorio}
+              />
+            ) : (
+              <input
+                className="input"
+                name={name}
+                type={c.tipo === 'numero' ? 'number' : 'text'}
+                required={c.obrigatorio}
+              />
+            )}
+          </div>
+        )
+      })}
 
       {erro && <p className="text-error text-sm">{erro}</p>}
 

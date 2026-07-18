@@ -19,7 +19,8 @@ describe('montarPayloadUpdate', () => {
     expect(payload.vagas_max).toBe(30)
     expect(payload.local).toBe('Sala 1')
     expect(payload.descricao).toBe('oi')
-    expect(payload.campos_extras).toEqual([])
+    // Nome e e-mail entram sempre como campos fixos, mesmo com lista vazia.
+    expect(payload.campos_extras.map((c) => c.id)).toEqual(['nome', 'email'])
     expect(payload).not.toHaveProperty('slug')
   })
 
@@ -94,30 +95,40 @@ describe('sanitizarCampos', () => {
     ...over,
   })
 
-  it('descarta campos sem label (linha em branco)', () => {
-    const out = sanitizarCampos([campo({ label: '   ' }), campo({ id: 'c2', label: 'Curso' })])
+  // Os fixos (nome/e-mail) entram sempre; os testes olham só os extras.
+  const extras = (out: CampoExtra[]) => out.filter((c) => !c.fixo)
+
+  it('sempre inclui nome e e-mail (fixos)', () => {
+    const out = sanitizarCampos([campo({ label: 'Curso' })])
+    expect(out.filter((c) => c.fixo).map((c) => c.fixo)).toEqual(['nome', 'email'])
+  })
+
+  it('descarta campos extras sem label (linha em branco)', () => {
+    const out = extras(sanitizarCampos([campo({ label: '   ' }), campo({ id: 'c2', label: 'Curso' })]))
     expect(out).toHaveLength(1)
     expect(out[0].label).toBe('Curso')
   })
 
   it('trima label e opções, removendo opções vazias', () => {
-    const out = sanitizarCampos([
-      campo({ tipo: 'opcoes', label: '  Turno  ', opcoes: [' Manhã ', '', '  ', 'Noite'] }),
-    ])
+    const out = extras(
+      sanitizarCampos([
+        campo({ tipo: 'opcoes', label: '  Turno  ', opcoes: [' Manhã ', '', '  ', 'Noite'] }),
+      ]),
+    )
     expect(out[0].label).toBe('Turno')
     expect(out[0].opcoes).toEqual(['Manhã', 'Noite'])
   })
 
   it('opcoes sem nenhuma opção válida vira texto', () => {
-    const out = sanitizarCampos([campo({ tipo: 'opcoes', label: 'X', opcoes: ['', '  '] })])
+    const out = extras(sanitizarCampos([campo({ tipo: 'opcoes', label: 'X', opcoes: ['', '  '] })]))
     expect(out[0].tipo).toBe('texto')
     expect(out[0].opcoes).toBeUndefined()
   })
 
   it('preserva obrigatorio e limpa opcoes de campos texto/numero', () => {
-    const out = sanitizarCampos([
-      campo({ tipo: 'numero', label: 'Idade', obrigatorio: true, opcoes: ['lixo'] }),
-    ])
+    const out = extras(
+      sanitizarCampos([campo({ tipo: 'numero', label: 'Idade', obrigatorio: true, opcoes: ['lixo'] })]),
+    )
     expect(out[0].obrigatorio).toBe(true)
     expect(out[0].opcoes).toBeUndefined()
   })

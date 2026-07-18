@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/Button'
 import { ImageUpload } from '@/components/ImageUpload'
 import { CampoExtra, CampoExtraTipo, Evento, Dia, Categoria, Sessao, TipoSessao } from '@/types'
 import { novoDia, novaCategoria, novaSessao } from '@/lib/sessoes'
+import { comCamposFixos, mover } from '@/lib/campos'
 import { slugify } from '@/lib/slug'
 import { criarEvento } from './novo/actions'
 import { atualizarEvento } from './[id]/editar/actions'
@@ -32,7 +33,8 @@ function paraDatetimeLocal(iso: string): string {
 export function EventoForm({ modo, evento }: Props) {
   const [nome, setNome] = useState(evento?.nome ?? '')
   const [valorPago, setValorPago] = useState((evento?.valor ?? 0) > 0)
-  const [campos, setCampos] = useState<CampoExtra[]>(evento?.campos_extras ?? [])
+  // Nome e e-mail entram na lista como campos fixos (reordenáveis, não editáveis).
+  const [campos, setCampos] = useState<CampoExtra[]>(comCamposFixos(evento?.campos_extras ?? []))
   const [dias, setDias] = useState<Dia[]>(evento?.dias ?? [])
   const [enviando, setEnviando] = useState(false)
   const [erro, setErro] = useState<string | null>(null)
@@ -248,58 +250,90 @@ export function EventoForm({ modo, evento }: Props) {
         <div className="card p-[22px]">
           <h2 className="text-lg font-semibold">Campos do formulário de inscrição</h2>
           <p className="text-xs text-muted mt-1 mb-4">
-            Nome e e-mail já são coletados. Adicione campos extras se precisar.
+            Reordene com as setas. Nome e e-mail são sempre coletados; adicione
+            outros campos se precisar.
           </p>
-
-          {campos.length === 0 && (
-            <p className="text-sm text-muted bg-sand border border-dashed border-line rounded-lg px-4 py-6 text-center mb-3">
-              Nenhum campo extra. A inscrição pede só nome e e-mail.
-            </p>
-          )}
 
           <div className="grid gap-3">
             {campos.map((c, i) => (
               <div key={c.id} className="border border-line rounded-xl bg-sand/60 p-3.5">
-                <div className="flex gap-2.5 items-center">
-                  <span className="text-xs font-semibold text-muted w-5 shrink-0">{i + 1}.</span>
-                  <input
-                    className="input flex-1"
-                    placeholder="Ex: Instituição"
-                    value={c.label}
-                    onChange={(e) => atualizarCampo(c.id, { label: e.target.value })}
-                  />
-                  <select
-                    className="input w-[130px] shrink-0"
-                    value={c.tipo}
-                    onChange={(e) => {
-                      const tipo = e.target.value as CampoExtraTipo
-                      // Ao virar "opcoes", já cria uma opção em branco pra editar.
-                      atualizarCampo(c.id, {
-                        tipo,
-                        opcoes: tipo === 'opcoes' ? (c.opcoes?.length ? c.opcoes : ['']) : c.opcoes,
-                      })
-                    }}
-                  >
-                    <option value="texto">Texto</option>
-                    <option value="numero">Número</option>
-                    <option value="cpf">CPF</option>
-                    <option value="telefone">Telefone</option>
-                    <option value="opcoes">Opções</option>
-                  </select>
-                  <button
-                    type="button"
-                    onClick={() => setCampos((cs) => cs.filter((x) => x.id !== c.id))}
-                    className="text-muted hover:text-error px-1.5 text-lg shrink-0"
-                    aria-label="Remover campo"
-                  >
-                    ✕
-                  </button>
+                <div className="flex gap-2.5 items-start">
+                  {/* Setas de ordenação: sobem/descem o campo na lista. */}
+                  <div className="flex flex-col shrink-0 -my-0.5">
+                    <button
+                      type="button"
+                      onClick={() => setCampos((cs) => mover(cs, i, -1))}
+                      disabled={i === 0}
+                      className="text-muted hover:text-primary disabled:opacity-30 disabled:hover:text-muted px-1 leading-none"
+                      aria-label="Mover para cima"
+                    >
+                      ▲
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setCampos((cs) => mover(cs, i, 1))}
+                      disabled={i === campos.length - 1}
+                      className="text-muted hover:text-primary disabled:opacity-30 disabled:hover:text-muted px-1 leading-none"
+                      aria-label="Mover para baixo"
+                    >
+                      ▼
+                    </button>
+                  </div>
+
+                  {c.fixo ? (
+                    <div className="input flex-1 flex items-center justify-between bg-line/20 text-ink cursor-default">
+                      <span>{c.label}</span>
+                      <span className="text-[11px] uppercase tracking-wide text-muted">
+                        Sempre coletado
+                      </span>
+                    </div>
+                  ) : (
+                    <input
+                      className="input flex-1"
+                      placeholder="Ex: Instituição"
+                      value={c.label}
+                      onChange={(e) => atualizarCampo(c.id, { label: e.target.value })}
+                    />
+                  )}
+
+                  {!c.fixo && (
+                    <select
+                      className="input w-[130px] shrink-0"
+                      value={c.tipo}
+                      onChange={(e) => {
+                        const tipo = e.target.value as CampoExtraTipo
+                        // Ao virar "opcoes", já cria uma opção em branco pra editar.
+                        atualizarCampo(c.id, {
+                          tipo,
+                          opcoes:
+                            tipo === 'opcoes' ? (c.opcoes?.length ? c.opcoes : ['']) : c.opcoes,
+                        })
+                      }}
+                    >
+                      <option value="texto">Texto</option>
+                      <option value="numero">Número</option>
+                      <option value="cpf">CPF</option>
+                      <option value="telefone">Telefone</option>
+                      <option value="opcoes">Opções</option>
+                    </select>
+                  )}
+
+                  {!c.fixo && (
+                    <button
+                      type="button"
+                      onClick={() => setCampos((cs) => cs.filter((x) => x.id !== c.id))}
+                      className="text-muted hover:text-error px-1.5 text-lg shrink-0"
+                      aria-label="Remover campo"
+                    >
+                      ✕
+                    </button>
+                  )}
                 </div>
 
                 {/* Lista de opções, só quando o tipo é "opcoes". O form público
                     monta o <select> a partir daqui — sem isso ele vinha vazio. */}
                 {c.tipo === 'opcoes' && (
-                  <div className="mt-3 ml-7 grid gap-2">
+                  <div className="mt-3 ml-9 grid gap-2">
                     {(c.opcoes ?? []).map((o, j) => (
                       <div key={j} className="flex gap-2 items-center">
                         <span className="text-muted text-sm shrink-0">•</span>
@@ -329,15 +363,18 @@ export function EventoForm({ modo, evento }: Props) {
                   </div>
                 )}
 
-                <label className="flex items-center gap-2 mt-3 ml-7 text-sm text-ink cursor-pointer select-none w-fit">
-                  <input
-                    type="checkbox"
-                    checked={c.obrigatorio}
-                    onChange={(e) => atualizarCampo(c.id, { obrigatorio: e.target.checked })}
-                    className="w-4 h-4 rounded border-line text-primary focus:ring-primary/30"
-                  />
-                  Obrigatório
-                </label>
+                {/* Nome e e-mail são sempre obrigatórios: sem toggle para eles. */}
+                {!c.fixo && (
+                  <label className="flex items-center gap-2 mt-3 ml-9 text-sm text-ink cursor-pointer select-none w-fit">
+                    <input
+                      type="checkbox"
+                      checked={c.obrigatorio}
+                      onChange={(e) => atualizarCampo(c.id, { obrigatorio: e.target.checked })}
+                      className="w-4 h-4 rounded border-line text-primary focus:ring-primary/30"
+                    />
+                    Obrigatório
+                  </label>
+                )}
               </div>
             ))}
           </div>

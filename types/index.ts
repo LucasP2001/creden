@@ -12,6 +12,12 @@ export interface CampoExtra {
   obrigatorio: boolean
   /** Para tipo 'opcoes' */
   opcoes?: string[]
+  /**
+   * Campos nativos (nome/e-mail). Ficam na mesma lista de campos_extras para
+   * poderem ser reordenados junto, mas não são editáveis nem removíveis. O
+   * form público renderiza um input próprio para eles (e-mail com type email).
+   */
+  fixo?: 'nome' | 'email'
 }
 
 export type TipoSessao = 'palestra' | 'minicurso' | 'servico' | 'outro'

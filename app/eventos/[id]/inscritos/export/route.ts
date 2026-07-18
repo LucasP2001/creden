@@ -36,8 +36,9 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
   const evento = eventoRow as Evento
   const inscricoes = (inscricoesRows ?? []) as Inscricao[]
 
-  // Colunas extras a partir dos campos definidos no evento.
-  const colunasExtras = (evento.campos_extras ?? []).map((c) => c.label)
+  // Colunas extras a partir dos campos definidos no evento. Nome e e-mail são
+  // fixos e já têm coluna própria — não repetir.
+  const colunasExtras = (evento.campos_extras ?? []).filter((c) => !c.fixo).map((c) => c.label)
 
   const header = ['Nome', 'E-mail', 'Status', 'Inscrição', 'Check-in', ...colunasExtras]
   const linhas = inscricoes.map((i) =>
