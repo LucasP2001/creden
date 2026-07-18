@@ -110,11 +110,10 @@ export default async function EventoPublicoPage({ params }: { params: { slug: st
         <h1 className="font-display text-[clamp(1.8rem,4vw,2.6rem)] font-semibold leading-tight text-secondary">
           {ev.nome}
         </h1>
-        <p className="text-muted mt-1 text-sm">Organizado com Creden</p>
 
         {/* Dados do evento em cards 2×2. Contagem de inscritos fica de fora:
             "0 inscritos" num evento novo só passa má impressão. */}
-        <div className="grid sm:grid-cols-2 gap-2.5 mt-4">
+        <div className="grid sm:grid-cols-2 gap-2.5 mt-5">
           <MetaItem icon="calendario" label="Data e hora" valor={capitalizar(formatarDataLonga(ev.data_hora))} />
           {ev.local && <MetaItem icon="local" label="Local" valor={ev.local} />}
           <MetaItem
