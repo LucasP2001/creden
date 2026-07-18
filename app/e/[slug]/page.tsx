@@ -9,7 +9,7 @@ import { Cronograma } from '@/components/Cronograma'
 import { RecuperarAcesso } from './RecuperarAcesso'
 import { contarPorSessao } from '@/lib/marcacoes'
 import { estadoInscricao, rotuloPeriodo } from '@/lib/periodo'
-import { formatarDataLonga } from '@/lib/datas'
+import { formatarDataLonga, rotuloCidadeFuso } from '@/lib/datas'
 
 // Página pública do evento (/e/[slug]). Acessível anonimamente.
 export default async function EventoPublicoPage({ params }: { params: { slug: string } }) {
@@ -40,7 +40,7 @@ export default async function EventoPublicoPage({ params }: { params: { slug: st
   const vagasRestantes = ev.vagas_max != null ? Math.max(0, ev.vagas_max - inscritos) : null
   const lotado = vagasRestantes === 0
   const estadoPeriodo = estadoInscricao(ev.inscricoes_abrem_em, ev.inscricoes_fecham_em)
-  const avisoPeriodo = rotuloPeriodo(ev.inscricoes_abrem_em, ev.inscricoes_fecham_em)
+  const avisoPeriodo = rotuloPeriodo(ev.inscricoes_abrem_em, ev.inscricoes_fecham_em, new Date(), ev.fuso)
   const pctLotacao = ev.vagas_max ? Math.min(100, Math.round((inscritos / ev.vagas_max) * 100)) : 0
 
   return (
@@ -103,7 +103,11 @@ export default async function EventoPublicoPage({ params }: { params: { slug: st
         {/* Dados do evento em cards 2×2. Contagem de inscritos fica de fora:
             "0 inscritos" num evento novo só passa má impressão. */}
         <div className="grid sm:grid-cols-2 gap-2.5 mt-5">
-          <MetaItem icon="calendario" label="Data e hora" valor={capitalizar(formatarDataLonga(ev.data_hora))} />
+          <MetaItem
+            icon="calendario"
+            label="Data e hora"
+            valor={`${capitalizar(formatarDataLonga(ev.data_hora, ev.fuso))} (${rotuloCidadeFuso(ev.fuso)})`}
+          />
           {ev.local && <MetaItem icon="local" label="Local" valor={ev.local} />}
           <MetaItem
             icon="valor"

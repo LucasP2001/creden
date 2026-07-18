@@ -2,7 +2,8 @@ import { CampoExtra, Dia } from '@/types'
 import { corCapaValida } from '@/lib/imagem'
 import { parseDias } from '@/lib/sessoes'
 import { comCamposFixos } from '@/lib/campos'
-import { datetimeLocalBrParaIso } from '@/lib/datas'
+import { datetimeLocalParaIso } from '@/lib/datas'
+import { fusoValido } from '@/lib/fuso'
 
 /**
  * Limpa os campos vindos do form, preservando a ordem:
@@ -34,6 +35,7 @@ export interface PayloadUpdate {
   nome: string
   descricao: string | null
   data_hora: string
+  fuso: string
   local: string | null
   vagas_max: number | null
   valor: number
@@ -50,13 +52,14 @@ export interface PayloadUpdate {
  * fechamento antes da abertura nunca aceitaria ninguém.
  */
 export function lerPeriodo(
-  formData: FormData
+  formData: FormData,
+  fuso: string = 'America/Sao_Paulo'
 ): { abre: string | null; fecha: string | null; erro?: string } {
   const bruto = (k: string) => String(formData.get(k) ?? '').trim()
 
   function parse(valor: string, rotulo: string): { iso: string | null; erro?: string } {
     if (!valor) return { iso: null }
-    const iso = datetimeLocalBrParaIso(valor)
+    const iso = datetimeLocalParaIso(valor, fuso)
     if (!iso) return { iso: null, erro: `Data de ${rotulo} inválida.` }
     return { iso }
   }
@@ -89,10 +92,11 @@ export function montarPayloadUpdate(
 ): { payload: PayloadUpdate; erro?: string } {
   const nome = String(formData.get('nome') ?? '').trim()
   const dataHora = String(formData.get('data_hora') ?? '')
+  const fuso = fusoValido(formData.get('fuso') as string | null)
   if (!nome) return { payload: {} as PayloadUpdate, erro: 'Informe o nome do evento.' }
   if (!dataHora) return { payload: {} as PayloadUpdate, erro: 'Informe a data e hora do evento.' }
 
-  const periodo = lerPeriodo(formData)
+  const periodo = lerPeriodo(formData, fuso)
   if (periodo.erro) return { payload: {} as PayloadUpdate, erro: periodo.erro }
 
   const vagasRaw = String(formData.get('vagas_max') ?? '')
@@ -109,7 +113,8 @@ export function montarPayloadUpdate(
     payload: {
       nome,
       descricao: String(formData.get('descricao') ?? '') || null,
-      data_hora: datetimeLocalBrParaIso(dataHora)!,
+      data_hora: datetimeLocalParaIso(dataHora, fuso)!,
+      fuso,
       local: String(formData.get('local') ?? '') || null,
       vagas_max: vagasRaw ? Number(vagasRaw) : null,
       valor: valorRaw ? Math.round(Number(valorRaw) * 100) : 0,

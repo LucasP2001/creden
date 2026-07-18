@@ -80,12 +80,14 @@ export function formatarDataHoraCurta(iso: string, fuso: string = FUSO): string 
  * horário é o de Brasília), 'America/Manaus' -> 'Manaus'. Fusos desconhecidos
  * caem no último segmento com '_' -> ' '.
  */
-export function rotuloCidadeFuso(fuso: string): string {
+export function rotuloCidadeFuso(fuso?: string | null): string {
+  // Eventos antigos (antes da coluna `fuso`) vêm sem valor: assume Brasília.
+  const f = fuso || FUSO_BR
   const especiais: Record<string, string> = {
     'America/Sao_Paulo': 'Brasília',
   }
-  if (especiais[fuso]) return especiais[fuso]
-  const ultimo = fuso.split('/').pop() ?? fuso
+  if (especiais[f]) return especiais[f]
+  const ultimo = f.split('/').pop() ?? f
   return ultimo.replace(/_/g, ' ')
 }
 

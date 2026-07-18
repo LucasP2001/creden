@@ -9,17 +9,17 @@ import { MetaIcon } from '@/components/MetaIcon'
 import { OndaPalco } from '@/components/OndaPalco'
 import { marcacoesDaInscricao, contarPorSessao } from '@/lib/marcacoes'
 import { inscricoesAbertas, rotuloPeriodo } from '@/lib/periodo'
-import { FUSO_BR, formatarDataHora, formatarHora } from '@/lib/datas'
+import { formatarDataHora, formatarHora, rotuloCidadeFuso } from '@/lib/datas'
 
-/** Data do canhoto do ingresso: 'Seg, 10 de agosto · 09:00'. */
-function formatarDataIngresso(iso: string): string {
+/** Data do canhoto do ingresso: 'Seg, 10 de agosto · 09:00 (Brasília)'. */
+function formatarDataIngresso(iso: string, fuso: string): string {
   const d = new Date(iso)
   const semana = d
-    .toLocaleDateString('pt-BR', { weekday: 'short', timeZone: FUSO_BR })
+    .toLocaleDateString('pt-BR', { weekday: 'short', timeZone: fuso })
     .replace('.', '')
-  const dia = d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', timeZone: FUSO_BR })
+  const dia = d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', timeZone: fuso })
   // Só a primeira letra: `capitalize` do CSS viraria "10 De Ago. De 2026".
-  return `${semana.charAt(0).toUpperCase()}${semana.slice(1)}, ${dia} · ${formatarHora(iso)}`
+  return `${semana.charAt(0).toUpperCase()}${semana.slice(1)}, ${dia} · ${formatarHora(iso, fuso)} (${rotuloCidadeFuso(fuso)})`
 }
 
 // Página do participante (/i/[token]). Pública — quem tem o token (link do e-mail) acessa.
@@ -59,7 +59,7 @@ export default async function ParticipantePage({ params }: { params: { token: st
       usado={usado}
       token={insc.token}
       nomeEvento={ev.nome}
-      dataEvento={formatarDataIngresso(ev.data_hora)}
+      dataEvento={formatarDataIngresso(ev.data_hora, ev.fuso)}
       local={ev.local}
     />
   )
@@ -115,7 +115,7 @@ export default async function ParticipantePage({ params }: { params: { token: st
           <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted mt-2">
             <span className="inline-flex items-center gap-1.5">
               <MetaIcon nome="calendario" className="w-4 h-4 text-primary" />
-              {formatarDataHora(ev.data_hora)}
+              {`${formatarDataHora(ev.data_hora, ev.fuso)} (${rotuloCidadeFuso(ev.fuso)})`}
             </span>
             {ev.local && (
               <span className="inline-flex items-center gap-1.5">
@@ -142,7 +142,7 @@ export default async function ParticipantePage({ params }: { params: { token: st
             nomeEvento={ev.nome}
             ingresso={<div className="lg:hidden">{cardIngresso}</div>}
             podeEditar={inscricoesAbertas(ev.inscricoes_abrem_em, ev.inscricoes_fecham_em)}
-            avisoPeriodo={rotuloPeriodo(ev.inscricoes_abrem_em, ev.inscricoes_fecham_em)}
+            avisoPeriodo={rotuloPeriodo(ev.inscricoes_abrem_em, ev.inscricoes_fecham_em, new Date(), ev.fuso)}
           />
 
           <aside className="hidden lg:block lg:sticky lg:top-8">{cardIngresso}</aside>

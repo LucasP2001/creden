@@ -45,7 +45,7 @@ export function EventCard({ evento }: { evento: EventoComStats }) {
       </div>
       <div className="p-[18px] flex-1 flex flex-col">
         <h3 className="text-[19px] font-semibold text-secondary">{evento.nome}</h3>
-        <div className="text-[13px] text-muted mt-1">📅 {formatarData(evento.data_hora)}</div>
+        <div className="text-[13px] text-muted mt-1">📅 {formatarData(evento.data_hora, evento.fuso)}</div>
 
         <div className="flex gap-6 my-4">
           <div>

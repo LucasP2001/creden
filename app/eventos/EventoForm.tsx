@@ -9,7 +9,8 @@ import { novoDia, novaCategoria, novaSessao } from '@/lib/sessoes'
 import { comCamposFixos, mover } from '@/lib/campos'
 import { hostPublico } from '@/lib/url'
 import { slugify } from '@/lib/slug'
-import { isoParaDatetimeLocalBr } from '@/lib/datas'
+import { isoParaDatetimeLocal, fusoDetectado } from '@/lib/datas'
+import { FUSOS_BR } from '@/lib/fuso'
 import { criarEvento } from './novo/actions'
 import { atualizarEvento } from './[id]/editar/actions'
 
@@ -25,10 +26,6 @@ const novoCampo = (): CampoExtra => ({
   obrigatorio: false,
 })
 
-// ISO -> valor do <input datetime-local> na hora de Brasília (fuso fixo do
-// produto, não o da máquina). Ver lib/datas.ts.
-const paraDatetimeLocal = isoParaDatetimeLocalBr
-
 export function EventoForm({ modo, evento }: Props) {
   const [nome, setNome] = useState(evento?.nome ?? '')
   const [valorPago, setValorPago] = useState((evento?.valor ?? 0) > 0)
@@ -40,6 +37,15 @@ export function EventoForm({ modo, evento }: Props) {
   // Host real do ambiente, resolvido no cliente (evita mismatch de hidratação).
   const [host, setHost] = useState('')
   useEffect(() => setHost(hostPublico()), [])
+
+  // Fuso do evento. Ao editar, usa o gravado. Ao criar, detecta o do dispositivo
+  // — mas só depois de montar (Intl no SSR = fuso do servidor), para não divergir
+  // na hidratação. O <input datetime-local> é reformatado quando o fuso muda.
+  const [fuso, setFuso] = useState(evento?.fuso ?? 'America/Sao_Paulo')
+  const paraDatetimeLocal = (iso: string) => isoParaDatetimeLocal(iso, fuso)
+  useEffect(() => {
+    if (!evento) setFuso(fusoDetectado())
+  }, [evento])
 
   const slug = useMemo(() => (evento ? evento.slug : slugify(nome) || 'meu-evento'), [nome, evento])
 
@@ -128,6 +134,7 @@ export function EventoForm({ modo, evento }: Props) {
     // Anexa os campos extras (estado client) como JSON.
     formData.set('campos_extras', JSON.stringify(campos))
     formData.set('dias', JSON.stringify(dias))
+    formData.set('fuso', fuso)
     const res =
       modo === 'editar' && evento
         ? await atualizarEvento(evento.id, formData)
@@ -179,6 +186,27 @@ export function EventoForm({ modo, evento }: Props) {
               placeholder="Endereço ou 'Online'"
               defaultValue={evento?.local ?? ''}
             />
+          </div>
+          <div className="mt-[18px]">
+            <label className="block text-[13px] font-semibold mb-1.5">Fuso horário do evento</label>
+            <select
+              name="fuso"
+              value={fuso}
+              onChange={(e) => setFuso(e.target.value)}
+              className="input"
+            >
+              {/* Se o fuso detectado não estiver na lista BR (organizador fora do
+                  país), inclui como primeira opção para não se perder. */}
+              {!FUSOS_BR.some((f) => f.valor === fuso) && <option value={fuso}>{fuso}</option>}
+              {FUSOS_BR.map((f) => (
+                <option key={f.valor} value={f.valor}>
+                  {f.rotulo}
+                </option>
+              ))}
+            </select>
+            <p className="text-xs text-muted mt-1.5">
+              A hora acima é neste fuso. O participante vê a hora com esse fuso indicado.
+            </p>
           </div>
           <div className="grid grid-cols-2 gap-4 mt-[18px] max-[860px]:grid-cols-1">
             <Input

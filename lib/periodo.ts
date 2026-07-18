@@ -6,7 +6,7 @@
  * (é o comportamento de todo evento criado antes desta funcionalidade).
  */
 
-import { FUSO_BR, formatarHora } from './datas'
+import { FUSO_BR, formatarHora, rotuloCidadeFuso } from './datas'
 
 export type EstadoInscricao = 'nao_abriu' | 'aberto' | 'encerrado'
 
@@ -47,33 +47,34 @@ export function inscricoesAbertas(
   return estadoInscricao(abreEm, fechaEm, agora) === 'aberto'
 }
 
-/** '01 de dezembro às 09:00' — sempre no horário de Brasília (ver lib/datas). */
-function formatar(d: Date): string {
+/** '01 de dezembro às 09:00 (Brasília)' — no fuso do evento. */
+function formatar(d: Date, fuso: string): string {
   const data = d.toLocaleDateString('pt-BR', {
     day: '2-digit',
     month: 'long',
-    timeZone: FUSO_BR,
+    timeZone: fuso,
   })
-  return `${data} às ${formatarHora(d.toISOString())}`
+  return `${data} às ${formatarHora(d.toISOString(), fuso)} (${rotuloCidadeFuso(fuso)})`
 }
 
 /**
  * Aviso curto sobre o período, para a página pública. `null` quando não há nada
- * a dizer (sem limite, ou aberto sem data de fim).
+ * a dizer (sem limite, ou aberto sem data de fim). O `fuso` é o do evento.
  */
 export function rotuloPeriodo(
   abreEm: string | null | undefined,
   fechaEm: string | null | undefined,
-  agora: Date = new Date()
+  agora: Date = new Date(),
+  fuso: string = FUSO_BR
 ): string | null {
   const estado = estadoInscricao(abreEm, fechaEm, agora)
   if (estado === 'encerrado') return 'Inscrições encerradas'
 
   if (estado === 'nao_abriu') {
     const abre = parseData(abreEm)
-    return abre ? `Inscrições abrem em ${formatar(abre)}` : null
+    return abre ? `Inscrições abrem em ${formatar(abre, fuso)}` : null
   }
 
   const fecha = parseData(fechaEm)
-  return fecha ? `Inscrições até ${formatar(fecha)}` : null
+  return fecha ? `Inscrições até ${formatar(fecha, fuso)}` : null
 }

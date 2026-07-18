@@ -23,6 +23,9 @@ export function InscricaoForm({ slug, camposExtras }: Props) {
   const [erro, setErro] = useState<string | null>(null)
   // CPF e telefone são controlados para aplicar máscara enquanto digita.
   const [mascarados, setMascarados] = useState<Record<string, string>>({})
+  // Campos que o usuário já saiu (blur): só aí mostramos erro, pra não acusar
+  // enquanto ainda está digitando.
+  const [tocados, setTocados] = useState<Record<string, boolean>>({})
 
   // Nome e e-mail vêm na lista (fixos), na ordem escolhida pelo organizador.
   // comCamposFixos cobre eventos antigos que ainda não têm os fixos gravados.
@@ -32,6 +35,20 @@ export function InscricaoForm({ slug, camposExtras }: Props) {
     const v = campo.tipo === 'cpf' ? formatarCpf(bruto) : formatarTelefone(bruto)
     setMascarados((m) => ({ ...m, [campo.id]: v }))
   }
+
+  /** Estado de validação de um campo CPF/telefone: 'ok' | 'erro' | null (vazio/incompleto). */
+  function estadoCampo(campo: CampoExtra): 'ok' | 'erro' | null {
+    const v = (mascarados[campo.id] ?? '').trim()
+    if (!v) return null
+    const digitos = v.replace(/\D/g, '')
+    const completo = campo.tipo === 'cpf' ? digitos.length === 11 : digitos.length >= 10
+    if (!completo) return null // ainda digitando — não acusa
+    const ok = campo.tipo === 'cpf' ? cpfValido(v) : telefoneValido(v)
+    return ok ? 'ok' : 'erro'
+  }
+
+  const msgErroCampo = (campo: CampoExtra) =>
+    campo.tipo === 'cpf' ? 'CPF inválido — confira os números.' : 'Telefone inválido.'
 
   async function enviar(formData: FormData) {
     // Valida CPF/telefone preenchidos antes de mandar (o servidor não formata).
@@ -84,16 +101,41 @@ export function InscricaoForm({ slug, camposExtras }: Props) {
             ) : c.tipo === 'opcoes' ? (
               <Select name={name} opcoes={c.opcoes ?? []} required={c.obrigatorio} />
             ) : c.tipo === 'cpf' || c.tipo === 'telefone' ? (
-              <input
-                className="input"
-                name={name}
-                type="text"
-                inputMode="numeric"
-                placeholder={c.tipo === 'cpf' ? '000.000.000-00' : '(00) 00000-0000'}
-                value={mascarados[c.id] ?? ''}
-                onChange={(e) => aoDigitar(c, e.target.value)}
-                required={c.obrigatorio}
-              />
+              (() => {
+                const estado = estadoCampo(c)
+                const mostraErro = estado === 'erro' && tocados[c.id]
+                const mostraOk = estado === 'ok'
+                return (
+                  <div>
+                    <div className="relative">
+                      <input
+                        className={`input pr-10 ${
+                          mostraErro
+                            ? 'border-error focus:border-error focus:ring-error/20'
+                            : mostraOk
+                              ? 'border-success focus:border-success focus:ring-success/20'
+                              : ''
+                        }`}
+                        name={name}
+                        type="text"
+                        inputMode="numeric"
+                        placeholder={c.tipo === 'cpf' ? '000.000.000-00' : '(00) 00000-0000'}
+                        value={mascarados[c.id] ?? ''}
+                        onChange={(e) => aoDigitar(c, e.target.value)}
+                        onBlur={() => setTocados((t) => ({ ...t, [c.id]: true }))}
+                        required={c.obrigatorio}
+                        aria-invalid={mostraErro}
+                      />
+                      {mostraOk && (
+                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-success" aria-hidden>
+                          ✓
+                        </span>
+                      )}
+                    </div>
+                    {mostraErro && <p className="text-error text-xs mt-1">{msgErroCampo(c)}</p>}
+                  </div>
+                )
+              })()
             ) : (
               <input
                 className="input"

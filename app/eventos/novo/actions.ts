@@ -31,10 +31,11 @@ export async function criarEvento(formData: FormData): Promise<CriarEventoResult
 
   const nome = String(formData.get('nome') ?? '').trim()
   const dataHora = String(formData.get('data_hora') ?? '')
+  const fuso = fusoValido(formData.get('fuso') as string | null)
   if (!nome) return { ok: false, erro: 'Informe o nome do evento.' }
   if (!dataHora) return { ok: false, erro: 'Informe a data e hora do evento.' }
 
-  const periodo = lerPeriodo(formData)
+  const periodo = lerPeriodo(formData, fuso)
   if (periodo.erro) return { ok: false, erro: periodo.erro }
 
   const vagasRaw = String(formData.get('vagas_max') ?? '')
@@ -57,7 +58,8 @@ export async function criarEvento(formData: FormData): Promise<CriarEventoResult
       user_id: user.id,
       nome,
       descricao: String(formData.get('descricao') ?? '') || null,
-      data_hora: datetimeLocalBrParaIso(dataHora)!,
+      data_hora: datetimeLocalParaIso(dataHora, fuso)!,
+      fuso,
       local: String(formData.get('local') ?? '') || null,
       vagas_max: vagasRaw ? Number(vagasRaw) : null,
       valor: valorRaw ? Math.round(Number(valorRaw) * 100) : 0, // reais -> centavos

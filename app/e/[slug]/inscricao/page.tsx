@@ -5,7 +5,7 @@ import { InscricaoForm } from './InscricaoForm'
 import { MetaIcon } from '@/components/MetaIcon'
 import { OndaPalco } from '@/components/OndaPalco'
 import { estadoInscricao, rotuloPeriodo } from '@/lib/periodo'
-import { formatarDataHora } from '@/lib/datas'
+import { formatarDataHora, rotuloCidadeFuso } from '@/lib/datas'
 
 // Formulário de inscrição (/e/[slug]/inscricao). Público.
 export default async function InscricaoPage({ params }: { params: { slug: string } }) {
@@ -74,7 +74,7 @@ export default async function InscricaoPage({ params }: { params: { slug: string
           <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted mt-2 mb-7">
             <span className="inline-flex items-center gap-1.5">
               <MetaIcon nome="calendario" className="w-4 h-4 text-primary" />
-              {formatarDataHora(ev.data_hora)}
+              {`${formatarDataHora(ev.data_hora, ev.fuso)} (${rotuloCidadeFuso(ev.fuso)})`}
             </span>
             {ev.local && (
               <span className="inline-flex items-center gap-1.5">
@@ -140,7 +140,7 @@ export default async function InscricaoPage({ params }: { params: { slug: string
             Encerrado, ele repetiria o título. */}
         {estado === 'nao_abriu' && (
           <p className="text-secondary font-semibold text-sm mt-1">
-            {rotuloPeriodo(ev.inscricoes_abrem_em, ev.inscricoes_fecham_em)}
+            {rotuloPeriodo(ev.inscricoes_abrem_em, ev.inscricoes_fecham_em, new Date(), ev.fuso)}
           </p>
         )}
         <a href={`/e/${ev.slug}`} className="btn btn-secondary mt-8 inline-flex">
