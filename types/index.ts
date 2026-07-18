@@ -58,7 +58,8 @@ export interface Evento {
   user_id: string // organizador dono (auth.users.id)
   nome: string
   descricao: string | null
-  data_hora: string // ISO timestamp
+  data_hora: string // ISO timestamp (UTC); interpretado/exibido no `fuso`
+  fuso: string // fuso IANA do evento (ex: America/Sao_Paulo); default Brasília
   local: string | null
   vagas_max: number | null
   valor: number // 0 = grátis (em centavos se pago)

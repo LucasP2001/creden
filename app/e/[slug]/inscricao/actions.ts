@@ -5,6 +5,7 @@ import { gerarToken } from '@/lib/qr'
 import { enviarIngresso } from '@/lib/email'
 import { estadoInscricao } from '@/lib/periodo'
 import { formatarDataHora } from '@/lib/datas'
+import { cpfValido, telefoneValido } from '@/lib/mascaras'
 import { Evento } from '@/types'
 
 export interface InscreverResult {
@@ -61,17 +62,26 @@ export async function inscrever(slug: string, formData: FormData): Promise<Inscr
   }
 
   // Coleta respostas dos campos extras (name="extra_<id>"). Nome e e-mail são
-  // fixos (lidos acima) e não entram em dados_extras.
+  // fixos (lidos acima) e não entram em dados_extras. Valida no servidor: o
+  // cliente já barra, mas quem chamar a action direto tem que ser barrado também.
   const dadosExtras: Record<string, string> = {}
   let cpfLabel: string | null = null
   let cpfDigitos = ''
   for (const campo of evento.campos_extras ?? []) {
     if (campo.fixo) continue
-    const v = formData.get(`extra_${campo.id}`)
-    if (v != null) dadosExtras[campo.label] = String(v)
-    if (campo.tipo === 'cpf') {
+    const valor = String(formData.get(`extra_${campo.id}`) ?? '').trim()
+    if (valor) dadosExtras[campo.label] = valor
+
+    if (campo.obrigatorio && !valor) {
+      return { ok: false, erro: `Preencha o campo "${campo.label}".` }
+    }
+    if (campo.tipo === 'cpf' && valor) {
+      if (!cpfValido(valor)) return { ok: false, erro: `CPF inválido em "${campo.label}".` }
       cpfLabel = campo.label
-      cpfDigitos = String(v ?? '').replace(/\D/g, '')
+      cpfDigitos = valor.replace(/\D/g, '')
+    }
+    if (campo.tipo === 'telefone' && valor && !telefoneValido(valor)) {
+      return { ok: false, erro: `Telefone inválido em "${campo.label}".` }
     }
   }
 

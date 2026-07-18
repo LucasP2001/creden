@@ -15,96 +15,114 @@ export const FUSO_BR = 'America/Sao_Paulo'
 const FUSO = FUSO_BR
 const LOCALE = 'pt-BR'
 
+// As funções de formatação aceitam um `fuso` opcional. Sem ele, caem no fuso de
+// Brasília — assim os usos administrativos (check-in, CSV) seguem iguais, e só a
+// hora do evento passa o `evento.fuso`.
+
 /** '01 de dez. de 2026, 09:00' — data e hora padrão do app. */
-export function formatarDataHora(iso: string): string {
+export function formatarDataHora(iso: string, fuso: string = FUSO): string {
   return new Date(iso).toLocaleString(LOCALE, {
     day: '2-digit',
     month: 'short',
     year: 'numeric',
     hour: '2-digit',
     minute: '2-digit',
-    timeZone: FUSO,
+    timeZone: fuso,
   })
 }
 
 /** 'terça-feira, 01 de dezembro de 2026 · 09:00' — cabeçalho da página do evento. */
-export function formatarDataLonga(iso: string): string {
+export function formatarDataLonga(iso: string, fuso: string = FUSO): string {
   const d = new Date(iso)
   const data = d.toLocaleDateString(LOCALE, {
     weekday: 'long',
     day: '2-digit',
     month: 'long',
     year: 'numeric',
-    timeZone: FUSO,
+    timeZone: fuso,
   })
-  return `${data} · ${formatarHora(iso)}`
+  return `${data} · ${formatarHora(iso, fuso)}`
 }
 
 /** '09:00' */
-export function formatarHora(iso: string): string {
+export function formatarHora(iso: string, fuso: string = FUSO): string {
   return new Date(iso).toLocaleTimeString(LOCALE, {
     hour: '2-digit',
     minute: '2-digit',
-    timeZone: FUSO,
+    timeZone: fuso,
   })
 }
 
 /** '01/12' */
-export function formatarDiaMes(iso: string): string {
+export function formatarDiaMes(iso: string, fuso: string = FUSO): string {
   return new Date(iso).toLocaleDateString(LOCALE, {
     day: '2-digit',
     month: '2-digit',
-    timeZone: FUSO,
+    timeZone: fuso,
   })
 }
 
 /** '01/12/2026 09:00' — usado no CSV de inscritos. */
-export function formatarDataHoraCurta(iso: string): string {
+export function formatarDataHoraCurta(iso: string, fuso: string = FUSO): string {
   return new Date(iso).toLocaleString(LOCALE, {
     day: '2-digit',
     month: '2-digit',
     year: 'numeric',
     hour: '2-digit',
     minute: '2-digit',
-    timeZone: FUSO,
+    timeZone: fuso,
   })
 }
 
 /**
- * Descobre o offset (em minutos) do fuso BR numa data — positivo a oeste de UTC.
- * Ex.: horário de Brasília sem verão = 180 (UTC-3). Calcula pela diferença entre
- * a mesma instância formatada em UTC e no fuso, então acompanha verão histórico.
+ * Nome curto da cidade de um fuso IANA, para rotular a hora ao participante:
+ * 'America/Sao_Paulo' -> 'Brasília' (caso especial: a cidade é São Paulo mas o
+ * horário é o de Brasília), 'America/Manaus' -> 'Manaus'. Fusos desconhecidos
+ * caem no último segmento com '_' -> ' '.
  */
-function offsetBrMinutos(d: Date): number {
-  const emFuso = new Date(d.toLocaleString('en-US', { timeZone: FUSO }))
+export function rotuloCidadeFuso(fuso: string): string {
+  const especiais: Record<string, string> = {
+    'America/Sao_Paulo': 'Brasília',
+  }
+  if (especiais[fuso]) return especiais[fuso]
+  const ultimo = fuso.split('/').pop() ?? fuso
+  return ultimo.replace(/_/g, ' ')
+}
+
+/**
+ * Offset (em minutos) de um fuso IANA numa data — positivo a oeste de UTC.
+ * Ex.: Brasília sem verão = 180 (UTC-3). Calcula pela diferença entre a mesma
+ * instância formatada em UTC e no fuso, então acompanha horário de verão.
+ */
+function offsetMinutos(d: Date, fuso: string): number {
+  const emFuso = new Date(d.toLocaleString('en-US', { timeZone: fuso }))
   const emUtc = new Date(d.toLocaleString('en-US', { timeZone: 'UTC' }))
   return Math.round((emUtc.getTime() - emFuso.getTime()) / 60000)
 }
 
 /**
  * Converte um valor de <input type="datetime-local"> ('YYYY-MM-DDTHH:mm', sem
- * fuso) para ISO UTC, interpretando a hora como horário de Brasília.
+ * fuso) para ISO UTC, interpretando a hora no `fuso` informado (o do evento).
  *
  * Sem isto, `new Date(valor)` interpreta a hora no fuso do servidor (a Vercel
- * roda em UTC): o organizador marca 14:00 e o banco grava 14:00Z, que a página
- * exibe como 11:00. Aqui 14:00 de parede vira o instante UTC correto (17:00Z).
- * Retorna null para entrada vazia/ inválida.
+ * roda em UTC): o organizador marca 14:00 e o banco grava 14:00Z. Aqui 14:00 de
+ * parede no fuso do evento vira o instante UTC correto.
+ * Retorna null para entrada vazia/inválida.
  */
-export function datetimeLocalBrParaIso(valor: string): string | null {
+export function datetimeLocalParaIso(valor: string, fuso: string = FUSO): string | null {
   if (!valor) return null
   // Interpreta como UTC primeiro (determinístico), depois aplica o offset do fuso.
   const comoUtc = new Date(`${valor}:00Z`)
   if (Number.isNaN(comoUtc.getTime())) return null
-  const off = offsetBrMinutos(comoUtc)
+  const off = offsetMinutos(comoUtc, fuso)
   return new Date(comoUtc.getTime() + off * 60000).toISOString()
 }
 
 /**
- * Inverso de datetimeLocalBrParaIso: ISO UTC -> 'YYYY-MM-DDTHH:mm' na hora de
- * Brasília, para preencher o <input datetime-local> ao editar. Usa o fuso BR
- * fixo (não o da máquina do organizador).
+ * Inverso de datetimeLocalParaIso: ISO UTC -> 'YYYY-MM-DDTHH:mm' no `fuso` do
+ * evento, para preencher o <input datetime-local> ao editar.
  */
-export function isoParaDatetimeLocalBr(iso: string): string {
+export function isoParaDatetimeLocal(iso: string, fuso: string = FUSO): string {
   const d = new Date(iso)
   if (Number.isNaN(d.getTime())) return ''
   const p = new Intl.DateTimeFormat('en-CA', {
@@ -114,10 +132,22 @@ export function isoParaDatetimeLocalBr(iso: string): string {
     hour: '2-digit',
     minute: '2-digit',
     hourCycle: 'h23',
-    timeZone: FUSO,
+    timeZone: fuso,
   }).formatToParts(d)
   const g = (t: string) => p.find((x) => x.type === t)?.value ?? ''
   return `${g('year')}-${g('month')}-${g('day')}T${g('hour')}:${g('minute')}`
+}
+
+/**
+ * Fuso IANA do dispositivo, ou o de Brasília se indisponível/estranho. Usado no
+ * form para pré-selecionar o fuso do evento a partir do navegador do organizador.
+ */
+export function fusoDetectado(): string {
+  try {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone || FUSO
+  } catch {
+    return FUSO
+  }
 }
 
 /** Dia da semana abreviado + dia/mês: 'ter, 01/12'. */

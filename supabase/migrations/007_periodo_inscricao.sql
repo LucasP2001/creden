@@ -11,3 +11,4 @@ comment on column public.eventos.inscricoes_abrem_em is
   'Início da janela de inscrição. Null = aberto desde sempre.';
 comment on column public.eventos.inscricoes_fecham_em is
   'Fim da janela de inscrição (inclusivo). Null = sem prazo.';
+ vb
