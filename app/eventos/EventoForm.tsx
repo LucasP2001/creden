@@ -259,24 +259,29 @@ export function EventoForm({ modo, evento }: Props) {
               <div key={c.id} className="border border-line rounded-xl bg-sand/60 p-3.5">
                 <div className="flex gap-2.5 items-start">
                   {/* Setas de ordenação: sobem/descem o campo na lista. */}
-                  <div className="flex flex-col shrink-0 -my-0.5">
+                  <div className="flex flex-col shrink-0 rounded-lg border border-line bg-surface overflow-hidden">
                     <button
                       type="button"
                       onClick={() => setCampos((cs) => mover(cs, i, -1))}
                       disabled={i === 0}
-                      className="text-muted hover:text-primary disabled:opacity-30 disabled:hover:text-muted px-1 leading-none"
+                      className="grid place-items-center w-7 h-[18px] text-muted hover:bg-status-inscrito-bg hover:text-primary disabled:opacity-25 disabled:hover:bg-transparent disabled:hover:text-muted transition-colors"
                       aria-label="Mover para cima"
                     >
-                      ▲
+                      <svg viewBox="0 0 12 12" className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                        <path d="M3 7.5 6 4.5 9 7.5" />
+                      </svg>
                     </button>
+                    <div className="h-px bg-line" />
                     <button
                       type="button"
                       onClick={() => setCampos((cs) => mover(cs, i, 1))}
                       disabled={i === campos.length - 1}
-                      className="text-muted hover:text-primary disabled:opacity-30 disabled:hover:text-muted px-1 leading-none"
+                      className="grid place-items-center w-7 h-[18px] text-muted hover:bg-status-inscrito-bg hover:text-primary disabled:opacity-25 disabled:hover:bg-transparent disabled:hover:text-muted transition-colors"
                       aria-label="Mover para baixo"
                     >
-                      ▼
+                      <svg viewBox="0 0 12 12" className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                        <path d="M3 4.5 6 7.5 9 4.5" />
+                      </svg>
                     </button>
                   </div>
 
