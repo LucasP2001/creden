@@ -117,7 +117,9 @@ export function InscricaoForm({ slug, camposExtras }: Props) {
       <Button type="submit" block disabled={enviando}>
         {enviando ? 'Enviando…' : 'Confirmar inscrição'}
       </Button>
-      <p className="text-xs text-muted text-center">
+      <p className="text-xs text-muted text-center leading-relaxed">
+        Leva menos de um minuto. Seus dados vão só para a organização do evento.
+        <br />
         Depois de confirmar, você escolhe as palestras e recebe o ingresso por e-mail.
       </p>
     </form>

@@ -3,7 +3,9 @@ import { createServerSupabase } from '@/lib/supabase'
 import { Evento } from '@/types'
 import { InscricaoForm } from './InscricaoForm'
 import { Logo } from '@/components/Logo'
+import { MetaIcon } from '@/components/MetaIcon'
 import { estadoInscricao, rotuloPeriodo } from '@/lib/periodo'
+import { formatarDataHora } from '@/lib/datas'
 
 // Formulário de inscrição (/e/[slug]/inscricao). Público.
 export default async function InscricaoPage({ params }: { params: { slug: string } }) {
@@ -69,7 +71,22 @@ export default async function InscricaoPage({ params }: { params: { slug: string
             ← Voltar ao evento
           </a>
           <h1 className="font-display text-3xl font-semibold mt-2 text-secondary">Fazer inscrição</h1>
-          <p className="text-muted mt-1 mb-7">{ev.nome}</p>
+          <p className="text-ink font-medium mt-1">{ev.nome}</p>
+
+          {/* Contexto do evento: dá segurança de que é a inscrição certa. */}
+          <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted mt-2 mb-7">
+            <span className="inline-flex items-center gap-1.5">
+              <MetaIcon nome="calendario" className="w-4 h-4 text-primary" />
+              {formatarDataHora(ev.data_hora)}
+            </span>
+            {ev.local && (
+              <span className="inline-flex items-center gap-1.5">
+                <MetaIcon nome="local" className="w-4 h-4 text-primary" />
+                {ev.local}
+              </span>
+            )}
+          </div>
+
           <InscricaoForm slug={ev.slug} camposExtras={ev.campos_extras ?? []} />
         </div>
       </main>
