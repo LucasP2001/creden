@@ -1,4 +1,3 @@
-import Link from 'next/link'
 import { createServerSupabase } from '@/lib/supabase'
 import { Evento, Sessao } from '@/types'
 import { rotuloTipo, formatarDia } from '@/lib/sessoes'
@@ -34,13 +33,15 @@ export default async function SessoesRelatorioPage({ params }: { params: { id: s
   }
 
   return (
-    <main className="max-w-3xl mx-auto px-6 py-8">
-      <Link href="/dashboard" className="text-sm text-primary hover:underline">← Voltar</Link>
-      <h1 className="font-display text-3xl font-semibold mt-2">Sessões — {ev.nome}</h1>
+    <>
+      <p className="text-muted -mt-2 mb-6">
+        Quem marcou cada sessão. Para editar a programação, use a aba{' '}
+        <span className="font-semibold text-ink">Evento</span>.
+      </p>
       {dias.length === 0 ? (
         <p className="text-muted mt-4">Este evento não tem programação.</p>
       ) : (
-        <div className="grid gap-8 mt-6">
+        <div className="grid gap-8">
           {dias.map((d, i) => (
             <div key={d.id}>
               <h2 className="font-display text-lg font-semibold text-primary">
@@ -67,7 +68,7 @@ export default async function SessoesRelatorioPage({ params }: { params: { id: s
           ))}
         </div>
       )}
-    </main>
+    </>
   )
 }
 

@@ -28,23 +28,12 @@ export default async function InscritosPage({ params }: { params: { id: string }
   const taxa = lista.length > 0 ? Math.round((presentes / lista.length) * 100) : 0
 
   return (
-    <div className="max-w-[1080px] mx-auto px-7 py-8 pb-20">
-      <div className="text-muted mb-6">
-        <a href="/dashboard">← Meus eventos</a> / {ev.nome}
-      </div>
-
-      <div className="flex items-end justify-between gap-4 mb-7 flex-wrap">
-        <div>
-          <h1 className="text-3xl font-semibold">Inscritos</h1>
-          <p className="text-muted mt-1">{ev.nome}</p>
-        </div>
-        <div className="flex gap-3">
-          {/* TODO: gerar CSV no servidor (Route Handler) e baixar */}
-          <ButtonLink variant="secondary" href={`/eventos/${ev.id}/inscritos/export`}>
-            ⬇ Exportar CSV
-          </ButtonLink>
-          <ButtonLink href={`/eventos/${ev.id}/checkin`}>📷 Iniciar check-in</ButtonLink>
-        </div>
+    <>
+      <div className="flex items-center justify-end gap-3 mb-6 flex-wrap">
+        <ButtonLink variant="secondary" href={`/eventos/${ev.id}/inscritos/export`}>
+          ⬇ Exportar CSV
+        </ButtonLink>
+        <ButtonLink href={`/eventos/${ev.id}/checkin`}>📷 Iniciar check-in</ButtonLink>
       </div>
 
       <div className="grid grid-cols-4 gap-4 mb-6 max-[860px]:grid-cols-2">
@@ -81,7 +70,7 @@ export default async function InscritosPage({ params }: { params: { id: string }
           </table>
         )}
       </div>
-    </div>
+    </>
   )
 }
 
