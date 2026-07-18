@@ -2,7 +2,6 @@ import Image from 'next/image'
 import { createServerSupabase } from '@/lib/supabase'
 import { Evento } from '@/types'
 import { InscricaoForm } from './InscricaoForm'
-import { Logo } from '@/components/Logo'
 import { MetaIcon } from '@/components/MetaIcon'
 import { OndaPalco } from '@/components/OndaPalco'
 import { estadoInscricao, rotuloPeriodo } from '@/lib/periodo'
@@ -29,10 +28,6 @@ export default async function InscricaoPage({ params }: { params: { slug: string
   if (estado === 'aberto') {
     return (
       <main className="min-h-screen bg-sand">
-        <header className="h-14 flex items-center px-6 border-b border-line bg-surface">
-          <Logo />
-        </header>
-
         <div className="relative h-[200px] overflow-hidden bg-secondary">
           {ev.imagem_url ? (
             <>
@@ -100,10 +95,6 @@ export default async function InscricaoPage({ params }: { params: { slug: string
   // curto e o card competiria com o palco).
   return (
     <main className="min-h-screen bg-sand">
-      <header className="h-14 flex items-center px-6 border-b border-line bg-surface">
-        <Logo />
-      </header>
-
       <div className="relative h-[200px] overflow-hidden bg-secondary">
         {ev.imagem_url ? (
           <>
