@@ -4,7 +4,6 @@ import { createServerSupabase, createAdminSupabase } from '@/lib/supabase'
 import { Evento } from '@/types'
 import { Logo } from '@/components/Logo'
 import { MetaIcon } from '@/components/MetaIcon'
-import { OndaPalco } from '@/components/OndaPalco'
 import { CompartilharBotao } from './CompartilharBotao'
 import { Cronograma } from '@/components/Cronograma'
 import { RecuperarAcesso } from './RecuperarAcesso'
@@ -85,7 +84,6 @@ export default async function EventoPublicoPage({ params }: { params: { slug: st
             )}
           </div>
         </div>
-        <OndaPalco />
       </div>
 
       {/* Logo nítida sobrepondo hero e card: sobe sobre o desfoque e desce um
