@@ -51,6 +51,8 @@ export async function atualizarEvento(
   await limparOrfaos(createAdminSupabase(), eventoId, payload.dias)
 
   revalidatePath('/dashboard')
+  revalidatePath(`/eventos/${eventoId}`)
   revalidatePath(`/e/${ev?.slug}`)
-  redirect('/dashboard')
+  // Volta pro resumo do evento que estava sendo editado, não pro dashboard.
+  redirect(`/eventos/${eventoId}`)
 }
