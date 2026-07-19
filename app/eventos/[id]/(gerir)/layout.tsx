@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation'
 import { createServerSupabase } from '@/lib/supabase'
+import { acessoEvento } from '@/lib/acesso'
 import { Evento } from '@/types'
 import { AbasEvento } from '../AbasEvento'
 
@@ -13,6 +14,9 @@ export default async function GerirLayout({
   children: React.ReactNode
   params: { id: string }
 }) {
+  const acesso = await acessoEvento(params.id)
+  if (!acesso.podeVer) notFound()
+
   const supabase = await createServerSupabase()
   const { data: evento } = await supabase
     .from('eventos')
@@ -34,7 +38,7 @@ export default async function GerirLayout({
         {ev.nome}
       </h1>
 
-      <AbasEvento id={ev.id} />
+      <AbasEvento id={ev.id} podeEditar={acesso.podeEditar} />
 
       {children}
     </div>

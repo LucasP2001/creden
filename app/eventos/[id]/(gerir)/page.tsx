@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation'
 import Image from 'next/image'
-import { createServerSupabase, createAdminSupabase } from '@/lib/supabase'
+import { createAdminSupabase } from '@/lib/supabase'
+import { acessoEvento } from '@/lib/acesso'
 import { Evento } from '@/types'
 import { MetaIcon } from '@/components/MetaIcon'
 import { ButtonLink } from '@/components/ui/Button'
@@ -8,26 +9,23 @@ import { formatarDataLonga, rotuloCidadeFuso } from '@/lib/datas'
 import { estadoInscricao, rotuloPeriodo } from '@/lib/periodo'
 import { hostPublico } from '@/lib/url'
 
-// Aba "Evento" (/eventos/[id]): resumo read-only do evento para o organizador.
-// A edição fica em /eventos/[id]/editar (botão "Editar"). RLS filtra por dono;
-// a guarda vira 404.
+// Aba "Evento" (/eventos/[id]): resumo read-only do evento para o organizador
+// (dono ou colaborador). A edição fica em /eventos/[id]/editar (botão "Editar",
+// só para quem pode editar). Guarda por acessoEvento; sem acesso vira 404.
 export default async function EventoResumoPage({ params }: { params: { id: string } }) {
-  const supabase = await createServerSupabase()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) notFound()
+  const acesso = await acessoEvento(params.id)
+  if (!acesso.podeVer) notFound()
 
-  const { data: evento } = await supabase
+  const { data: evento } = await createAdminSupabase()
     .from('eventos')
     .select('*')
     .eq('id', params.id)
     .single()
 
-  if (!evento || (evento as Evento).user_id !== user.id) notFound()
+  if (!evento) notFound()
   const ev = evento as Evento
 
-  // Contagem de inscritos (admin: ignora RLS, mas já validamos o dono acima).
+  // Contagem de inscritos (admin: ignora RLS, mas já validamos o acesso acima).
   const { count } = await createAdminSupabase()
     .from('inscricoes')
     .select('id', { count: 'exact', head: true })
@@ -126,9 +124,11 @@ export default async function EventoResumoPage({ params }: { params: { id: strin
       {/* Coluna lateral: ações e link público */}
       <div className="grid gap-4">
         <div className="card p-[22px] grid gap-3">
-          <ButtonLink href={`/eventos/${ev.id}/editar`} block>
-            Editar evento
-          </ButtonLink>
+          {acesso.podeEditar && (
+            <ButtonLink href={`/eventos/${ev.id}/editar`} block>
+              Editar evento
+            </ButtonLink>
+          )}
           <ButtonLink href={`/eventos/${ev.id}/inscritos`} variant="secondary" block>
             Ver inscritos
           </ButtonLink>

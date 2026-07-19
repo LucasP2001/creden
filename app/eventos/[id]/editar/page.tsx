@@ -1,25 +1,23 @@
 import { notFound } from 'next/navigation'
-import { createServerSupabase } from '@/lib/supabase'
+import { createAdminSupabase } from '@/lib/supabase'
+import { acessoEvento } from '@/lib/acesso'
 import { Evento } from '@/types'
 import { EventoForm } from '../../EventoForm'
 
 // Edição do evento (/eventos/[id]/editar). A aba "Evento" (raiz) mostra o
-// resumo read-only; o botão "Editar" leva aqui. RLS filtra por dono; a guarda
-// vira 404.
+// resumo read-only; o botão "Editar" leva aqui. Guarda por acessoEvento —
+// exige podeEditar (dono ou colaborador 'editor'); sem isso vira 404.
 export default async function EditarEventoPage({ params }: { params: { id: string } }) {
-  const supabase = await createServerSupabase()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) notFound()
+  const acesso = await acessoEvento(params.id)
+  if (!acesso.podeEditar) notFound()
 
-  const { data: evento } = await supabase
+  const { data: evento } = await createAdminSupabase()
     .from('eventos')
     .select('*')
     .eq('id', params.id)
     .single()
 
-  if (!evento || (evento as Evento).user_id !== user.id) notFound()
+  if (!evento) notFound()
   const ev = evento as Evento
 
   return (

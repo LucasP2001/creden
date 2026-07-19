@@ -6,7 +6,9 @@ import { usePathname } from 'next/navigation'
 // Barra de abas do evento (organizador): Evento (editar) · Programação ·
 // Gerenciamento. A aba ativa vem do pathname. Check-in é tela à parte (câmera),
 // alcançada por dentro de Gerenciamento — não é aba.
-export function AbasEvento({ id }: { id: string }) {
+// podeEditar é opcional e, por ora, não altera a renderização — reservado para
+// a Task 6 esconder abas de colaboradores 'checkin'.
+export function AbasEvento({ id, podeEditar: _podeEditar }: { id: string; podeEditar?: boolean }) {
   const pathname = usePathname()
   const base = `/eventos/${id}`
 

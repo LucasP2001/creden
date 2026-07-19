@@ -1,13 +1,19 @@
+import { notFound } from 'next/navigation'
 import { createServerSupabase } from '@/lib/supabase'
+import { acessoEvento } from '@/lib/acesso'
 import { InscritoRow } from '@/components/InscritoRow'
 import { ButtonLink } from '@/components/ui/Button'
 import { Inscricao, Evento } from '@/types'
 
 // Lista de inscritos (/eventos/[id]/inscritos). Server Component.
+// Guarda por acessoEvento — dono ou colaborador (editor/checkin) veem a lista;
+// sem acesso vira 404.
 export default async function InscritosPage({ params }: { params: { id: string } }) {
+  const acesso = await acessoEvento(params.id)
+  if (!acesso.podeVer) notFound()
+
   const supabase = await createServerSupabase()
 
-  // RLS garante que só o dono do evento acessa.
   const [{ data: evento }, { data: inscricoes }] = await Promise.all([
     supabase.from('eventos').select('*').eq('id', params.id).single(),
     supabase
