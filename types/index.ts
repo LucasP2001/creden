@@ -89,6 +89,20 @@ export interface Inscricao {
   updated_at: string
 }
 
+export type PapelColaborador = 'editor' | 'checkin'
+
+export interface Colaborador {
+  id: string
+  evento_id: string
+  email: string
+  user_id: string | null
+  papel: PapelColaborador
+  status: 'pendente' | 'ativo'
+  token: string
+  created_at: string
+  updated_at: string
+}
+
 /** Usuário organizador (deriva de auth.users do Supabase). */
 export interface User {
   id: string
