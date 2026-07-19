@@ -4,7 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { createAdminSupabase } from '@/lib/supabase'
 import { acessoEvento } from '@/lib/acesso'
 import { gerarToken } from '@/lib/qr'
-import { enviarConvite } from '@/lib/email'
+import { enviarConvite, motivoBloqueio } from '@/lib/email'
 import { emailValido } from '@/lib/mascaras'
 import { PapelColaborador } from '@/types'
 
@@ -19,6 +19,17 @@ export async function convidarColaborador(eventoId: string, formData: FormData) 
   const papel = String(formData.get('papel') ?? '') as PapelColaborador
   if (!emailValido(email)) return { ok: false, erro: 'E-mail inválido.' }
   if (papel !== 'editor' && papel !== 'checkin') return { ok: false, erro: 'Papel inválido.' }
+
+  // O Brevo aceita o envio (201) mas descarta quem está na blocklist (bounce,
+  // spam ou "descadastrar"). Checa antes para não registrar convite que nunca
+  // chega e avisar o dono com clareza, em vez de fingir sucesso.
+  const bloqueio = await motivoBloqueio(email)
+  if (bloqueio) {
+    return {
+      ok: false,
+      erro: 'Este e-mail optou por não receber nossos e-mails e não pode ser convidado. Peça à pessoa para verificar ou use outro endereço.',
+    }
+  }
 
   const admin = createAdminSupabase()
 

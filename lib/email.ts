@@ -106,6 +106,32 @@ function escapar(s: string): string {
     .replace(/"/g, '&quot;')
 }
 
+/**
+ * Verifica se um e-mail está na blocklist transacional do Brevo (bounce, spam
+ * ou "descadastrar"). O Brevo aceita o envio (201) mas descarta silenciosamente
+ * quem está bloqueado — por isso checamos antes de prometer entrega ao dono.
+ * Retorna o motivo (string) se bloqueado, ou null se livre.
+ * Em caso de falha na consulta, retorna null (não bloqueia o fluxo por isso).
+ */
+export async function motivoBloqueio(email: string): Promise<string | null> {
+  const apiKey = process.env.BREVO_API_KEY
+  if (!apiKey) return null
+
+  const url = `https://api.brevo.com/v3/smtp/blockedContacts?limit=1&email=${encodeURIComponent(email)}`
+  try {
+    const res = await fetch(url, { headers: { 'api-key': apiKey, accept: 'application/json' } })
+    if (!res.ok) return null
+    const dados = (await res.json()) as {
+      contacts?: { reason?: { message?: string; code?: string } }[]
+    }
+    const c = dados.contacts?.[0]
+    if (!c) return null
+    return c.reason?.message ?? c.reason?.code ?? 'bloqueado'
+  } catch {
+    return null
+  }
+}
+
 interface EnviarConviteParams {
   para: string
   nomeEvento: string
