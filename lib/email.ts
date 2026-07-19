@@ -160,22 +160,42 @@ export async function enviarConvite(p: EnviarConviteParams) {
   const link = `${base}/convite/${p.token}`
   const papelRotulo = p.papel === 'editor' ? 'editor (gerencia o evento)' : 'check-in (portaria)'
 
-  // Layout de "carta", não de peça de marketing: o Gmail classifica pelo
-  // conteúdo, não só pelo remetente. Card colorido + botão-pílula + tabela =
-  // sinal de promoção → Promoções. Texto corrido, fundo branco e link discreto
-  // tendem à caixa Principal. (Testado: o mesmo remetente cai na Principal com
-  // HTML simples e em Promoções com o bilhete verde.) Diferente do ingresso, que
-  // é esperado — chega logo após a inscrição, então o Gmail o mantém na Principal
-  // mesmo com o card. O convite chega frio, então precisa ser sóbrio.
+  // Card escuro/sofisticado na identidade Creden (skill creden-design): superfície
+  // verde-grafite, texto areia, único acento em âmbar no CTA. Sem link cru exposto
+  // (só o botão; o link vai no textContent pra fallback). Fontes web não são
+  // confiáveis em e-mail, então usa os fallbacks da marca (Georgia display, system
+  // sans corpo). Nota: entregabilidade (Promoções) NÃO depende disso — enquanto o
+  // remetente for @gmail via Brevo, o Gmail reprova por autenticação, não pelo
+  // HTML. Ver memória creden-brevo-entrega. Por isso o convite pode ser bonito.
+  const sans = "'Segoe UI',system-ui,-apple-system,Helvetica,Arial,sans-serif"
+  const serif = "Georgia,'Times New Roman',serif"
   const htmlContent = `<!doctype html>
-<html lang="pt-BR"><head><meta charset="utf-8"></head>
-<body style="margin:0;padding:16px;background:#ffffff;font-family:Arial,Helvetica,sans-serif;color:#1C1B18;font-size:15px;line-height:1.6">
-  <p>Olá,</p>
-  <p>Você foi convidado para ajudar a organizar <strong>${escapar(p.nomeEvento)}</strong> como <strong>${escapar(papelRotulo)}</strong>.</p>
-  <p>Para aceitar, acesse este link:<br>
-  <a href="${link}" style="color:#0E5C56">${link}</a></p>
-  <p style="color:#6B675E;font-size:13px">Se você não esperava este convite, é só ignorar este e-mail.</p>
-  <p style="color:#6B675E;font-size:13px">— Equipe Creden</p>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#F4F1EA">
+  <div style="display:none;max-height:0;overflow:hidden;opacity:0">Convite para ajudar a organizar ${escapar(p.nomeEvento)} no Creden.</div>
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#F4F1EA;padding:40px 12px">
+    <tr><td align="center">
+      <table role="presentation" width="460" cellpadding="0" cellspacing="0" style="width:460px;max-width:100%;background:#16302E;border-radius:18px;overflow:hidden">
+        <tr><td style="padding:40px 40px 0;text-align:center">
+          <div style="font-family:${sans};font-size:11px;letter-spacing:3px;color:#3BA89E;text-transform:uppercase;font-weight:bold">Creden · convite</div>
+        </td></tr>
+        <tr><td style="padding:20px 40px 0;text-align:center">
+          <div style="font-family:${sans};font-size:14px;color:#c7d6d3;line-height:1.6">Você foi convidado para organizar</div>
+          <div style="font-family:${serif};font-size:27px;color:#ffffff;font-weight:bold;margin-top:6px;line-height:1.3">${escapar(p.nomeEvento)}</div>
+          <div style="font-family:${sans};font-size:13px;color:#8fb3ad;margin-top:14px;line-height:1.5">como <strong style="color:#ffffff">${escapar(papelRotulo)}</strong></div>
+        </td></tr>
+        <tr><td style="padding:32px 40px 8px;text-align:center">
+          <a href="${link}" style="display:inline-block;background:#F5B14C;color:#16302E;font-family:${sans};font-size:15px;font-weight:bold;padding:14px 40px;border-radius:10px;text-decoration:none">Aceitar convite</a>
+        </td></tr>
+        <tr><td style="padding:24px 40px 36px;text-align:center">
+          <div style="border-top:1px solid #2a4441;padding-top:20px">
+            <p style="font-family:${sans};font-size:12px;color:#7f9b96;line-height:1.5;margin:0">Se você não esperava este convite, é só ignorar este e-mail.</p>
+            <p style="font-family:${sans};font-size:11px;color:#5e7773;line-height:1.5;margin:8px 0 0">inscrição e entrada sem complicação</p>
+          </div>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
 </body></html>`
 
   const res = await fetch(BREVO_ENDPOINT, {
