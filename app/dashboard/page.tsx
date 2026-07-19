@@ -109,11 +109,11 @@ function EmptyState() {
 function Shell({ children, email }: { children: React.ReactNode; email?: string }) {
   return (
     <div className="max-w-[1080px] mx-auto px-7 py-8 pb-20">
-      <div className="flex items-center justify-between mb-6">
-        <span className="text-muted">Painel do organizador</span>
-        <div className="flex items-center gap-3 text-sm">
-          {email && <span className="text-muted">{email}</span>}
-          <form action={logout}>
+      <div className="flex items-center justify-between gap-4 mb-6">
+        <span className="text-muted shrink-0 hidden sm:inline">Painel do organizador</span>
+        <div className="flex items-center gap-3 text-sm min-w-0">
+          {email && <span className="text-muted truncate">{email}</span>}
+          <form action={logout} className="shrink-0">
             <button type="submit" className="text-primary font-semibold hover:underline">
               Sair
             </button>
