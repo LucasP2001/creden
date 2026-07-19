@@ -8,6 +8,7 @@ import { formatarDataHora, rotuloCidadeFuso } from '@/lib/datas'
 import { gerarToken } from '@/lib/qr'
 import { gravarMarcacoes } from '@/lib/marcacoes'
 import { validarNomeEmail, checarVagas, validarCamposExtras, checarDuplicado } from '@/lib/inscricao'
+import { todasSessoes } from '@/lib/sessoes'
 import { Evento, Inscricao } from '@/types'
 
 export interface AcaoResult {
@@ -204,4 +205,38 @@ export async function adicionarInscrito(
     return { ok: true, aviso: `Inscrito adicionado. Sessões lotadas não incluídas: ${rejeitadas.join(', ')}.` }
   }
   return { ok: true }
+}
+
+export interface SessaoResumo {
+  id: string
+  titulo: string
+  hora_inicio: string
+}
+
+/** Sessões marcadas por um inscrito (para o popup de detalhe). Requer podeVer. */
+export async function sessoesDoInscrito(
+  eventoId: string,
+  inscricaoId: string
+): Promise<{ ok: boolean; sessoes?: SessaoResumo[]; erro?: string }> {
+  const acesso = await acessoEvento(eventoId)
+  if (!acesso.podeVer) return { ok: false, erro: 'Sem acesso.' }
+
+  const admin = createAdminSupabase()
+  const [{ data: evRow }, { data: marc }] = await Promise.all([
+    admin.from('eventos').select('dias').eq('id', eventoId).single(),
+    admin.from('inscricoes_sessoes').select('sessao_id').eq('inscricao_id', inscricaoId).eq('evento_id', eventoId),
+  ])
+  if (!evRow) return { ok: false, erro: 'Evento não encontrado.' }
+
+  const dias = (evRow as Pick<Evento, 'dias'>).dias ?? []
+  const porId = new Map(todasSessoes(dias).map((s) => [s.id, s]))
+  const ids = (marc ?? []).map((r) => (r as { sessao_id: string }).sessao_id)
+
+  const sessoes: SessaoResumo[] = ids
+    .map((id) => porId.get(id))
+    .filter((s): s is NonNullable<typeof s> => !!s)
+    .map((s) => ({ id: s.id, titulo: s.titulo, hora_inicio: s.hora_inicio }))
+    .sort((a, b) => a.hora_inicio.localeCompare(b.hora_inicio))
+
+  return { ok: true, sessoes }
 }
