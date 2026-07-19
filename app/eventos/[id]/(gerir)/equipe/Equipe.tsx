@@ -81,29 +81,34 @@ export function Equipe({
           <li className="text-sm text-muted">Ninguém convidado ainda.</li>
         )}
         {colaboradores.map((c) => (
-          <li key={c.id} className="flex items-center justify-between gap-3 border border-line rounded-xl px-3.5 py-2.5">
+          <li
+            key={c.id}
+            className="flex flex-col gap-2 border border-line rounded-xl px-3.5 py-2.5 sm:flex-row sm:items-center sm:justify-between sm:gap-3"
+          >
             <div className="min-w-0">
-              <div className="text-sm font-semibold break-words">{c.email}</div>
+              <div className="text-sm font-semibold truncate">{c.email}</div>
               <div className="text-xs text-muted">
                 {rotuloPapel(c.papel)} · {rotuloStatus(c.status)}
               </div>
             </div>
             <div className="flex items-center gap-3 shrink-0">
-              {c.status !== 'ativo' && (
-                reenviado === c.id ? (
+              {c.status !== 'ativo' &&
+                (reenviado === c.id ? (
                   <span className="text-status-presente text-sm">Enviado ✓</span>
                 ) : (
                   <button
                     onClick={() => reenviar(c.id)}
                     disabled={reenviando === c.id}
-                    className="text-primary text-sm hover:underline disabled:opacity-50"
+                    className="text-primary text-sm font-medium hover:underline disabled:opacity-50"
                   >
                     {reenviando === c.id ? 'Enviando…' : 'Reenviar'}
                   </button>
-                )
-              )}
+                ))}
               {podeRevogar && (
-                <button onClick={() => revogar(c.id)} className="text-error text-sm hover:underline">
+                <button
+                  onClick={() => revogar(c.id)}
+                  className="text-error text-sm font-medium hover:underline"
+                >
                   Revogar
                 </button>
               )}
