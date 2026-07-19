@@ -43,8 +43,6 @@ export async function enviarIngresso(p: EnviarIngressoParams) {
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#F4F1EA;padding:24px 12px">
     <tr><td align="center">
       <table role="presentation" width="480" cellpadding="0" cellspacing="0" style="width:480px;max-width:100%">
-        <tr><td style="padding:0 4px 16px;font-family:Georgia,'Times New Roman',serif;font-size:20px;color:#16302E;font-weight:bold">Creden</td></tr>
-
         <tr><td style="background:#16302E;border-radius:16px 16px 0 0;padding:24px 28px">
           <div style="font-family:Arial,Helvetica,sans-serif;font-size:11px;letter-spacing:2px;color:#8fb3ad;text-transform:uppercase">Inscrição confirmada</div>
           <div style="font-family:Georgia,'Times New Roman',serif;font-size:22px;color:#ffffff;font-weight:bold;margin-top:6px;line-height:1.25">${escapar(p.nomeEvento)}</div>
