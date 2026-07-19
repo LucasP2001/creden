@@ -76,7 +76,13 @@ export function Equipe({
       </div>
       {erro && <p className="text-error text-sm mt-2">{erro}</p>}
 
-      <ul className="mt-5 grid gap-2">
+      {/* Separa o formulário de convite da lista de quem já está na equipe. */}
+      <hr className="border-line my-6" />
+      <h3 className="text-xs font-semibold uppercase tracking-wide text-muted mb-3">
+        Membros {colaboradores.length > 0 && `(${colaboradores.length})`}
+      </h3>
+
+      <ul className="grid gap-2">
         {colaboradores.length === 0 && (
           <li className="text-sm text-muted">Ninguém convidado ainda.</li>
         )}
