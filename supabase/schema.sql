@@ -193,7 +193,7 @@ create table if not exists public.colaboradores (
 );
 
 create unique index if not exists colaboradores_evento_email_uidx
-  on public.colaboradores (evento_id, lower(email));
+  on public.colaboradores (evento_id, email);
 create index if not exists colaboradores_evento_idx on public.colaboradores (evento_id);
 create index if not exists colaboradores_user_idx   on public.colaboradores (user_id);
 create index if not exists colaboradores_token_idx  on public.colaboradores (token);
