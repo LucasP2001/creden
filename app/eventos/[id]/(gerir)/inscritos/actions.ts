@@ -5,6 +5,9 @@ import { createAdminSupabase } from '@/lib/supabase'
 import { acessoEvento } from '@/lib/acesso'
 import { enviarIngresso } from '@/lib/email'
 import { formatarDataHora, rotuloCidadeFuso } from '@/lib/datas'
+import { gerarToken } from '@/lib/qr'
+import { gravarMarcacoes } from '@/lib/marcacoes'
+import { validarNomeEmail, checarVagas, validarCamposExtras, checarDuplicado } from '@/lib/inscricao'
 import { Evento, Inscricao } from '@/types'
 
 export interface AcaoResult {
@@ -130,5 +133,75 @@ export async function reenviarBilhete(eventoId: string, inscricaoId: string): Pr
     return { ok: false, erro: 'Não foi possível enviar o e-mail. Tente de novo em instantes.' }
   }
 
+  return { ok: true }
+}
+
+/**
+ * Cadastra um inscrito manualmente (balcão). Mesmas validações do fluxo público
+ * (nome/e-mail, vagas, campos extras, duplicado). Grava as sessões escolhidas e
+ * envia o bilhete. Só dono/editor.
+ */
+export async function adicionarInscrito(
+  eventoId: string,
+  formData: FormData,
+  sessaoIds: string[]
+): Promise<AcaoResult & { aviso?: string }> {
+  const acesso = await acessoEvento(eventoId)
+  if (!acesso.podeEditar) {
+    return { ok: false, erro: 'Você não tem permissão para adicionar inscritos neste evento.' }
+  }
+
+  const admin = createAdminSupabase()
+  const { data: evRow } = await admin.from('eventos').select('*').eq('id', eventoId).single()
+  if (!evRow) return { ok: false, erro: 'Evento não encontrado.' }
+  const evento = evRow as Evento
+
+  const dadosBasicos = validarNomeEmail(formData)
+  if (!dadosBasicos.ok) return { ok: false, erro: dadosBasicos.erro }
+  const { nome, email } = dadosBasicos
+
+  const vagas = await checarVagas(admin, evento)
+  if (!vagas.ok) return { ok: false, erro: vagas.erro }
+
+  const camposExtras = validarCamposExtras(evento, formData)
+  if (!camposExtras.ok) return { ok: false, erro: camposExtras.erro }
+  const { dadosExtras, cpfLabel, cpfDigitos } = camposExtras
+
+  const dup = await checarDuplicado(admin, evento, email, cpfLabel, cpfDigitos)
+  if (!dup.ok) return { ok: false, erro: dup.erro }
+
+  const token = gerarToken()
+  const { data: inserida, error } = await admin
+    .from('inscricoes')
+    .insert({ evento_id: eventoId, nome, email, dados_extras: dadosExtras, status: 'inscrito', token })
+    .select('id')
+    .single()
+  if (error || !inserida) return { ok: false, erro: 'Não foi possível adicionar o inscrito.' }
+
+  const rejeitadas = await gravarMarcacoes(
+    admin,
+    eventoId,
+    (inserida as { id: string }).id,
+    sessaoIds.map(String),
+    evento.dias ?? []
+  )
+
+  try {
+    await enviarIngresso({
+      para: email,
+      nomeParticipante: nome,
+      nomeEvento: evento.nome,
+      dataEvento: `${formatarDataHora(evento.data_hora, evento.fuso)} (${rotuloCidadeFuso(evento.fuso)})`,
+      local: evento.local ?? '',
+      token,
+    })
+  } catch (e) {
+    console.error('Falha ao enviar bilhete do inscrito manual:', e)
+  }
+
+  revalidatePath(`/eventos/${eventoId}/inscritos`)
+  if (rejeitadas.length > 0) {
+    return { ok: true, aviso: `Inscrito adicionado. Sessões lotadas não incluídas: ${rejeitadas.join(', ')}.` }
+  }
   return { ok: true }
 }
