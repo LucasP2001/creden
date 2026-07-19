@@ -35,8 +35,10 @@ export async function convidarColaborador(eventoId: string, formData: FormData) 
 
   try {
     await enviarConvite({ para: email, nomeEvento: (ev as { nome: string }).nome, papel, token })
-  } catch {
-    // A linha já existe; o dono pode reenviar. Não falha o convite por causa do e-mail.
+  } catch (e) {
+    // A linha já existe; o dono pode reenviar. Não falha o convite por causa do
+    // e-mail, mas registra para depurar (chave/remetente Brevo, etc.).
+    console.error('Falha ao enviar e-mail de convite:', e)
   }
 
   revalidatePath(`/eventos/${eventoId}`)
