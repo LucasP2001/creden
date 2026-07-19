@@ -2,7 +2,7 @@
 // Usa a API REST diretamente com fetch — sem SDK, para não arrastar dependências
 // deprecadas/vulneráveis (o @getbrevo/brevo trazia a lib 'request').
 
-import { gerarQrBase64, urlIngresso } from './qr'
+import { urlIngresso, urlQr } from './qr'
 
 const BREVO_ENDPOINT = 'https://api.brevo.com/v3/smtp/email'
 
@@ -28,8 +28,9 @@ export async function enviarIngresso(p: EnviarIngressoParams) {
   const apiKey = process.env.BREVO_API_KEY
   if (!apiKey) throw new Error('BREVO_API_KEY não configurada.')
 
-  // QR como anexo inline (cid): Gmail/Outlook bloqueiam <img src="data:...">.
-  const qrBase64 = await gerarQrBase64(p.token, '#FBF8F1')
+  // QR servido por URL pública (rota /api/qr): Gmail/Outlook bloqueiam
+  // <img src="data:..."> e o Brevo não referencia attachment por cid.
+  const qrSrc = urlQr(p.token)
   const link = urlIngresso(p.token)
   const localLinha = p.local ? `<br>${escapar(p.local)}` : ''
 
@@ -54,7 +55,7 @@ export async function enviarIngresso(p: EnviarIngressoParams) {
 
         <tr><td style="background:#FBF8F1;border-radius:0 0 16px 16px;padding:28px;text-align:center">
           <div style="font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#1C1B18;line-height:1.5">Olá, <strong>${escapar(p.nomeParticipante)}</strong>. Apresente este QR code na entrada:</div>
-          <img src="cid:qr-ingresso" width="220" height="220" alt="QR code do ingresso" style="display:block;margin:18px auto;border:8px solid #ffffff;border-radius:12px">
+          <img src="${qrSrc}" width="220" height="220" alt="QR code do ingresso" style="display:block;margin:18px auto;border:8px solid #ffffff;border-radius:12px">
           <a href="${link}" style="display:inline-block;background:#0E5C56;color:#ffffff;font-family:Arial,Helvetica,sans-serif;font-size:15px;font-weight:bold;padding:13px 28px;border-radius:999px;text-decoration:none">Abrir meu ingresso</a>
           <div style="font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#6B675E;margin-top:16px">Guarde este e-mail — o QR é o seu ingresso.</div>
         </td></tr>
@@ -86,8 +87,6 @@ ${link}`
       subject: `Seu ingresso para ${p.nomeEvento}`,
       htmlContent,
       textContent,
-      // O QR viaja embedado; o cid no HTML (cid:qr-ingresso) casa com o name.
-      attachment: [{ content: qrBase64, name: 'qr-ingresso.png' }],
       tags: ['ingresso'],
     }),
   })

@@ -4,7 +4,7 @@ import { createAdminSupabase } from '@/lib/supabase'
 import { gerarToken } from '@/lib/qr'
 import { enviarIngresso } from '@/lib/email'
 import { estadoInscricao } from '@/lib/periodo'
-import { formatarDataHora } from '@/lib/datas'
+import { formatarDataHora, rotuloCidadeFuso } from '@/lib/datas'
 import { cpfValido, telefoneValido, emailValido } from '@/lib/mascaras'
 import { Evento } from '@/types'
 
@@ -131,7 +131,7 @@ export async function inscrever(slug: string, formData: FormData): Promise<Inscr
       para: email,
       nomeParticipante: nome,
       nomeEvento: evento.nome,
-      dataEvento: formatarDataHora(evento.data_hora),
+      dataEvento: `${formatarDataHora(evento.data_hora, evento.fuso)} (${rotuloCidadeFuso(evento.fuso)})`,
       local: evento.local ?? '',
       token,
     })

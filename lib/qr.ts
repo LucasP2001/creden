@@ -13,10 +13,27 @@ export function gerarToken(): string {
   return randomUUID().replace(/-/g, '')
 }
 
+/**
+ * Base pública absoluta da app. Prioriza NEXT_PUBLIC_APP_URL; se ausente, cai no
+ * domínio da Vercel (VERCEL_URL vem sem esquema). URLs de e-mail PRECISAM ser
+ * absolutas — um caminho relativo apontaria para o cliente de e-mail.
+ */
+function baseUrl(): string {
+  const explicito = process.env.NEXT_PUBLIC_APP_URL
+  if (explicito) return explicito.replace(/\/$/, '')
+  const vercel = process.env.VERCEL_URL
+  if (vercel) return `https://${vercel}`
+  return ''
+}
+
 /** URL pública do ingresso a partir do token. */
 export function urlIngresso(token: string): string {
-  const base = process.env.NEXT_PUBLIC_APP_URL ?? ''
-  return `${base}/i/${token}`
+  return `${baseUrl()}/i/${token}`
+}
+
+/** URL pública do PNG do QR (rota /api/qr/[token]), para <img> no e-mail. */
+export function urlQr(token: string): string {
+  return `${baseUrl()}/api/qr/${token}`
 }
 
 /**
