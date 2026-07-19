@@ -1,0 +1,78 @@
+'use client'
+
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { Button } from '@/components/ui/Button'
+import { Select } from '@/components/ui/Select'
+import { Colaborador } from '@/types'
+import { convidarColaborador, revogarColaborador } from '../equipe/actions'
+
+const PAPEIS = ['editor', 'checkin']
+const rotuloPapel = (p: string) => (p === 'editor' ? 'Editor' : 'Check-in')
+
+// Seção "Equipe" na aba Gerenciamento — só o dono do evento vê (guarda no page.tsx).
+// Convida por e-mail (editor ou check-in), lista colaboradores e permite revogar.
+export function Equipe({ eventoId, colaboradores }: { eventoId: string; colaboradores: Colaborador[] }) {
+  const router = useRouter()
+  const [email, setEmail] = useState('')
+  const [papel, setPapel] = useState('checkin')
+  const [erro, setErro] = useState<string | null>(null)
+  const [enviando, setEnviando] = useState(false)
+
+  async function convidar() {
+    setEnviando(true); setErro(null)
+    const fd = new FormData()
+    fd.set('email', email); fd.set('papel', papel)
+    const res = await convidarColaborador(eventoId, fd)
+    setEnviando(false)
+    if (!res.ok) { setErro(res.erro ?? 'Falha ao convidar.'); return }
+    setEmail(''); router.refresh()
+  }
+
+  async function revogar(id: string) {
+    await revogarColaborador(eventoId, id)
+    router.refresh()
+  }
+
+  return (
+    <div className="card p-[22px]">
+      <h2 className="text-lg font-semibold">Equipe</h2>
+      <p className="text-xs text-muted mt-1 mb-4">
+        Convide pessoas para ajudar. Editor mexe em tudo; check-in só faz a portaria.
+      </p>
+
+      <div className="grid gap-2 sm:grid-cols-[1fr_160px_auto] items-start">
+        <input
+          className="input" type="text" inputMode="email" placeholder="email@exemplo.com"
+          value={email} onChange={(e) => setEmail(e.target.value)}
+        />
+        <Select name="papel" opcoes={PAPEIS.map(rotuloPapel)}
+          value={rotuloPapel(papel)}
+          onChange={(v) => setPapel(v === 'Editor' ? 'editor' : 'checkin')} />
+        <Button type="button" onClick={convidar} disabled={enviando}>
+          {enviando ? 'Enviando…' : 'Convidar'}
+        </Button>
+      </div>
+      {erro && <p className="text-error text-sm mt-2">{erro}</p>}
+
+      <ul className="mt-5 grid gap-2">
+        {colaboradores.length === 0 && (
+          <li className="text-sm text-muted">Ninguém convidado ainda.</li>
+        )}
+        {colaboradores.map((c) => (
+          <li key={c.id} className="flex items-center justify-between gap-3 border border-line rounded-xl px-3.5 py-2.5">
+            <div className="min-w-0">
+              <div className="text-sm font-semibold break-words">{c.email}</div>
+              <div className="text-xs text-muted">
+                {rotuloPapel(c.papel)} · {c.status === 'ativo' ? 'ativo' : 'convite pendente'}
+              </div>
+            </div>
+            <button onClick={() => revogar(c.id)} className="text-error text-sm shrink-0 hover:underline">
+              Revogar
+            </button>
+          </li>
+        ))}
+      </ul>
+    </div>
+  )
+}

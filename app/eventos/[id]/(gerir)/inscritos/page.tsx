@@ -1,9 +1,10 @@
 import { notFound } from 'next/navigation'
-import { createServerSupabase } from '@/lib/supabase'
+import { createServerSupabase, createAdminSupabase } from '@/lib/supabase'
 import { acessoEvento } from '@/lib/acesso'
 import { InscritoRow } from '@/components/InscritoRow'
 import { ButtonLink } from '@/components/ui/Button'
-import { Inscricao, Evento } from '@/types'
+import { Equipe } from './Equipe'
+import { Inscricao, Evento, Colaborador } from '@/types'
 
 // Lista de inscritos (/eventos/[id]/inscritos). Server Component.
 // Guarda por acessoEvento — dono ou colaborador (editor/checkin) veem a lista;
@@ -32,6 +33,14 @@ export default async function InscritosPage({ params }: { params: { id: string }
   const presentes = lista.filter((i) => i.status === 'presente').length
   const aguardando = lista.filter((i) => i.status === 'inscrito').length
   const taxa = lista.length > 0 ? Math.round((presentes / lista.length) * 100) : 0
+
+  const { data: colaboradores } = acesso.ehDono
+    ? await createAdminSupabase()
+        .from('colaboradores')
+        .select('*')
+        .eq('evento_id', params.id)
+        .order('created_at')
+    : { data: null }
 
   return (
     <>
@@ -76,6 +85,12 @@ export default async function InscritosPage({ params }: { params: { id: string }
           </table>
         )}
       </div>
+
+      {acesso.ehDono && (
+        <div className="mt-8">
+          <Equipe eventoId={params.id} colaboradores={(colaboradores ?? []) as Colaborador[]} />
+        </div>
+      )}
     </>
   )
 }

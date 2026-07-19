@@ -5,7 +5,15 @@ import { TrocarCapaModal } from '@/app/dashboard/TrocarCapaModal'
 import { formatarDataHora as formatarData } from '@/lib/datas'
 
 // Card de evento no dashboard. Mostra inscritos e % de check-in.
-export function EventCard({ evento }: { evento: EventoComStats }) {
+// papelColaborador (opcional): quando o evento não é do usuário logado mas ele
+// colabora nele, mostra o selo "Colaborador · Editor/Check-in" abaixo do nome.
+export function EventCard({
+  evento,
+  papelColaborador,
+}: {
+  evento: EventoComStats
+  papelColaborador?: string
+}) {
   const pct =
     evento.total_inscritos > 0
       ? Math.round((evento.total_presentes / evento.total_inscritos) * 100)
@@ -45,6 +53,11 @@ export function EventCard({ evento }: { evento: EventoComStats }) {
       </div>
       <div className="p-[18px] flex-1 flex flex-col">
         <h3 className="text-[19px] font-semibold text-secondary">{evento.nome}</h3>
+        {papelColaborador && (
+          <span className="badge badge-inscrito mt-1 inline-block w-fit">
+            Colaborador · {papelColaborador === 'editor' ? 'Editor' : 'Check-in'}
+          </span>
+        )}
         <div className="text-[13px] text-muted mt-1">📅 {formatarData(evento.data_hora, evento.fuso)}</div>
 
         <div className="flex gap-6 my-4">

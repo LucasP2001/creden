@@ -41,6 +41,21 @@ export default async function DashboardPage() {
     total_presentes: e.presentes?.[0]?.count ?? 0,
   }))
 
+  // Papel do usuário nos eventos onde é colaborador ativo (não dono). A query de
+  // eventos acima já traz também os colaborados (RLS libera SELECT via
+  // pode_ver_evento) — aqui só buscamos o papel para exibir o selo no card.
+  const papelPorEvento = new Map<string, string>()
+  if (user) {
+    const { data: cols } = await supabase
+      .from('colaboradores')
+      .select('evento_id, papel')
+      .eq('user_id', user.id)
+      .eq('status', 'ativo')
+    for (const c of (cols ?? []) as { evento_id: string; papel: string }[]) {
+      papelPorEvento.set(c.evento_id, c.papel)
+    }
+  }
+
   return (
     <Shell email={user?.email}>
       <div className="flex items-end justify-between gap-4 mb-7 flex-wrap">
@@ -62,7 +77,11 @@ export default async function DashboardPage() {
       ) : (
         <div className="grid gap-[18px] [grid-template-columns:repeat(auto-fill,minmax(300px,1fr))]">
           {lista.map((ev) => (
-            <EventCard key={ev.id} evento={ev} />
+            <EventCard
+              key={ev.id}
+              evento={ev}
+              papelColaborador={ev.user_id === user?.id ? undefined : papelPorEvento.get(ev.id)}
+            />
           ))}
         </div>
       )}
