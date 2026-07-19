@@ -105,3 +105,57 @@ function escapar(s: string): string {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
 }
+
+interface EnviarConviteParams {
+  para: string
+  nomeEvento: string
+  papel: 'editor' | 'checkin'
+  token: string
+}
+
+/** Convite para co-organizar um evento. Link leva a /convite/[token]. */
+export async function enviarConvite(p: EnviarConviteParams) {
+  const apiKey = process.env.BREVO_API_KEY
+  if (!apiKey) throw new Error('BREVO_API_KEY não configurada.')
+
+  const base = process.env.NEXT_PUBLIC_APP_URL ?? ''
+  const link = `${base}/convite/${p.token}`
+  const papelRotulo = p.papel === 'editor' ? 'editor (gerencia o evento)' : 'check-in (portaria)'
+
+  const htmlContent = `<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"></head>
+<body style="margin:0;background:#F4F1EA;font-family:Arial,Helvetica,sans-serif">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="padding:24px 12px">
+    <tr><td align="center">
+      <table role="presentation" width="480" cellpadding="0" cellspacing="0" style="width:480px;max-width:100%;background:#FBF8F1;border-radius:16px;padding:28px">
+        <tr><td style="font-family:Georgia,serif;font-size:20px;color:#16302E;font-weight:bold">Convite para organizar</td></tr>
+        <tr><td style="font-size:15px;color:#1C1B18;line-height:1.5;padding-top:12px">
+          Você foi convidado para ajudar a organizar <strong>${escapar(p.nomeEvento)}</strong> como <strong>${escapar(papelRotulo)}</strong>.
+        </td></tr>
+        <tr><td style="padding-top:20px">
+          <a href="${link}" style="display:inline-block;background:#0E5C56;color:#fff;font-size:15px;font-weight:bold;padding:13px 28px;border-radius:999px;text-decoration:none">Aceitar convite</a>
+        </td></tr>
+        <tr><td style="font-size:12px;color:#6B675E;padding-top:16px">Se você não esperava este convite, ignore este e-mail.</td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body></html>`
+
+  const res = await fetch(BREVO_ENDPOINT, {
+    method: 'POST',
+    headers: { 'api-key': apiKey, 'content-type': 'application/json', accept: 'application/json' },
+    body: JSON.stringify({
+      sender: { email: FROM_EMAIL, name: FROM_NAME },
+      to: [{ email: p.para }],
+      subject: `Convite para organizar ${p.nomeEvento}`,
+      htmlContent,
+      textContent: `Você foi convidado para organizar "${p.nomeEvento}" como ${papelRotulo}. Aceite em: ${link}`,
+      tags: ['convite'],
+    }),
+  })
+  if (!res.ok) {
+    const detalhe = await res.text().catch(() => '')
+    throw new Error(`Brevo falhou (${res.status}): ${detalhe}`)
+  }
+  return res.json() as Promise<{ messageId: string }>
+}
