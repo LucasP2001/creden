@@ -160,26 +160,20 @@ export async function enviarConvite(p: EnviarConviteParams) {
   const link = `${base}/convite/${p.token}`
   const papelRotulo = p.papel === 'editor' ? 'editor (gerencia o evento)' : 'check-in (portaria)'
 
+  // Layout de "carta", não de peça de marketing: o Gmail classifica pelo
+  // conteúdo, não só pelo remetente. Card colorido + botão CTA + tabela =
+  // sinal de promoção. Texto corrido, fundo branco e link em texto tendem à
+  // caixa Principal. (Testado: o mesmo remetente cai na Principal com HTML
+  // simples e em Promoções com o card.)
   const htmlContent = `<!doctype html>
 <html lang="pt-BR"><head><meta charset="utf-8"></head>
-<body style="margin:0;background:#F4F1EA;font-family:Arial,Helvetica,sans-serif">
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="padding:24px 12px">
-    <tr><td align="center">
-      <table role="presentation" width="480" cellpadding="0" cellspacing="0" style="width:480px;max-width:100%;background:#FBF8F1;border-radius:16px;padding:28px">
-        <tr><td style="font-family:Georgia,serif;font-size:20px;color:#16302E;font-weight:bold">Convite para organizar</td></tr>
-        <tr><td style="font-size:15px;color:#1C1B18;line-height:1.5;padding-top:12px">
-          Você foi convidado para ajudar a organizar <strong>${escapar(p.nomeEvento)}</strong> como <strong>${escapar(papelRotulo)}</strong>.
-        </td></tr>
-        <tr><td style="font-size:15px;color:#1C1B18;line-height:1.5;padding-top:14px">
-          Para aceitar, acesse: <a href="${link}" style="color:#0E5C56">${link}</a>
-        </td></tr>
-        <tr><td style="padding-top:18px">
-          <a href="${link}" style="display:inline-block;background:#0E5C56;color:#fff;font-size:14px;padding:10px 22px;border-radius:8px;text-decoration:none">Aceitar convite</a>
-        </td></tr>
-        <tr><td style="font-size:12px;color:#6B675E;padding-top:18px">Se você não esperava este convite, ignore este e-mail.</td></tr>
-      </table>
-    </td></tr>
-  </table>
+<body style="margin:0;padding:16px;background:#ffffff;font-family:Arial,Helvetica,sans-serif;color:#1C1B18;font-size:15px;line-height:1.6">
+  <p>Olá,</p>
+  <p>Você foi convidado para ajudar a organizar <strong>${escapar(p.nomeEvento)}</strong> como <strong>${escapar(papelRotulo)}</strong>.</p>
+  <p>Para aceitar, acesse este link:<br>
+  <a href="${link}" style="color:#0E5C56">${link}</a></p>
+  <p style="color:#6B675E;font-size:13px">Se você não esperava este convite, é só ignorar este e-mail.</p>
+  <p style="color:#6B675E;font-size:13px">— Equipe Creden</p>
 </body></html>`
 
   const res = await fetch(BREVO_ENDPOINT, {
