@@ -33,12 +33,22 @@ export function DetalheInscritoModal({
   eventoId, inscricao, podeEditar, podeCheckin, onFechar, onResultado,
 }: DetalheProps) {
   const [sessoes, setSessoes] = useState<SessaoResumo[] | null>(null)
+  const [erroSessoes, setErroSessoes] = useState<string | null>(null)
   const [pendente, startTransition] = useTransition()
 
   useEffect(() => {
     let vivo = true
+    setSessoes(null)
+    setErroSessoes(null)
     sessoesDoInscrito(eventoId, inscricao.id).then((r) => {
-      if (vivo) setSessoes(r.ok ? (r.sessoes ?? []) : [])
+      if (vivo) {
+        if (r.ok) {
+          setSessoes(r.sessoes ?? [])
+        } else {
+          setErroSessoes('Não foi possível carregar as sessões.')
+          setSessoes([])
+        }
+      }
     })
     return () => { vivo = false }
   }, [eventoId, inscricao.id])
@@ -94,7 +104,9 @@ export function DetalheInscritoModal({
 
           <div>
             <h3 className="text-xs uppercase tracking-wide text-muted font-semibold mb-1.5">Sessões</h3>
-            {sessoes === null ? (
+            {erroSessoes ? (
+              <p className="text-sm text-error">{erroSessoes}</p>
+            ) : sessoes === null ? (
               <p className="text-sm text-muted">Carregando…</p>
             ) : sessoes.length === 0 ? (
               <p className="text-sm text-muted">Nenhuma sessão marcada.</p>
