@@ -10,6 +10,17 @@ const BREVO_ENDPOINT = 'https://api.brevo.com/v3/smtp/email'
 const FROM_EMAIL = process.env.BREVO_FROM_EMAIL ?? 'ingressos@seu-dominio.com.br'
 const FROM_NAME = process.env.BREVO_FROM_NAME ?? 'Creden'
 
+// Headers que sinalizam ao Gmail/Outlook "e-mail transacional legítimo", não
+// promoção: List-Unsubscribe bem-formado (mailto do próprio remetente) +
+// Precedence. Ajudam a sair da aba Promoções — sem substituir domínio próprio,
+// que é o fix definitivo. O mailto aponta pro remetente; o cliente registra o
+// opt-out no Brevo, e a checagem de blocklist antes do envio cobre o resto.
+const HEADERS_TRANSACIONAL: Record<string, string> = {
+  'List-Unsubscribe': `<mailto:${FROM_EMAIL}?subject=unsubscribe>`,
+  'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
+  'X-Priority': '3',
+}
+
 interface EnviarIngressoParams {
   para: string
   nomeParticipante: string
@@ -85,6 +96,7 @@ ${link}`
       subject: `Seu ingresso para ${p.nomeEvento}`,
       htmlContent,
       textContent,
+      headers: HEADERS_TRANSACIONAL,
       tags: ['ingresso'],
     }),
   })
@@ -158,10 +170,13 @@ export async function enviarConvite(p: EnviarConviteParams) {
         <tr><td style="font-size:15px;color:#1C1B18;line-height:1.5;padding-top:12px">
           Você foi convidado para ajudar a organizar <strong>${escapar(p.nomeEvento)}</strong> como <strong>${escapar(papelRotulo)}</strong>.
         </td></tr>
-        <tr><td style="padding-top:20px">
-          <a href="${link}" style="display:inline-block;background:#0E5C56;color:#fff;font-size:15px;font-weight:bold;padding:13px 28px;border-radius:999px;text-decoration:none">Aceitar convite</a>
+        <tr><td style="font-size:15px;color:#1C1B18;line-height:1.5;padding-top:14px">
+          Para aceitar, acesse: <a href="${link}" style="color:#0E5C56">${link}</a>
         </td></tr>
-        <tr><td style="font-size:12px;color:#6B675E;padding-top:16px">Se você não esperava este convite, ignore este e-mail.</td></tr>
+        <tr><td style="padding-top:18px">
+          <a href="${link}" style="display:inline-block;background:#0E5C56;color:#fff;font-size:14px;padding:10px 22px;border-radius:8px;text-decoration:none">Aceitar convite</a>
+        </td></tr>
+        <tr><td style="font-size:12px;color:#6B675E;padding-top:18px">Se você não esperava este convite, ignore este e-mail.</td></tr>
       </table>
     </td></tr>
   </table>
@@ -176,6 +191,7 @@ export async function enviarConvite(p: EnviarConviteParams) {
       subject: `Convite para organizar ${p.nomeEvento}`,
       htmlContent,
       textContent: `Você foi convidado para organizar "${p.nomeEvento}" como ${papelRotulo}. Aceite em: ${link}`,
+      headers: HEADERS_TRANSACIONAL,
       tags: ['convite'],
     }),
   })
