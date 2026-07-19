@@ -42,7 +42,7 @@ export function AbasEvento({
   }, [aberto])
 
   return (
-    <nav className="-mt-2 mb-8">
+    <nav className="mt-5 mb-7">
       {/* Desktop: pills segmentadas */}
       <div className="hidden sm:flex flex-wrap gap-2">
         {abas.map((a) => {
