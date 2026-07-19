@@ -5,7 +5,7 @@ import { gerarToken } from '@/lib/qr'
 import { enviarIngresso } from '@/lib/email'
 import { estadoInscricao } from '@/lib/periodo'
 import { formatarDataHora, rotuloCidadeFuso } from '@/lib/datas'
-import { cpfValido, telefoneValido, emailValido } from '@/lib/mascaras'
+import { validarDadosInscricao, checarDuplicadoEVagas } from '@/lib/inscricao'
 import { Evento } from '@/types'
 
 export interface InscreverResult {
@@ -45,66 +45,12 @@ export async function inscrever(slug: string, formData: FormData): Promise<Inscr
     return { ok: false, erro: 'As inscrições para este evento estão encerradas.' }
   }
 
-  const nome = String(formData.get('nome') ?? '').trim()
-  const email = String(formData.get('email') ?? '').trim().toLowerCase()
-  if (!nome || !email) return { ok: false, erro: 'Preencha nome e e-mail.' }
-  if (!emailValido(email)) return { ok: false, erro: 'E-mail inválido.' }
+  const validado = validarDadosInscricao(evento, formData)
+  if (!validado.ok) return { ok: false, erro: validado.erro }
+  const { nome, email, dadosExtras, cpfLabel, cpfDigitos } = validado
 
-  // Valida vagas restantes, se houver limite.
-  if (evento.vagas_max != null) {
-    const { count } = await supabase
-      .from('inscricoes')
-      .select('id', { count: 'exact', head: true })
-      .eq('evento_id', evento.id)
-      .neq('status', 'cancelado')
-    if ((count ?? 0) >= evento.vagas_max) {
-      return { ok: false, erro: 'As vagas para este evento se esgotaram.' }
-    }
-  }
-
-  // Coleta respostas dos campos extras (name="extra_<id>"). Nome e e-mail são
-  // fixos (lidos acima) e não entram em dados_extras. Valida no servidor: o
-  // cliente já barra, mas quem chamar a action direto tem que ser barrado também.
-  const dadosExtras: Record<string, string> = {}
-  let cpfLabel: string | null = null
-  let cpfDigitos = ''
-  for (const campo of evento.campos_extras ?? []) {
-    if (campo.fixo) continue
-    const valor = String(formData.get(`extra_${campo.id}`) ?? '').trim()
-    if (valor) dadosExtras[campo.label] = valor
-
-    if (campo.obrigatorio && !valor) {
-      return { ok: false, erro: `Preencha o campo "${campo.label}".` }
-    }
-    if (campo.tipo === 'cpf' && valor) {
-      if (!cpfValido(valor)) return { ok: false, erro: `CPF inválido em "${campo.label}".` }
-      cpfLabel = campo.label
-      cpfDigitos = valor.replace(/\D/g, '')
-    }
-    if (campo.tipo === 'telefone' && valor && !telefoneValido(valor)) {
-      return { ok: false, erro: `Telefone inválido em "${campo.label}".` }
-    }
-  }
-
-  // Não permite inscrição duplicada no mesmo evento (mesmo e-mail ou mesmo CPF).
-  // Inscrições canceladas não contam — a pessoa pode se inscrever de novo.
-  const { data: existentes } = await supabase
-    .from('inscricoes')
-    .select('email, dados_extras')
-    .eq('evento_id', evento.id)
-    .neq('status', 'cancelado')
-
-  for (const insc of (existentes ?? []) as { email: string; dados_extras: Record<string, string> | null }[]) {
-    if (insc.email?.toLowerCase() === email) {
-      return { ok: false, erro: 'Este e-mail já está inscrito neste evento.' }
-    }
-    if (cpfLabel && cpfDigitos) {
-      const cpfExistente = String(insc.dados_extras?.[cpfLabel] ?? '').replace(/\D/g, '')
-      if (cpfExistente && cpfExistente === cpfDigitos) {
-        return { ok: false, erro: 'Este CPF já está inscrito neste evento.' }
-      }
-    }
-  }
+  const dup = await checarDuplicadoEVagas(supabase, evento, email, cpfLabel, cpfDigitos)
+  if (!dup.ok) return { ok: false, erro: dup.erro }
 
   const token = gerarToken()
 
