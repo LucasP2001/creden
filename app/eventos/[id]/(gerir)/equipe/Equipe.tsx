@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/Button'
 import { Select } from '@/components/ui/Select'
 import { Colaborador } from '@/types'
-import { convidarColaborador, revogarColaborador } from './actions'
+import { convidarColaborador, revogarColaborador, reenviarConvite } from './actions'
 
 const PAPEIS = ['editor', 'checkin']
 const rotuloPapel = (p: string) => (p === 'editor' ? 'Editor' : 'Check-in')
@@ -26,6 +26,9 @@ export function Equipe({
   const [papel, setPapel] = useState('checkin')
   const [erro, setErro] = useState<string | null>(null)
   const [enviando, setEnviando] = useState(false)
+  // id do convite sendo reenviado; e id do que acabou de reenviar (mostra "Enviado").
+  const [reenviando, setReenviando] = useState<string | null>(null)
+  const [reenviado, setReenviado] = useState<string | null>(null)
 
   async function convidar() {
     setEnviando(true); setErro(null)
@@ -40,6 +43,14 @@ export function Equipe({
   async function revogar(id: string) {
     await revogarColaborador(eventoId, id)
     router.refresh()
+  }
+
+  async function reenviar(id: string) {
+    setReenviando(id); setErro(null); setReenviado(null)
+    const res = await reenviarConvite(eventoId, id)
+    setReenviando(null)
+    if (!res.ok) { setErro(res.erro ?? 'Não foi possível reenviar.'); return }
+    setReenviado(id)
   }
 
   return (
@@ -75,11 +86,26 @@ export function Equipe({
                 {rotuloPapel(c.papel)} · {c.status === 'ativo' ? 'ativo' : 'convite pendente'}
               </div>
             </div>
-            {podeRevogar && (
-              <button onClick={() => revogar(c.id)} className="text-error text-sm shrink-0 hover:underline">
-                Revogar
-              </button>
-            )}
+            <div className="flex items-center gap-3 shrink-0">
+              {c.status === 'pendente' && (
+                reenviado === c.id ? (
+                  <span className="text-status-presente text-sm">Enviado ✓</span>
+                ) : (
+                  <button
+                    onClick={() => reenviar(c.id)}
+                    disabled={reenviando === c.id}
+                    className="text-primary text-sm hover:underline disabled:opacity-50"
+                  >
+                    {reenviando === c.id ? 'Enviando…' : 'Reenviar'}
+                  </button>
+                )
+              )}
+              {podeRevogar && (
+                <button onClick={() => revogar(c.id)} className="text-error text-sm hover:underline">
+                  Revogar
+                </button>
+              )}
+            </div>
           </li>
         ))}
       </ul>

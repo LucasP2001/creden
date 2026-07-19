@@ -59,6 +59,46 @@ export async function convidarColaborador(eventoId: string, formData: FormData) 
   return { ok: true }
 }
 
+export async function reenviarConvite(eventoId: string, colaboradorId: string) {
+  const acesso = await acessoEvento(eventoId)
+  // Quem convida também reenvia: dono ou editor.
+  if (!acesso.podeEditar) {
+    return { ok: false, erro: 'Você não tem permissão para reenviar convites neste evento.' }
+  }
+
+  const admin = createAdminSupabase()
+  const { data: colab } = await admin
+    .from('colaboradores')
+    .select('email, papel, status, token')
+    .eq('id', colaboradorId)
+    .eq('evento_id', eventoId)
+    .maybeSingle()
+  if (!colab) return { ok: false, erro: 'Convite não encontrado.' }
+  const c = colab as { email: string; papel: PapelColaborador; status: string; token: string }
+
+  if (c.status !== 'pendente') return { ok: false, erro: 'Este convite já foi aceito.' }
+
+  const bloqueio = await motivoBloqueio(c.email)
+  if (bloqueio) {
+    return {
+      ok: false,
+      erro: 'Este e-mail optou por não receber nossos e-mails. Peça à pessoa para verificar ou use outro endereço.',
+    }
+  }
+
+  const { data: ev } = await admin.from('eventos').select('nome').eq('id', eventoId).single()
+  if (!ev) return { ok: false, erro: 'Evento não encontrado.' }
+
+  try {
+    await enviarConvite({ para: c.email, nomeEvento: (ev as { nome: string }).nome, papel: c.papel, token: c.token })
+  } catch (e) {
+    console.error('Falha ao reenviar e-mail de convite:', e)
+    return { ok: false, erro: 'Não foi possível enviar o e-mail. Tente de novo em instantes.' }
+  }
+
+  return { ok: true }
+}
+
 export async function revogarColaborador(eventoId: string, colaboradorId: string) {
   const acesso = await acessoEvento(eventoId)
   if (!acesso.ehDono) return { ok: false, erro: 'Apenas o dono do evento pode revogar.' }
