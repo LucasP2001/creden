@@ -5,7 +5,7 @@ import { gerarToken } from '@/lib/qr'
 import { enviarIngresso } from '@/lib/email'
 import { estadoInscricao } from '@/lib/periodo'
 import { formatarDataHora, rotuloCidadeFuso } from '@/lib/datas'
-import { validarDadosInscricao, checarDuplicadoEVagas } from '@/lib/inscricao'
+import { validarNomeEmail, validarCamposExtras, checarVagas, checarDuplicado } from '@/lib/inscricao'
 import { Evento } from '@/types'
 
 export interface InscreverResult {
@@ -45,11 +45,20 @@ export async function inscrever(slug: string, formData: FormData): Promise<Inscr
     return { ok: false, erro: 'As inscrições para este evento estão encerradas.' }
   }
 
-  const validado = validarDadosInscricao(evento, formData)
-  if (!validado.ok) return { ok: false, erro: validado.erro }
-  const { nome, email, dadosExtras, cpfLabel, cpfDigitos } = validado
+  // Ordem das checagens é observável pelo participante (qual mensagem de erro ele vê
+  // primeiro) — preservar exatamente: 1,2 nome/e-mail; 3 vagas; 4 campos extras; 5 duplicado.
+  const ne = validarNomeEmail(formData)
+  if (!ne.ok) return { ok: false, erro: ne.erro }
+  const { nome, email } = ne
 
-  const dup = await checarDuplicadoEVagas(supabase, evento, email, cpfLabel, cpfDigitos)
+  const vg = await checarVagas(supabase, evento)
+  if (!vg.ok) return { ok: false, erro: vg.erro }
+
+  const ce = validarCamposExtras(evento, formData)
+  if (!ce.ok) return { ok: false, erro: ce.erro }
+  const { dadosExtras, cpfLabel, cpfDigitos } = ce
+
+  const dup = await checarDuplicado(supabase, evento, email, cpfLabel, cpfDigitos)
   if (!dup.ok) return { ok: false, erro: dup.erro }
 
   const token = gerarToken()

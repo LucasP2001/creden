@@ -2,24 +2,30 @@ import { createAdminSupabase } from '@/lib/supabase'
 import { cpfValido, telefoneValido, emailValido } from '@/lib/mascaras'
 import { Evento } from '@/types'
 
-export type ResultadoValidacao =
+export type ResultadoNomeEmail =
+  | { ok: false; erro: string }
+  | { ok: true; nome: string; email: string }
+
+export type ResultadoCamposExtras =
   | { ok: false; erro: string }
   | {
       ok: true
-      nome: string
-      email: string
       dadosExtras: Record<string, string>
       cpfLabel: string | null
       cpfDigitos: string
     }
 
-/** Valida os dados de uma inscrição contra o evento. Pura (sem I/O). */
-export function validarDadosInscricao(evento: Evento, formData: FormData): ResultadoValidacao {
+/** Valida nome e e-mail presentes/formato. Pura (sem I/O). Normaliza (trim + lowercase no e-mail, trim no nome). */
+export function validarNomeEmail(formData: FormData): ResultadoNomeEmail {
   const nome = String(formData.get('nome') ?? '').trim()
   const email = String(formData.get('email') ?? '').trim().toLowerCase()
   if (!nome || !email) return { ok: false, erro: 'Preencha nome e e-mail.' }
   if (!emailValido(email)) return { ok: false, erro: 'E-mail inválido.' }
+  return { ok: true, nome, email }
+}
 
+/** Valida os campos extras do evento (obrigatório vazio, CPF, telefone). Pura (sem I/O). */
+export function validarCamposExtras(evento: Evento, formData: FormData): ResultadoCamposExtras {
   const dadosExtras: Record<string, string> = {}
   let cpfLabel: string | null = null
   let cpfDigitos = ''
@@ -39,16 +45,13 @@ export function validarDadosInscricao(evento: Evento, formData: FormData): Resul
       return { ok: false, erro: `Telefone inválido em "${campo.label}".` }
     }
   }
-  return { ok: true, nome, email, dadosExtras, cpfLabel, cpfDigitos }
+  return { ok: true, dadosExtras, cpfLabel, cpfDigitos }
 }
 
-/** Checa duplicado (e-mail/CPF) e vagas restantes. Lê inscricoes existentes. */
-export async function checarDuplicadoEVagas(
+/** Checa se ainda há vagas disponíveis no evento (vagas_max). Lê inscricoes existentes. */
+export async function checarVagas(
   admin: ReturnType<typeof createAdminSupabase>,
-  evento: Evento,
-  email: string,
-  cpfLabel: string | null,
-  cpfDigitos: string
+  evento: Evento
 ): Promise<{ ok: boolean; erro?: string }> {
   if (evento.vagas_max != null) {
     const { count } = await admin
@@ -60,7 +63,17 @@ export async function checarDuplicadoEVagas(
       return { ok: false, erro: 'As vagas para este evento se esgotaram.' }
     }
   }
+  return { ok: true }
+}
 
+/** Checa duplicado (e-mail/CPF) contra as inscrições existentes do evento. */
+export async function checarDuplicado(
+  admin: ReturnType<typeof createAdminSupabase>,
+  evento: Evento,
+  email: string,
+  cpfLabel: string | null,
+  cpfDigitos: string
+): Promise<{ ok: boolean; erro?: string }> {
   const { data: existentes } = await admin
     .from('inscricoes')
     .select('email, dados_extras')
