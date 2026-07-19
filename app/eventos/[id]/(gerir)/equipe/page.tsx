@@ -5,10 +5,10 @@ import { Colaborador } from '@/types'
 import { Equipe } from './Equipe'
 
 // Aba "Equipe" (/eventos/[id]/equipe): convidar/listar/revogar colaboradores.
-// Só o dono do evento gerencia a equipe — colaborador (editor/checkin) não.
+// Dono e editor podem ver e convidar; só o dono revoga (podeRevogar).
 export default async function EquipePage({ params }: { params: { id: string } }) {
   const acesso = await acessoEvento(params.id)
-  if (!acesso.ehDono) notFound()
+  if (!acesso.podeEditar) notFound()
 
   const { data: colaboradores } = await createAdminSupabase()
     .from('colaboradores')
@@ -16,5 +16,11 @@ export default async function EquipePage({ params }: { params: { id: string } })
     .eq('evento_id', params.id)
     .order('created_at')
 
-  return <Equipe eventoId={params.id} colaboradores={(colaboradores ?? []) as Colaborador[]} />
+  return (
+    <Equipe
+      eventoId={params.id}
+      colaboradores={(colaboradores ?? []) as Colaborador[]}
+      podeRevogar={acesso.ehDono}
+    />
+  )
 }

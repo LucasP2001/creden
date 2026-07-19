@@ -10,9 +10,17 @@ import { convidarColaborador, revogarColaborador } from './actions'
 const PAPEIS = ['editor', 'checkin']
 const rotuloPapel = (p: string) => (p === 'editor' ? 'Editor' : 'Check-in')
 
-// Aba "Equipe" — só o dono do evento vê (guarda no page.tsx).
-// Convida por e-mail (editor ou check-in), lista colaboradores e permite revogar.
-export function Equipe({ eventoId, colaboradores }: { eventoId: string; colaboradores: Colaborador[] }) {
+// Aba "Equipe" — dono e editor veem e convidam; só o dono revoga (podeRevogar).
+// Convida por e-mail (editor ou check-in) e lista os colaboradores.
+export function Equipe({
+  eventoId,
+  colaboradores,
+  podeRevogar,
+}: {
+  eventoId: string
+  colaboradores: Colaborador[]
+  podeRevogar?: boolean
+}) {
   const router = useRouter()
   const [email, setEmail] = useState('')
   const [papel, setPapel] = useState('checkin')
@@ -67,9 +75,11 @@ export function Equipe({ eventoId, colaboradores }: { eventoId: string; colabora
                 {rotuloPapel(c.papel)} · {c.status === 'ativo' ? 'ativo' : 'convite pendente'}
               </div>
             </div>
-            <button onClick={() => revogar(c.id)} className="text-error text-sm shrink-0 hover:underline">
-              Revogar
-            </button>
+            {podeRevogar && (
+              <button onClick={() => revogar(c.id)} className="text-error text-sm shrink-0 hover:underline">
+                Revogar
+              </button>
+            )}
           </li>
         ))}
       </ul>

@@ -10,7 +10,10 @@ import { PapelColaborador } from '@/types'
 
 export async function convidarColaborador(eventoId: string, formData: FormData) {
   const acesso = await acessoEvento(eventoId)
-  if (!acesso.ehDono) return { ok: false, erro: 'Apenas o dono do evento pode convidar.' }
+  // Dono ou colaborador 'editor' podem convidar. Revogar continua só do dono.
+  if (!acesso.podeEditar) {
+    return { ok: false, erro: 'Você não tem permissão para convidar neste evento.' }
+  }
 
   const email = String(formData.get('email') ?? '').trim().toLowerCase()
   const papel = String(formData.get('papel') ?? '') as PapelColaborador

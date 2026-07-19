@@ -5,17 +5,14 @@ import { usePathname } from 'next/navigation'
 
 // Barra de abas do evento (organizador): Evento · Programação · Gerenciamento ·
 // Equipe. A aba ativa vem do pathname. Check-in é tela à parte (câmera),
-// alcançada por dentro de Gerenciamento — não é aba. A aba Equipe só aparece
-// para o dono (só ele gerencia colaboradores). podeEditar reservado para
-// futuramente esconder abas de colaboradores 'checkin'.
+// alcançada por dentro de Gerenciamento — não é aba. A aba Equipe aparece para
+// quem pode editar (dono ou editor) — eles convidam; só o dono revoga.
 export function AbasEvento({
   id,
-  podeEditar: _podeEditar,
-  ehDono,
+  podeEditar,
 }: {
   id: string
   podeEditar?: boolean
-  ehDono?: boolean
 }) {
   const pathname = usePathname()
   const base = `/eventos/${id}`
@@ -24,7 +21,7 @@ export function AbasEvento({
     { href: base, label: 'Evento' },
     { href: `${base}/sessoes`, label: 'Programação' },
     { href: `${base}/inscritos`, label: 'Gerenciamento' },
-    ...(ehDono ? [{ href: `${base}/equipe`, label: 'Equipe' }] : []),
+    ...(podeEditar ? [{ href: `${base}/equipe`, label: 'Equipe' }] : []),
   ]
 
   return (
