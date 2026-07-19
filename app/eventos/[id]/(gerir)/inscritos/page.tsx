@@ -57,6 +57,8 @@ export default async function InscritosPage({ params }: { params: { id: string }
         inscricoes={lista}
         podeEditar={acesso.podeEditar}
         podeCheckin={podeCheckin}
+        camposExtras={ev.campos_extras ?? []}
+        dias={ev.dias ?? []}
       />
     </>
   )

@@ -3,7 +3,7 @@
 import { useMemo, useState, useTransition, useRef, useEffect } from 'react'
 import { Badge } from '@/components/ui/Badge'
 import { FUSO_BR, formatarHora } from '@/lib/datas'
-import { Inscricao, InscricaoStatus } from '@/types'
+import { CampoExtra, Dia, Inscricao, InscricaoStatus } from '@/types'
 import {
   marcarPresenca,
   desfazerPresenca,
@@ -11,6 +11,8 @@ import {
   reenviarBilhete,
   type AcaoResult,
 } from './actions'
+import { AdicionarInscritoModal } from './AdicionarInscritoModal'
+import { DetalheInscritoModal } from './DetalheInscritoModal'
 
 function hora(iso: string | null): string {
   return iso ? formatarHora(iso) : '—'
@@ -42,17 +44,28 @@ interface Props {
   podeEditar: boolean
   /** Dono/editor/checkin: pode confirmar presença. */
   podeCheckin: boolean
+  camposExtras: CampoExtra[]
+  dias: Dia[]
 }
 
 // Tabela de inscritos com busca, filtro por status e ações por linha.
 // Desktop: tabela. Mobile: lista de cards (a tabela de 6 colunas não cabe).
-export function InscritosClient({ eventoId, inscricoes, podeEditar, podeCheckin }: Props) {
+export function InscritosClient({
+  eventoId,
+  inscricoes,
+  podeEditar,
+  podeCheckin,
+  camposExtras,
+  dias,
+}: Props) {
   const [termo, setTermo] = useState('')
   // Status selecionados. Vazio = mostra todos.
   const [sel, setSel] = useState<Set<InscricaoStatus>>(new Set())
   const [filtroAberto, setFiltroAberto] = useState(false)
   const [pagina, setPagina] = useState(1)
   const [aviso, setAviso] = useState<{ tipo: 'ok' | 'erro'; texto: string } | null>(null)
+  const [adicionar, setAdicionar] = useState(false)
+  const [detalhe, setDetalhe] = useState<Inscricao | null>(null)
   const filtroRef = useRef<HTMLDivElement>(null)
   useClickFora(filtroAberto, filtroRef, () => setFiltroAberto(false))
 
@@ -181,6 +194,15 @@ export function InscritosClient({ eventoId, inscricoes, podeEditar, podeCheckin 
             </div>
           )}
         </div>
+
+        {podeEditar && (
+          <button
+            onClick={() => setAdicionar(true)}
+            className="btn btn-primary rounded-md px-3.5 py-2.5 text-sm shrink-0 whitespace-nowrap"
+          >
+            + Adicionar inscrito
+          </button>
+        )}
       </div>
 
       {aviso && (
@@ -229,6 +251,7 @@ export function InscritosClient({ eventoId, inscricoes, podeEditar, podeCheckin 
                     podeEditar={podeEditar}
                     podeCheckin={podeCheckin}
                     onResultado={mostrar}
+                    onAbrirDetalhe={setDetalhe}
                   />
                 ))}
               </tbody>
@@ -245,6 +268,7 @@ export function InscritosClient({ eventoId, inscricoes, podeEditar, podeCheckin 
                 podeEditar={podeEditar}
                 podeCheckin={podeCheckin}
                 onResultado={mostrar}
+                onAbrirDetalhe={setDetalhe}
               />
             ))}
           </div>
@@ -282,6 +306,26 @@ export function InscritosClient({ eventoId, inscricoes, podeEditar, podeCheckin 
           </div>
         )}
       </div>
+
+      {adicionar && (
+        <AdicionarInscritoModal
+          eventoId={eventoId}
+          camposExtras={camposExtras}
+          dias={dias}
+          onFechar={() => setAdicionar(false)}
+          onResultado={mostrar}
+        />
+      )}
+      {detalhe && (
+        <DetalheInscritoModal
+          eventoId={eventoId}
+          inscricao={detalhe}
+          podeEditar={podeEditar}
+          podeCheckin={podeCheckin}
+          onFechar={() => setDetalhe(null)}
+          onResultado={mostrar}
+        />
+      )}
     </div>
   )
 }
@@ -363,9 +407,10 @@ interface AlvoProps {
   podeEditar: boolean
   podeCheckin: boolean
   onResultado: (res: AcaoResult, sucesso: string) => void
+  onAbrirDetalhe: (inscricao: Inscricao) => void
 }
 
-function Linha({ eventoId, inscricao, podeEditar, podeCheckin, onResultado }: AlvoProps) {
+function Linha({ eventoId, inscricao, podeEditar, podeCheckin, onResultado, onAbrirDetalhe }: AlvoProps) {
   const { aberto, setAberto, pendente, rodar } = useAcoes(onResultado)
   const menuRef = useRef<HTMLTableCellElement>(null)
   useClickFora(aberto, menuRef, () => setAberto(false))
@@ -373,7 +418,10 @@ function Linha({ eventoId, inscricao, podeEditar, podeCheckin, onResultado }: Al
   const temAcoes = podeEditar || podeCheckin
 
   return (
-    <tr className="border-b border-line last:border-0 hover:bg-[#faf8f3]">
+    <tr
+      onClick={() => onAbrirDetalhe(inscricao)}
+      className="border-b border-line last:border-0 hover:bg-[#faf8f3] cursor-pointer"
+    >
       <td className="px-4 py-3.5 text-sm font-semibold">{inscricao.nome}</td>
       <td className="px-4 py-3.5 text-sm text-muted max-w-[220px] truncate" title={inscricao.email}>
         {inscricao.email}
@@ -384,7 +432,11 @@ function Linha({ eventoId, inscricao, podeEditar, podeCheckin, onResultado }: Al
       </td>
       <td className="px-4 py-3.5 text-sm tabular-nums">{hora(inscricao.checkin_at)}</td>
       {temAcoes && (
-        <td ref={menuRef} className="px-2 py-3.5 text-sm relative text-right">
+        <td
+          ref={menuRef}
+          onClick={(e) => e.stopPropagation()}
+          className="px-2 py-3.5 text-sm relative text-right"
+        >
           <BotaoMenu aberto={aberto} pendente={pendente} onToggle={() => setAberto((v) => !v)} />
           {aberto && (
             <div
@@ -400,7 +452,7 @@ function Linha({ eventoId, inscricao, podeEditar, podeCheckin, onResultado }: Al
   )
 }
 
-function CardInscrito({ eventoId, inscricao, podeEditar, podeCheckin, onResultado }: AlvoProps) {
+function CardInscrito({ eventoId, inscricao, podeEditar, podeCheckin, onResultado, onAbrirDetalhe }: AlvoProps) {
   const { aberto, setAberto, pendente, rodar } = useAcoes(onResultado)
   const menuRef = useRef<HTMLDivElement>(null)
   useClickFora(aberto, menuRef, () => setAberto(false))
@@ -409,7 +461,7 @@ function CardInscrito({ eventoId, inscricao, podeEditar, podeCheckin, onResultad
   const presente = inscricao.status === 'presente'
 
   return (
-    <div className="card p-4">
+    <div onClick={() => onAbrirDetalhe(inscricao)} className="card p-4 cursor-pointer">
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0 flex-1">
           <p className="text-sm font-semibold break-words">{inscricao.nome}</p>
@@ -418,7 +470,7 @@ function CardInscrito({ eventoId, inscricao, podeEditar, podeCheckin, onResultad
           </p>
         </div>
         {temAcoes && (
-          <div ref={menuRef} className="relative shrink-0">
+          <div ref={menuRef} onClick={(e) => e.stopPropagation()} className="relative shrink-0">
             <BotaoMenu aberto={aberto} pendente={pendente} onToggle={() => setAberto((v) => !v)} />
             {aberto && (
               <div
