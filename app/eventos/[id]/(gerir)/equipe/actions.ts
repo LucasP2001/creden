@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { createAdminSupabase } from '@/lib/supabase'
 import { acessoEvento } from '@/lib/acesso'
 import { gerarToken } from '@/lib/qr'
+// gerarToken usado tanto no primeiro convite quanto ao reabrir um recusado.
 import { enviarConvite, motivoBloqueio } from '@/lib/email'
 import { emailValido } from '@/lib/mascaras'
 import { PapelColaborador } from '@/types'
@@ -76,7 +77,7 @@ export async function reenviarConvite(eventoId: string, colaboradorId: string) {
   if (!colab) return { ok: false, erro: 'Convite não encontrado.' }
   const c = colab as { email: string; papel: PapelColaborador; status: string; token: string }
 
-  if (c.status !== 'pendente') return { ok: false, erro: 'Este convite já foi aceito.' }
+  if (c.status === 'ativo') return { ok: false, erro: 'Este convite já foi aceito.' }
 
   const bloqueio = await motivoBloqueio(c.email)
   if (bloqueio) {
@@ -89,13 +90,27 @@ export async function reenviarConvite(eventoId: string, colaboradorId: string) {
   const { data: ev } = await admin.from('eventos').select('nome').eq('id', eventoId).single()
   if (!ev) return { ok: false, erro: 'Evento não encontrado.' }
 
+  // Recusado que é reenviado reabre: novo token (o antigo pode ter vazado) e
+  // volta a 'pendente'. Pendente reenvia com o mesmo token.
+  let token = c.token
+  if (c.status === 'recusado') {
+    token = gerarToken()
+    const { error } = await admin
+      .from('colaboradores')
+      .update({ status: 'pendente', token, user_id: null })
+      .eq('id', colaboradorId)
+      .eq('evento_id', eventoId)
+    if (error) return { ok: false, erro: 'Não foi possível reabrir o convite.' }
+  }
+
   try {
-    await enviarConvite({ para: c.email, nomeEvento: (ev as { nome: string }).nome, papel: c.papel, token: c.token })
+    await enviarConvite({ para: c.email, nomeEvento: (ev as { nome: string }).nome, papel: c.papel, token })
   } catch (e) {
     console.error('Falha ao reenviar e-mail de convite:', e)
     return { ok: false, erro: 'Não foi possível enviar o e-mail. Tente de novo em instantes.' }
   }
 
+  revalidatePath(`/eventos/${eventoId}`)
   return { ok: true }
 }
 

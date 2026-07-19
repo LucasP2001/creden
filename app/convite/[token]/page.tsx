@@ -26,6 +26,20 @@ export default async function ConvitePage({ params }: { params: { token: string 
   // Já aceito? manda pro evento.
   if (c.status === 'ativo') redirect(`/eventos/${c.evento_id}`)
 
+  // Já recusado: estado final. Mostra aviso em vez de 404 (a linha não é apagada
+  // mais). Para reabrir, o dono reenvia o convite pela aba Equipe.
+  if (c.status === 'recusado') {
+    return (
+      <div className="max-w-[440px] mx-auto px-6 py-16 text-center">
+        <h1 className="font-display text-2xl font-semibold text-secondary">Convite recusado</h1>
+        <p className="text-muted mt-2">
+          Este convite para <strong>{nomeEvento}</strong> foi recusado. Se quiser
+          participar, peça ao organizador para reenviar o convite.
+        </p>
+      </div>
+    )
+  }
+
   // Precisa estar logado para aceitar.
   const supabase = await createServerSupabase()
   const { data: { user } } = await supabase.auth.getUser()

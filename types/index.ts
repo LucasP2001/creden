@@ -97,7 +97,7 @@ export interface Colaborador {
   email: string
   user_id: string | null
   papel: PapelColaborador
-  status: 'pendente' | 'ativo'
+  status: 'pendente' | 'ativo' | 'recusado'
   token: string
   created_at: string
   updated_at: string

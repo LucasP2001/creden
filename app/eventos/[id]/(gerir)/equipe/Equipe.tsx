@@ -9,6 +9,8 @@ import { convidarColaborador, revogarColaborador, reenviarConvite } from './acti
 
 const PAPEIS = ['editor', 'checkin']
 const rotuloPapel = (p: string) => (p === 'editor' ? 'Editor' : 'Check-in')
+const rotuloStatus = (s: string) =>
+  s === 'ativo' ? 'ativo' : s === 'recusado' ? 'convite recusado' : 'convite pendente'
 
 // Aba "Equipe" — dono e editor veem e convidam; só o dono revoga (podeRevogar).
 // Convida por e-mail (editor ou check-in) e lista os colaboradores.
@@ -83,11 +85,11 @@ export function Equipe({
             <div className="min-w-0">
               <div className="text-sm font-semibold break-words">{c.email}</div>
               <div className="text-xs text-muted">
-                {rotuloPapel(c.papel)} · {c.status === 'ativo' ? 'ativo' : 'convite pendente'}
+                {rotuloPapel(c.papel)} · {rotuloStatus(c.status)}
               </div>
             </div>
             <div className="flex items-center gap-3 shrink-0">
-              {c.status === 'pendente' && (
+              {c.status !== 'ativo' && (
                 reenviado === c.id ? (
                   <span className="text-status-presente text-sm">Enviado ✓</span>
                 ) : (
