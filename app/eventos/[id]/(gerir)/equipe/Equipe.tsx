@@ -5,12 +5,12 @@ import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/Button'
 import { Select } from '@/components/ui/Select'
 import { Colaborador } from '@/types'
-import { convidarColaborador, revogarColaborador } from '../equipe/actions'
+import { convidarColaborador, revogarColaborador } from './actions'
 
 const PAPEIS = ['editor', 'checkin']
 const rotuloPapel = (p: string) => (p === 'editor' ? 'Editor' : 'Check-in')
 
-// Seção "Equipe" na aba Gerenciamento — só o dono do evento vê (guarda no page.tsx).
+// Aba "Equipe" — só o dono do evento vê (guarda no page.tsx).
 // Convida por e-mail (editor ou check-in), lista colaboradores e permite revogar.
 export function Equipe({ eventoId, colaboradores }: { eventoId: string; colaboradores: Colaborador[] }) {
   const router = useRouter()

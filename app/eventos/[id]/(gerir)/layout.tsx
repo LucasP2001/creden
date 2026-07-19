@@ -38,7 +38,7 @@ export default async function GerirLayout({
         {ev.nome}
       </h1>
 
-      <AbasEvento id={ev.id} podeEditar={acesso.podeEditar} />
+      <AbasEvento id={ev.id} podeEditar={acesso.podeEditar} ehDono={acesso.ehDono} />
 
       {children}
     </div>
