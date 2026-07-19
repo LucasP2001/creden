@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation'
 import { createServerSupabase } from '@/lib/supabase'
 import { acessoEvento } from '@/lib/acesso'
-import { InscritoRow } from '@/components/InscritoRow'
+import { InscritosClient } from './InscritosClient'
 import { ButtonLink } from '@/components/ui/Button'
 import { Inscricao, Evento } from '@/types'
 
@@ -31,7 +31,11 @@ export default async function InscritosPage({ params }: { params: { id: string }
   const lista = (inscricoes ?? []) as Inscricao[]
   const presentes = lista.filter((i) => i.status === 'presente').length
   const aguardando = lista.filter((i) => i.status === 'inscrito').length
-  const taxa = lista.length > 0 ? Math.round((presentes / lista.length) * 100) : 0
+  // Taxa sobre quem não cancelou — inscrições canceladas não deveriam pesar na meta.
+  const base = lista.filter((i) => i.status !== 'cancelado').length
+  const taxa = base > 0 ? Math.round((presentes / base) * 100) : 0
+
+  const podeCheckin = acesso.podeEditar || acesso.papel === 'checkin'
 
   return (
     <>
@@ -39,7 +43,6 @@ export default async function InscritosPage({ params }: { params: { id: string }
         <ButtonLink variant="secondary" href={`/eventos/${ev.id}/inscritos/export`}>
           ⬇ Exportar CSV
         </ButtonLink>
-        <ButtonLink href={`/eventos/${ev.id}/checkin`}>📷 Iniciar check-in</ButtonLink>
       </div>
 
       <div className="grid grid-cols-4 gap-4 mb-6 max-[860px]:grid-cols-2">
@@ -49,33 +52,12 @@ export default async function InscritosPage({ params }: { params: { id: string }
         <Stat valor={`${taxa}%`} label="Taxa de check-in" />
       </div>
 
-      <div className="card overflow-hidden">
-        {lista.length === 0 ? (
-          <p className="p-8 text-center text-muted">
-            Nenhum inscrito ainda — compartilhe o link para começar.
-          </p>
-        ) : (
-          <table className="w-full border-collapse">
-            <thead>
-              <tr>
-                {['Nome', 'E-mail', 'Inscrição', 'Status', 'Check-in'].map((h) => (
-                  <th
-                    key={h}
-                    className="text-left text-xs uppercase tracking-wide text-muted font-semibold px-4 py-3 border-b border-line"
-                  >
-                    {h}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {lista.map((i) => (
-                <InscritoRow key={i.id} inscricao={i} />
-              ))}
-            </tbody>
-          </table>
-        )}
-      </div>
+      <InscritosClient
+        eventoId={ev.id}
+        inscricoes={lista}
+        podeEditar={acesso.podeEditar}
+        podeCheckin={podeCheckin}
+      />
     </>
   )
 }

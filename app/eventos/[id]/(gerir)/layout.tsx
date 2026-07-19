@@ -16,6 +16,7 @@ export default async function GerirLayout({
 }) {
   const acesso = await acessoEvento(params.id)
   if (!acesso.podeVer) notFound()
+  const podeCheckin = acesso.podeEditar || acesso.papel === 'checkin'
 
   const supabase = await createServerSupabase()
   const { data: evento } = await supabase
@@ -29,10 +30,18 @@ export default async function GerirLayout({
 
   return (
     <div className="max-w-[1080px] mx-auto px-7 py-8 pb-20">
-      <div className="text-muted text-sm mb-4">
-        <a href="/dashboard" className="hover:text-ink">
+      <div className="flex items-center justify-between gap-3 mb-4">
+        <a href="/dashboard" className="text-muted text-sm hover:text-ink">
           ← Meus eventos
         </a>
+        {podeCheckin && (
+          <a
+            href={`/eventos/${ev.id}/checkin`}
+            className="btn btn-primary shrink-0 whitespace-nowrap"
+          >
+            📷 Check-in
+          </a>
+        )}
       </div>
       <h1 className="font-display text-3xl font-semibold text-secondary leading-tight break-words">
         {ev.nome}
