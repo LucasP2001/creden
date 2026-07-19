@@ -3,6 +3,7 @@
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { createServerSupabase, createAdminSupabase } from '@/lib/supabase'
+import { acessoEvento } from '@/lib/acesso'
 import { uploadCapa } from '@/lib/capa'
 import { limparOrfaos } from '@/lib/marcacoes'
 import { montarPayloadUpdate } from './payload'
@@ -13,8 +14,8 @@ export interface AtualizarEventoResult {
 }
 
 /**
- * Atualiza um evento do organizador logado. Slug não muda. Capa é opcional.
- * RLS força dono; a guarda de user_id dá erro claro. Em sucesso, redireciona.
+ * Atualiza um evento do organizador logado ou de um colaborador com papel
+ * 'editor'. Slug não muda. Capa é opcional. Em sucesso, redireciona.
  */
 export async function atualizarEvento(
   eventoId: string,
@@ -26,14 +27,16 @@ export async function atualizarEvento(
   } = await supabase.auth.getUser()
   if (!user) return { ok: false, erro: 'Sessão expirada. Entre novamente.' }
 
-  const { data: dono } = await supabase
+  const acesso = await acessoEvento(eventoId)
+  if (!acesso.podeEditar) {
+    return { ok: false, erro: 'Você não tem permissão para editar este evento.' }
+  }
+
+  const { data: ev } = await createAdminSupabase()
     .from('eventos')
-    .select('user_id, slug')
+    .select('slug')
     .eq('id', eventoId)
     .single()
-  if (!dono || dono.user_id !== user.id) {
-    return { ok: false, erro: 'Evento não encontrado.' }
-  }
 
   const { payload, erro } = montarPayloadUpdate(formData)
   if (erro) return { ok: false, erro }
@@ -48,6 +51,6 @@ export async function atualizarEvento(
   await limparOrfaos(createAdminSupabase(), eventoId, payload.dias)
 
   revalidatePath('/dashboard')
-  revalidatePath(`/e/${dono.slug}`)
+  revalidatePath(`/e/${ev?.slug}`)
   redirect('/dashboard')
 }
