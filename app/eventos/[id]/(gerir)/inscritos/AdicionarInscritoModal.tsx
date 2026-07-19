@@ -2,7 +2,7 @@
 
 import { useMemo, useState, useTransition } from 'react'
 import { Select } from '@/components/ui/Select'
-import { CampoExtra, Dia, Sessao } from '@/types'
+import { CampoExtra, Dia } from '@/types'
 import { comCamposFixos } from '@/lib/campos'
 import { formatarCpf, formatarTelefone, cpfValido, telefoneValido, emailValido } from '@/lib/mascaras'
 import { todasSessoes, rotuloTipo } from '@/lib/sessoes'
@@ -28,7 +28,6 @@ export function AdicionarInscritoModal({ eventoId, camposExtras, dias, onFechar,
   const [pendente, startTransition] = useTransition()
 
   const ehObrigatorio = (c: CampoExtra) => !!c.fixo || !!c.obrigatorio
-  const temFormato = (c: CampoExtra) => c.tipo === 'cpf' || c.tipo === 'telefone' || c.fixo === 'email'
 
   function formatoValido(c: CampoExtra, v: string): boolean {
     if (c.fixo === 'email') return emailValido(v)
