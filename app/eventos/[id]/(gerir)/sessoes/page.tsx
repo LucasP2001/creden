@@ -15,28 +15,22 @@ export default async function SessoesRelatorioPage({ params }: { params: { id: s
   // Defensivo: eventos antigos podem não ter dias populado.
   const dias = ev.dias ?? []
 
-  // Marcações + inscrito (join). RLS restringe ao dono.
+  // Contagem por sessão (apenas sessao_id). RLS restringe ao dono.
   const { data: marc } = await supabase
     .from('inscricoes_sessoes')
-    .select('sessao_id, inscricoes(nome, email)')
+    .select('sessao_id')
     .eq('evento_id', ev.id)
 
-  const porSessao = new Map<string, { nome: string; email: string }[]>()
-  for (const row of (marc ?? []) as unknown as {
-    sessao_id: string
-    inscricoes: { nome: string; email: string } | null
-  }[]) {
-    if (!row.inscricoes) continue
-    const arr = porSessao.get(row.sessao_id) ?? []
-    arr.push(row.inscricoes)
-    porSessao.set(row.sessao_id, arr)
+  const contagem = new Map<string, number>()
+  for (const row of (marc ?? []) as { sessao_id: string }[]) {
+    contagem.set(row.sessao_id, (contagem.get(row.sessao_id) ?? 0) + 1)
   }
 
   return (
     <>
       <p className="text-muted -mt-2 mb-6">
-        Quem marcou cada sessão. Para editar a programação, use a aba{' '}
-        <span className="font-semibold text-ink">Evento</span>.
+        Quantas pessoas marcaram cada sessão. Os nomes ficam no detalhe de cada
+        inscrito, na aba <span className="font-semibold text-ink">Gerenciamento</span>.
       </p>
       {dias.length === 0 ? (
         <p className="text-muted mt-4">Este evento não tem programação.</p>
@@ -50,7 +44,7 @@ export default async function SessoesRelatorioPage({ params }: { params: { id: s
               {d.sessoes.length > 0 && (
                 <div className="grid gap-3 mt-2">
                   {d.sessoes.map((s) => (
-                    <SessaoRelatorio key={s.id} s={s} pessoas={porSessao.get(s.id) ?? []} />
+                    <SessaoRelatorio key={s.id} s={s} total={contagem.get(s.id) ?? 0} />
                   ))}
                 </div>
               )}
@@ -59,7 +53,7 @@ export default async function SessoesRelatorioPage({ params }: { params: { id: s
                   <h3 className="font-semibold text-secondary">{c.titulo}</h3>
                   <div className="grid gap-3 mt-2">
                     {c.sessoes.map((s) => (
-                      <SessaoRelatorio key={s.id} s={s} pessoas={porSessao.get(s.id) ?? []} />
+                      <SessaoRelatorio key={s.id} s={s} total={contagem.get(s.id) ?? 0} />
                     ))}
                   </div>
                 </div>
@@ -72,31 +66,17 @@ export default async function SessoesRelatorioPage({ params }: { params: { id: s
   )
 }
 
-// Uma sessão no relatório: contagem + quem marcou.
-function SessaoRelatorio({
-  s,
-  pessoas,
-}: {
-  s: Sessao
-  pessoas: { nome: string; email: string }[]
-}) {
+// Uma sessão no relatório: contagem apenas.
+function SessaoRelatorio({ s, total }: { s: Sessao; total: number }) {
   return (
     <div className="card p-4">
       <div className="flex items-center gap-2 flex-wrap">
         <span className="badge badge-inscrito">{rotuloTipo(s)}</span>
         <span className="font-semibold">{s.titulo}</span>
         <span className="text-sm text-muted">
-          {s.hora_inicio} ·{' '}
-          {s.vagas_max != null ? `${pessoas.length} de ${s.vagas_max}` : `${pessoas.length} marcações`}
+          {s.hora_inicio} · {s.vagas_max != null ? `${total} de ${s.vagas_max}` : `${total} marcações`}
         </span>
       </div>
-      {pessoas.length > 0 && (
-        <ul className="text-sm text-muted mt-2 grid gap-0.5">
-          {pessoas.map((p, idx) => (
-            <li key={idx}>{p.nome} — {p.email}</li>
-          ))}
-        </ul>
-      )}
     </div>
   )
 }
