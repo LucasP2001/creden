@@ -25,15 +25,15 @@ export function AbasEvento({
   ]
 
   return (
-    <nav className="border-b border-line -mt-2 mb-8">
-      <div className="flex gap-1">
+    <nav className="border-b border-line -mt-2 mb-8 overflow-x-auto no-scrollbar">
+      <div className="flex gap-1 min-w-max">
         {abas.map((a) => {
           const ativa = a.href === base ? pathname === base : pathname.startsWith(a.href)
           return (
             <Link
               key={a.href}
               href={a.href}
-              className={`px-4 py-3 text-sm font-semibold border-b-2 -mb-px transition-colors ${
+              className={`px-4 py-3 text-sm font-semibold border-b-2 -mb-px whitespace-nowrap transition-colors ${
                 ativa
                   ? 'border-primary text-primary'
                   : 'border-transparent text-muted hover:text-ink'

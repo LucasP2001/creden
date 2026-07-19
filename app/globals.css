@@ -39,6 +39,10 @@
 }
 
 @layer utilities {
+  /* Esconde a barra de rolagem (usado na barra de abas com scroll no mobile). */
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+
   /* Entrada suave de seções/elementos na landing e telas públicas. */
   @keyframes fade-up {
     from { opacity: 0; transform: translateY(16px); }
