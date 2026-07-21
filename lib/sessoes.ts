@@ -71,3 +71,46 @@ export function todasSessoes(dias: Dia[]): Sessao[] {
     ...(d.categorias ?? []).flatMap((c) => c.sessoes ?? []),
   ])
 }
+
+export interface SessaoAchatada {
+  id: string
+  titulo: string
+  data: string // 'YYYY-MM-DD'
+}
+
+/** dd/MM a partir de 'YYYY-MM-DD' (sem timezone — string pura). */
+function diaMes(data: string): string {
+  const [, mes, dia] = data.split('-')
+  return `${dia}/${mes}`
+}
+
+/**
+ * Achata todas as sessões selecionáveis do cronograma (soltas + de categorias),
+ * na ordem em que aparecem. Ignora intervalos (`sem_inscricao`). Quando o mesmo
+ * título aparece em mais de um dia, desambigua com a data (ex.: "Abertura (21/07)").
+ * Fonte única de ordem e rótulo das sessões — usada pelo filtro e pelo export.
+ */
+export function sessoesDoEvento(dias: Dia[]): SessaoAchatada[] {
+  const bruto: { id: string; titulo: string; data: string }[] = []
+  for (const dia of dias) {
+    const todas = [...dia.sessoes, ...dia.categorias.flatMap((c) => c.sessoes)]
+    for (const s of todas) {
+      if (s.sem_inscricao) continue
+      bruto.push({ id: s.id, titulo: s.titulo, data: dia.data })
+    }
+  }
+
+  // Títulos que aparecem em mais de um dia precisam de desambiguação.
+  const diasPorTitulo = new Map<string, Set<string>>()
+  for (const s of bruto) {
+    const set = diasPorTitulo.get(s.titulo) ?? new Set<string>()
+    set.add(s.data)
+    diasPorTitulo.set(s.titulo, set)
+  }
+
+  return bruto.map((s) => ({
+    id: s.id,
+    data: s.data,
+    titulo: (diasPorTitulo.get(s.titulo)?.size ?? 0) > 1 ? `${s.titulo} (${diaMes(s.data)})` : s.titulo,
+  }))
+}

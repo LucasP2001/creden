@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { novaSessao, rotuloTipo, parseDias, novaCategoria, novoDia, todasSessoes } from './sessoes'
+import { novaSessao, rotuloTipo, parseDias, novaCategoria, novoDia, todasSessoes, sessoesDoEvento } from './sessoes'
 import { idsDeSessoes } from './marcacoes'
 import type { Sessao, Dia } from '@/types'
 
@@ -107,5 +107,57 @@ describe('idsDeSessoes', () => {
     ]
     expect(idsDeSessoes(dias)).toEqual(['a', 'b'])
     expect(idsDeSessoes([])).toEqual([])
+  })
+})
+
+describe('sessoesDoEvento', () => {
+  it('achata sessões soltas e de categorias na ordem do cronograma', () => {
+    const dias: Dia[] = [
+      {
+        id: 'd1',
+        data: '2026-07-21',
+        sessoes: [s({ id: 's1', titulo: 'Abertura' })],
+        categorias: [
+          { id: 'c1', titulo: 'Manhã', sessoes: [s({ id: 's2', titulo: 'Workshop A' })] },
+        ],
+      },
+    ]
+    expect(sessoesDoEvento(dias)).toEqual([
+      { id: 's1', titulo: 'Abertura', data: '2026-07-21' },
+      { id: 's2', titulo: 'Workshop A', data: '2026-07-21' },
+    ])
+  })
+
+  it('ignora sessões com sem_inscricao', () => {
+    const dias: Dia[] = [
+      {
+        id: 'd1',
+        data: '2026-07-21',
+        sessoes: [
+          s({ id: 's1', titulo: 'Abertura' }),
+          s({ id: 'pausa', titulo: 'Café', sem_inscricao: true }),
+        ],
+        categorias: [],
+      },
+    ]
+    expect(sessoesDoEvento(dias).map((s) => s.id)).toEqual(['s1'])
+  })
+
+  it('desambigua título repetido entre dias com a data', () => {
+    const dias: Dia[] = [
+      { id: 'd1', data: '2026-07-21', sessoes: [s({ id: 's1', titulo: 'Abertura' })], categorias: [] },
+      { id: 'd2', data: '2026-07-22', sessoes: [s({ id: 's2', titulo: 'Abertura' })], categorias: [] },
+    ]
+    expect(sessoesDoEvento(dias).map((s) => s.titulo)).toEqual([
+      'Abertura (21/07)',
+      'Abertura (22/07)',
+    ])
+  })
+
+  it('não desambigua quando o título é único', () => {
+    const dias: Dia[] = [
+      { id: 'd1', data: '2026-07-21', sessoes: [s({ id: 's1', titulo: 'Abertura' })], categorias: [] },
+    ]
+    expect(sessoesDoEvento(dias)[0].titulo).toBe('Abertura')
   })
 })
