@@ -4,6 +4,7 @@ import { useMemo, useState, useTransition, useRef, useEffect } from 'react'
 import { Badge } from '@/components/ui/Badge'
 import { FUSO_BR, formatarHora } from '@/lib/datas'
 import { CampoExtra, Dia, Inscricao, InscricaoStatus } from '@/types'
+import { SessaoAchatada } from '@/lib/sessoes'
 import {
   marcarPresenca,
   desfazerPresenca,
@@ -46,6 +47,8 @@ interface Props {
   podeCheckin: boolean
   camposExtras: CampoExtra[]
   dias: Dia[]
+  sessoes: SessaoAchatada[]
+  marcacoesPorInscrito: Record<string, string[]>
 }
 
 // Tabela de inscritos com busca, filtro por status e ações por linha.
@@ -57,10 +60,14 @@ export function InscritosClient({
   podeCheckin,
   camposExtras,
   dias,
+  sessoes,
+  marcacoesPorInscrito,
 }: Props) {
   const [termo, setTermo] = useState('')
   // Status selecionados. Vazio = mostra todos.
   const [sel, setSel] = useState<Set<InscricaoStatus>>(new Set())
+  // Sessões selecionadas no filtro. Vazio = não filtra por sessão.
+  const [selSessoes, setSelSessoes] = useState<Set<string>>(new Set())
   const [filtroAberto, setFiltroAberto] = useState(false)
   const [pagina, setPagina] = useState(1)
   const [aviso, setAviso] = useState<{ tipo: 'ok' | 'erro'; texto: string } | null>(null)
@@ -85,19 +92,32 @@ export function InscritosClient({
     })
   }
 
+  function alternarSessao(id: string) {
+    setSelSessoes((prev) => {
+      const proximo = new Set(prev)
+      if (proximo.has(id)) proximo.delete(id)
+      else proximo.add(id)
+      return proximo
+    })
+  }
+
   const lista = useMemo(() => {
     const q = termo.trim().toLowerCase()
     return inscricoes.filter((i) => {
       if (sel.size > 0 && !sel.has(i.status)) return false
       if (q && !i.nome.toLowerCase().includes(q) && !i.email.toLowerCase().includes(q)) return false
+      if (selSessoes.size > 0) {
+        const marcadas = new Set(marcacoesPorInscrito[i.id] ?? [])
+        if (![...selSessoes].every((sid) => marcadas.has(sid))) return false
+      }
       return true
     })
-  }, [inscricoes, termo, sel])
+  }, [inscricoes, termo, sel, selSessoes, marcacoesPorInscrito])
 
   // Busca/filtro mudou → volta pra primeira página (senão fica numa página vazia).
   useEffect(() => {
     setPagina(1)
-  }, [termo, sel])
+  }, [termo, sel, selSessoes])
 
   const totalPaginas = Math.max(1, Math.ceil(lista.length / POR_PAGINA))
   const paginaAtual = Math.min(pagina, totalPaginas)
@@ -126,7 +146,7 @@ export function InscritosClient({
             aria-haspopup="menu"
             aria-expanded={filtroAberto}
             className={`rounded-md px-3.5 py-2.5 text-sm font-medium flex items-center gap-2 border transition-colors ${
-              sel.size > 0
+              sel.size + selSessoes.size > 0
                 ? 'bg-primary text-white border-primary hover:bg-primary-hover'
                 : 'bg-surface text-ink border-line hover:border-primary-light'
             }`}
@@ -141,9 +161,9 @@ export function InscritosClient({
               />
             </svg>
             <span>Filtrar</span>
-            {sel.size > 0 && (
+            {sel.size + selSessoes.size > 0 && (
               <span className="ml-0.5 min-w-[18px] h-[18px] px-1 grid place-items-center rounded-full bg-white/25 text-xs font-semibold tabular-nums">
-                {sel.size}
+                {sel.size + selSessoes.size}
               </span>
             )}
           </button>
@@ -180,11 +200,48 @@ export function InscritosClient({
                 )
               })}
 
-              {sel.size > 0 && (
+              {sessoes.length > 0 && (
+                <>
+                  <div className="h-px bg-line my-1" />
+                  <div className="px-3 pt-1 pb-1.5 text-[11px] uppercase tracking-wide text-muted font-semibold">
+                    Sessões
+                  </div>
+                  {sessoes.map((s) => {
+                    const marcado = selSessoes.has(s.id)
+                    return (
+                      <button
+                        key={s.id}
+                        role="menuitemcheckbox"
+                        aria-checked={marcado}
+                        onClick={() => alternarSessao(s.id)}
+                        className="w-full text-left px-3 py-2.5 text-sm flex items-center gap-3 hover:bg-sand"
+                      >
+                        <span
+                          className={`w-[18px] h-[18px] shrink-0 rounded-[5px] border grid place-items-center transition-colors ${
+                            marcado ? 'bg-primary border-primary text-white' : 'border-line bg-surface'
+                          }`}
+                        >
+                          {marcado && (
+                            <svg className="w-3 h-3" viewBox="0 0 12 12" fill="none" aria-hidden>
+                              <path d="M2.5 6.5l2.5 2.5 4.5-5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                            </svg>
+                          )}
+                        </span>
+                        <span className="flex-1 text-ink">{s.titulo}</span>
+                      </button>
+                    )
+                  })}
+                </>
+              )}
+
+              {sel.size + selSessoes.size > 0 && (
                 <>
                   <div className="h-px bg-line my-1" />
                   <button
-                    onClick={() => setSel(new Set())}
+                    onClick={() => {
+                      setSel(new Set())
+                      setSelSessoes(new Set())
+                    }}
                     className="w-full text-left px-3 py-2 text-sm text-muted hover:bg-sand hover:text-ink"
                   >
                     Limpar filtros

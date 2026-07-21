@@ -4,6 +4,7 @@ import { acessoEvento } from '@/lib/acesso'
 import { InscritosClient } from './InscritosClient'
 import { ButtonLink } from '@/components/ui/Button'
 import { Inscricao, Evento } from '@/types'
+import { sessoesDoEvento } from '@/lib/sessoes'
 
 // Lista de inscritos (/eventos/[id]/inscritos). Server Component.
 // Guarda por acessoEvento — dono ou colaborador (editor/checkin) veem a lista;
@@ -14,13 +15,17 @@ export default async function InscritosPage({ params }: { params: { id: string }
 
   const supabase = await createServerSupabase()
 
-  const [{ data: evento }, { data: inscricoes }] = await Promise.all([
+  const [{ data: evento }, { data: inscricoes }, { data: marcacoes }] = await Promise.all([
     supabase.from('eventos').select('*').eq('id', params.id).single(),
     supabase
       .from('inscricoes')
       .select('*')
       .eq('evento_id', params.id)
       .order('created_at', { ascending: false }),
+    supabase
+      .from('inscricoes_sessoes')
+      .select('inscricao_id, sessao_id')
+      .eq('evento_id', params.id),
   ])
 
   if (!evento) {
@@ -28,6 +33,11 @@ export default async function InscritosPage({ params }: { params: { id: string }
   }
 
   const ev = evento as Evento
+  const sessoes = sessoesDoEvento(ev.dias ?? [])
+  const marcacoesPorInscrito: Record<string, string[]> = {}
+  for (const m of (marcacoes ?? []) as { inscricao_id: string; sessao_id: string }[]) {
+    ;(marcacoesPorInscrito[m.inscricao_id] ??= []).push(m.sessao_id)
+  }
   const lista = (inscricoes ?? []) as Inscricao[]
   const presentes = lista.filter((i) => i.status === 'presente').length
   const aguardando = lista.filter((i) => i.status === 'inscrito').length
@@ -59,6 +69,8 @@ export default async function InscritosPage({ params }: { params: { id: string }
         podeCheckin={podeCheckin}
         camposExtras={ev.campos_extras ?? []}
         dias={ev.dias ?? []}
+        sessoes={sessoes}
+        marcacoesPorInscrito={marcacoesPorInscrito}
       />
     </>
   )
