@@ -134,10 +134,15 @@ export async function motivoBloqueio(email: string): Promise<string | null> {
     const res = await fetch(url, { headers: { 'api-key': apiKey, accept: 'application/json' } })
     if (!res.ok) return null
     const dados = (await res.json()) as {
-      contacts?: { reason?: { message?: string; code?: string } }[]
+      contacts?: { email?: string; reason?: { message?: string; code?: string } }[]
     }
     const c = dados.contacts?.[0]
     if (!c) return null
+    // O Brevo trata ?email= como busca, não filtro exato: quando o e-mail não
+    // está bloqueado, devolve os bloqueios mais recentes da conta. Sem conferir
+    // que o retorno bate com o consultado, qualquer bounce na conta bloquearia
+    // todo convite. Só bloqueia se o e-mail for realmente o mesmo.
+    if (c.email?.toLowerCase() !== email.toLowerCase()) return null
     return c.reason?.message ?? c.reason?.code ?? 'bloqueado'
   } catch {
     return null
