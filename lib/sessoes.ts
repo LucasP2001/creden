@@ -92,8 +92,8 @@ function diaMes(data: string): string {
  */
 export function sessoesDoEvento(dias: Dia[]): SessaoAchatada[] {
   const bruto: { id: string; titulo: string; data: string }[] = []
-  for (const dia of dias) {
-    const todas = [...dia.sessoes, ...dia.categorias.flatMap((c) => c.sessoes)]
+  for (const dia of dias ?? []) {
+    const todas = [...(dia.sessoes ?? []), ...(dia.categorias ?? []).flatMap((c) => c.sessoes ?? [])]
     for (const s of todas) {
       if (s.sem_inscricao) continue
       bruto.push({ id: s.id, titulo: s.titulo, data: dia.data })
