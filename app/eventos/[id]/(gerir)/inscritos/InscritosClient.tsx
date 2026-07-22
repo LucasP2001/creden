@@ -69,8 +69,8 @@ export function InscritosClient({
   // Sessões selecionadas no filtro. Vazio = não filtra por sessão.
   const [selSessoes, setSelSessoes] = useState<Set<string>>(new Set())
   const [filtroAberto, setFiltroAberto] = useState(false)
-  // Sub-lista de sessões dentro do menu de filtro (colapsada por padrão).
-  const [sessoesExpandido, setSessoesExpandido] = useState(false)
+  // Texto de busca do combobox de sessões (filtra a lista enquanto digita).
+  const [buscaSessao, setBuscaSessao] = useState('')
   const [pagina, setPagina] = useState(1)
   const [aviso, setAviso] = useState<{ tipo: 'ok' | 'erro'; texto: string } | null>(null)
   const [adicionar, setAdicionar] = useState(false)
@@ -78,10 +78,11 @@ export function InscritosClient({
   const filtroRef = useRef<HTMLDivElement>(null)
   useClickFora(filtroAberto, filtroRef, () => setFiltroAberto(false))
 
-  // Zera status e sessões de uma vez (usado pelo "Limpar filtros" nos dois menus).
+  // Zera status e sessões de uma vez (usado pelo "Limpar filtros").
   function limparFiltros() {
     setSel(new Set())
     setSelSessoes(new Set())
+    setBuscaSessao('')
   }
 
   // Contagem por status, para o menu de filtro.
@@ -90,6 +91,20 @@ export function InscritosClient({
     for (const i of inscricoes) c[i.status]++
     return c
   }, [inscricoes])
+
+  // Título por id de sessão, para renderizar os chips das selecionadas.
+  const tituloSessao = useMemo(() => {
+    const m = new Map<string, string>()
+    for (const s of sessoes) m.set(s.id, s.titulo)
+    return m
+  }, [sessoes])
+
+  // Sessões que casam com a busca do combobox (case-insensitive).
+  const sessoesFiltradas = useMemo(() => {
+    const q = buscaSessao.trim().toLowerCase()
+    if (!q) return sessoes
+    return sessoes.filter((s) => s.titulo.toLowerCase().includes(q))
+  }, [sessoes, buscaSessao])
 
   function alternar(status: InscricaoStatus) {
     setSel((prev) => {
@@ -211,34 +226,49 @@ export function InscritosClient({
               {sessoes.length > 0 && (
                 <>
                   <div className="h-px bg-line my-1" />
-                  {/* Accordion: "Sessões" colapsado por padrão; expande a lista multi-seleção. */}
-                  <button
-                    onClick={() => setSessoesExpandido((v) => !v)}
-                    aria-expanded={sessoesExpandido}
-                    className="w-full text-left px-3 py-2.5 text-sm flex items-center gap-2 hover:bg-sand"
-                  >
-                    <span className="flex-1 text-[11px] uppercase tracking-wide text-muted font-semibold">
-                      Sessões
-                    </span>
-                    {selSessoes.size > 0 && (
-                      <span className="min-w-[18px] h-[18px] px-1 grid place-items-center rounded-full bg-primary text-white text-xs font-semibold tabular-nums">
-                        {selSessoes.size}
-                      </span>
-                    )}
-                    {/* chevron */}
-                    <svg
-                      className={`w-4 h-4 text-muted transition-transform ${sessoesExpandido ? 'rotate-180' : ''}`}
-                      viewBox="0 0 20 20"
-                      fill="none"
-                      aria-hidden
-                    >
-                      <path d="M5 8l5 5 5-5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                  </button>
+                  {/* Combobox de sessões: chips das escolhidas + busca + lista filtrada. */}
+                  <div className="px-3 pt-1 pb-1.5 text-[11px] uppercase tracking-wide text-muted font-semibold">
+                    Sessões
+                  </div>
 
-                  {sessoesExpandido && (
-                    <div className="max-h-[50vh] overflow-y-auto">
-                      {sessoes.map((s) => {
+                  {/* Chips das sessões selecionadas (truncam; tooltip mostra completo). */}
+                  {selSessoes.size > 0 && (
+                    <div className="px-3 pb-2 flex flex-wrap gap-1.5">
+                      {[...selSessoes].map((id) => (
+                        <span
+                          key={id}
+                          title={tituloSessao.get(id) ?? ''}
+                          className="inline-flex items-center gap-1 max-w-full rounded-full bg-primary/10 text-primary text-xs font-medium pl-2.5 pr-1 py-1"
+                        >
+                          <span className="truncate max-w-[160px]">{tituloSessao.get(id) ?? id}</span>
+                          <button
+                            onClick={() => alternarSessao(id)}
+                            className="shrink-0 w-4 h-4 grid place-items-center rounded-full hover:bg-primary/20"
+                            aria-label={`Remover ${tituloSessao.get(id) ?? ''}`}
+                          >
+                            ✕
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Campo de busca sempre visível. */}
+                  <div className="px-3 pb-2">
+                    <input
+                      value={buscaSessao}
+                      onChange={(e) => setBuscaSessao(e.target.value)}
+                      placeholder="Buscar sessão…"
+                      className="input w-full text-sm py-2"
+                    />
+                  </div>
+
+                  {/* Resultados: lista filtrada com scroll. */}
+                  <div className="max-h-[40vh] overflow-y-auto">
+                    {sessoesFiltradas.length === 0 ? (
+                      <div className="px-3 py-2 text-sm text-muted">Nenhuma sessão encontrada.</div>
+                    ) : (
+                      sessoesFiltradas.map((s) => {
                         const marcado = selSessoes.has(s.id)
                         return (
                           <button
@@ -246,10 +276,11 @@ export function InscritosClient({
                             role="menuitemcheckbox"
                             aria-checked={marcado}
                             onClick={() => alternarSessao(s.id)}
-                            className="w-full text-left px-3 py-2.5 text-sm flex items-start gap-3 hover:bg-sand"
+                            title={s.titulo}
+                            className="w-full text-left px-3 py-2.5 text-sm flex items-center gap-3 hover:bg-sand"
                           >
                             <span
-                              className={`mt-0.5 w-[18px] h-[18px] shrink-0 rounded-[5px] border grid place-items-center transition-colors ${
+                              className={`w-[18px] h-[18px] shrink-0 rounded-[5px] border grid place-items-center transition-colors ${
                                 marcado ? 'bg-primary border-primary text-white' : 'border-line bg-surface'
                               }`}
                             >
@@ -259,14 +290,14 @@ export function InscritosClient({
                                 </svg>
                               )}
                             </span>
-                            <span className={`flex-1 leading-snug ${marcado ? 'text-ink font-medium' : 'text-ink'}`}>
+                            <span className={`flex-1 truncate ${marcado ? 'text-ink font-medium' : 'text-ink'}`}>
                               {s.titulo}
                             </span>
                           </button>
                         )
-                      })}
-                    </div>
-                  )}
+                      })
+                    )}
+                  </div>
                 </>
               )}
 
