@@ -51,7 +51,7 @@ export default async function InscritosPage({ params }: { params: { id: string }
     <>
       <div className="flex items-center justify-end gap-3 mb-6 flex-wrap">
         <ButtonLink variant="secondary" href={`/eventos/${ev.id}/inscritos/export`}>
-          ⬇ Exportar CSV
+          ⬇ Exportar XLSX
         </ButtonLink>
       </div>
 
