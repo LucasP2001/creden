@@ -69,15 +69,14 @@ export function InscritosClient({
   // Sessões selecionadas no filtro. Vazio = não filtra por sessão.
   const [selSessoes, setSelSessoes] = useState<Set<string>>(new Set())
   const [filtroAberto, setFiltroAberto] = useState(false)
-  const [sessoesAberto, setSessoesAberto] = useState(false)
+  // Sub-lista de sessões dentro do menu de filtro (colapsada por padrão).
+  const [sessoesExpandido, setSessoesExpandido] = useState(false)
   const [pagina, setPagina] = useState(1)
   const [aviso, setAviso] = useState<{ tipo: 'ok' | 'erro'; texto: string } | null>(null)
   const [adicionar, setAdicionar] = useState(false)
   const [detalhe, setDetalhe] = useState<Inscricao | null>(null)
   const filtroRef = useRef<HTMLDivElement>(null)
-  const sessoesRef = useRef<HTMLDivElement>(null)
   useClickFora(filtroAberto, filtroRef, () => setFiltroAberto(false))
-  useClickFora(sessoesAberto, sessoesRef, () => setSessoesAberto(false))
 
   // Zera status e sessões de uma vez (usado pelo "Limpar filtros" nos dois menus).
   function limparFiltros() {
@@ -155,7 +154,7 @@ export function InscritosClient({
             aria-haspopup="menu"
             aria-expanded={filtroAberto}
             className={`rounded-md px-3.5 py-2.5 text-sm font-medium flex items-center gap-2 border transition-colors ${
-              sel.size > 0
+              sel.size + selSessoes.size > 0
                 ? 'bg-primary text-white border-primary hover:bg-primary-hover'
                 : 'bg-surface text-ink border-line hover:border-primary-light'
             }`}
@@ -170,9 +169,9 @@ export function InscritosClient({
               />
             </svg>
             <span>Filtrar</span>
-            {sel.size > 0 && (
+            {sel.size + selSessoes.size > 0 && (
               <span className="ml-0.5 min-w-[18px] h-[18px] px-1 grid place-items-center rounded-full bg-white/25 text-xs font-semibold tabular-nums">
-                {sel.size}
+                {sel.size + selSessoes.size}
               </span>
             )}
           </button>
@@ -180,7 +179,7 @@ export function InscritosClient({
           {filtroAberto && (
             <div
               role="menu"
-              className="absolute right-0 top-12 z-20 w-56 bg-surface border border-line rounded-lg shadow-lg overflow-hidden py-1.5"
+              className="absolute right-0 top-12 z-20 w-72 max-w-[calc(100vw-2rem)] bg-surface border border-line rounded-lg shadow-lg py-1.5"
             >
               {STATUS_OPCOES.map((f) => {
                 const marcado = sel.has(f.chave)
@@ -209,6 +208,68 @@ export function InscritosClient({
                 )
               })}
 
+              {sessoes.length > 0 && (
+                <>
+                  <div className="h-px bg-line my-1" />
+                  {/* Accordion: "Sessões" colapsado por padrão; expande a lista multi-seleção. */}
+                  <button
+                    onClick={() => setSessoesExpandido((v) => !v)}
+                    aria-expanded={sessoesExpandido}
+                    className="w-full text-left px-3 py-2.5 text-sm flex items-center gap-2 hover:bg-sand"
+                  >
+                    <span className="flex-1 text-[11px] uppercase tracking-wide text-muted font-semibold">
+                      Sessões
+                    </span>
+                    {selSessoes.size > 0 && (
+                      <span className="min-w-[18px] h-[18px] px-1 grid place-items-center rounded-full bg-primary text-white text-xs font-semibold tabular-nums">
+                        {selSessoes.size}
+                      </span>
+                    )}
+                    {/* chevron */}
+                    <svg
+                      className={`w-4 h-4 text-muted transition-transform ${sessoesExpandido ? 'rotate-180' : ''}`}
+                      viewBox="0 0 20 20"
+                      fill="none"
+                      aria-hidden
+                    >
+                      <path d="M5 8l5 5 5-5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  </button>
+
+                  {sessoesExpandido && (
+                    <div className="max-h-[50vh] overflow-y-auto">
+                      {sessoes.map((s) => {
+                        const marcado = selSessoes.has(s.id)
+                        return (
+                          <button
+                            key={s.id}
+                            role="menuitemcheckbox"
+                            aria-checked={marcado}
+                            onClick={() => alternarSessao(s.id)}
+                            className="w-full text-left px-3 py-2.5 text-sm flex items-start gap-3 hover:bg-sand"
+                          >
+                            <span
+                              className={`mt-0.5 w-[18px] h-[18px] shrink-0 rounded-[5px] border grid place-items-center transition-colors ${
+                                marcado ? 'bg-primary border-primary text-white' : 'border-line bg-surface'
+                              }`}
+                            >
+                              {marcado && (
+                                <svg className="w-3 h-3" viewBox="0 0 12 12" fill="none" aria-hidden>
+                                  <path d="M2.5 6.5l2.5 2.5 4.5-5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                                </svg>
+                              )}
+                            </span>
+                            <span className={`flex-1 leading-snug ${marcado ? 'text-ink font-medium' : 'text-ink'}`}>
+                              {s.titulo}
+                            </span>
+                          </button>
+                        )
+                      })}
+                    </div>
+                  )}
+                </>
+              )}
+
               {sel.size + selSessoes.size > 0 && (
                 <>
                   <div className="h-px bg-line my-1" />
@@ -223,82 +284,6 @@ export function InscritosClient({
             </div>
           )}
         </div>
-
-        {sessoes.length > 0 && (
-          <div ref={sessoesRef} className="relative shrink-0">
-            <button
-              onClick={() => setSessoesAberto((v) => !v)}
-              aria-haspopup="menu"
-              aria-expanded={sessoesAberto}
-              className={`rounded-md px-3.5 py-2.5 text-sm font-medium flex items-center gap-2 border transition-colors ${
-                selSessoes.size > 0
-                  ? 'bg-primary text-white border-primary hover:bg-primary-hover'
-                  : 'bg-surface text-ink border-line hover:border-primary-light'
-              }`}
-            >
-              {/* ícone de calendário/grade */}
-              <svg className="w-4 h-4" viewBox="0 0 20 20" fill="none" aria-hidden>
-                <rect x="3" y="4" width="14" height="13" rx="2" stroke="currentColor" strokeWidth="1.5" />
-                <path d="M3 8h14M7 2.5v3M13 2.5v3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-              </svg>
-              <span>Sessões</span>
-              {selSessoes.size > 0 && (
-                <span className="ml-0.5 min-w-[18px] h-[18px] px-1 grid place-items-center rounded-full bg-white/25 text-xs font-semibold tabular-nums">
-                  {selSessoes.size}
-                </span>
-              )}
-            </button>
-
-            {sessoesAberto && (
-              <div
-                role="menu"
-                className="absolute right-0 top-12 z-20 w-80 max-w-[calc(100vw-2rem)] bg-surface border border-line rounded-lg shadow-lg py-1.5"
-              >
-                <div className="max-h-[60vh] overflow-y-auto">
-                  {sessoes.map((s) => {
-                    const marcado = selSessoes.has(s.id)
-                    return (
-                      <button
-                        key={s.id}
-                        role="menuitemcheckbox"
-                        aria-checked={marcado}
-                        onClick={() => alternarSessao(s.id)}
-                        className="w-full text-left px-3 py-2.5 text-sm flex items-start gap-3 hover:bg-sand"
-                      >
-                        <span
-                          className={`mt-0.5 w-[18px] h-[18px] shrink-0 rounded-[5px] border grid place-items-center transition-colors ${
-                            marcado ? 'bg-primary border-primary text-white' : 'border-line bg-surface'
-                          }`}
-                        >
-                          {marcado && (
-                            <svg className="w-3 h-3" viewBox="0 0 12 12" fill="none" aria-hidden>
-                              <path d="M2.5 6.5l2.5 2.5 4.5-5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-                            </svg>
-                          )}
-                        </span>
-                        <span className={`flex-1 leading-snug ${marcado ? 'text-ink font-medium' : 'text-ink'}`}>
-                          {s.titulo}
-                        </span>
-                      </button>
-                    )
-                  })}
-                </div>
-
-                {sel.size + selSessoes.size > 0 && (
-                  <>
-                    <div className="h-px bg-line my-1" />
-                    <button
-                      onClick={limparFiltros}
-                      className="w-full text-left px-3 py-2 text-sm text-muted hover:bg-sand hover:text-ink"
-                    >
-                      Limpar filtros
-                    </button>
-                  </>
-                )}
-              </div>
-            )}
-          </div>
-        )}
 
         {podeEditar && (
           <button
