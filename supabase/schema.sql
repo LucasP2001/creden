@@ -160,13 +160,12 @@ drop policy if exists "inscricoes_sessoes: insert publico" on public.inscricoes_
 create policy "inscricoes_sessoes: insert publico" on public.inscricoes_sessoes
   for insert to anon, authenticated with check (true);
 
--- Leitura so pelo dono do evento (relatorio)
+-- Leitura por quem pode ver o evento: dono OU colaborador ativo (relatorio,
+-- filtro por sessao, export XLSX). Alinha com eventos/inscricoes (migration 009).
 drop policy if exists "inscricoes_sessoes: dono le" on public.inscricoes_sessoes;
-create policy "inscricoes_sessoes: dono le" on public.inscricoes_sessoes
-  for select using (
-    exists (select 1 from public.eventos e
-            where e.id = inscricoes_sessoes.evento_id and e.user_id = auth.uid())
-  );
+drop policy if exists "inscricoes_sessoes: organizador le" on public.inscricoes_sessoes;
+create policy "inscricoes_sessoes: organizador le" on public.inscricoes_sessoes
+  for select using (public.pode_ver_evento(evento_id));
 
 -- Delete so pelo dono (limpeza; participante edita via service_role por token)
 drop policy if exists "inscricoes_sessoes: dono apaga" on public.inscricoes_sessoes;
